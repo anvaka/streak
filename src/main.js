@@ -14,7 +14,7 @@ const routes = [
     component: App,
     children: [
       { path: '', component: ListFiles },
-      { path: 'streak/:id', component: Streak },
+      { path: 'streak/:sheetId', component: Streak },
       { path: 'create-streak', component: CreateStreak }
     ]
   }

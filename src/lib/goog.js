@@ -131,6 +131,19 @@ export function getSheetTitle(spreadsheetId, callback) {
   })
 }
 
+export function logStreak(spreadsheetId, note) {
+  note = note || ''
+
+  const now = (new Date()).toISOString()
+
+  return gapi.client.sheets.spreadsheets.values.append({
+    spreadsheetId,
+    valueInputOption: 'USER_ENTERED',
+    range: 'A2:B',
+    values: [[now, note]],
+  }).then(id, checkError)
+}
+
 function handleAuthResult(authResult) {
   appModel.authenticated = authResult && !authResult.error
 
@@ -185,3 +198,5 @@ function checkError(response) {
 
   return response
 }
+
+function id(x) { return x }
