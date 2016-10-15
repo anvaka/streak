@@ -76,13 +76,16 @@ export default {
     logIt() {
       this.saveState = 'saving'
       const spreadsheetId = this.$route.params.sheetId
+      const {note} = this
 
-      logStreak(spreadsheetId, this.note)
+      this.note = ''
+
+      logStreak(spreadsheetId, note)
         .then(() => {
-          this.note = ''
           this.saveState = 'done'
           this.error = ''
         }, response => {
+          this.note = note // restore previous note.
           this.saveState = 'error'
           this.error = getError(response)
         })
