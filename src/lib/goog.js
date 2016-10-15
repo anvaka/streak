@@ -24,6 +24,9 @@ const SCOPES = [
 // See getSheetTitle() method
 const sheetIdToTitle = new Map()
 
+// call these when gapi is initialized
+const pendingCallbacks = []
+
 let apiInitialized = false
 
 /**
@@ -121,14 +124,22 @@ export function getSheetTitle(spreadsheetId, callback) {
     return
   }
 
-  gapi.client.sheets.spreadsheets.get({
-    spreadsheetId,
-    fields: 'properties/title'
-  }).then(response => {
-    const title = get(response, 'result.properties.title')
-    sheetIdToTitle.set(spreadsheetId, title)
-    callback(title)
-  })
+  if (appModel.sheetsAPIReady) {
+    fetchTitle()
+  } else {
+    pendingCallbacks.push(fetchTitle)
+  }
+
+  function fetchTitle() {
+    gapi.client.sheets.spreadsheets.get({
+      spreadsheetId,
+      fields: 'properties/title'
+    }).then(response => {
+      const title = get(response, 'result.properties.title')
+      sheetIdToTitle.set(spreadsheetId, title)
+      callback(title)
+    })
+  }
 }
 
 export function logStreak(spreadsheetId, note) {
@@ -157,6 +168,11 @@ function loadAPIs() {
 
 function markGapiReady() {
   appModel.sheetsAPIReady = true
+  flushPendingCallbacks()
+}
+
+function flushPendingCallbacks() {
+  pendingCallbacks.forEach(cb => cb())
 }
 
 function listTimeSheetFiles() {

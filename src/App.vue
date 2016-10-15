@@ -21,7 +21,7 @@
         <h3>Checking authentication...<h3>
       </div>
       <div v-if='apiLoaded'>
-        <router-view class='view' keep-alive></router-view>
+        <router-view class='view'></router-view>
       </div>
       <div v-if='needsAuthentication'>
         <h1>Welcome!</h1>
