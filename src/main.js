@@ -4,7 +4,6 @@ import App from './App.vue'
 import ListFiles from './ListFiles.vue'
 import CreateStreak from './CreateStreak.vue'
 import Streak from './Streak.vue'
-import {initializeGoogleApi} from './lib/goog.js'
 
 Vue.use(VueRouter)
 
@@ -28,4 +27,3 @@ new Vue({
   router
 }).$mount('#app')
 
-initializeGoogleApi()

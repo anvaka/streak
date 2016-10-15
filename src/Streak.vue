@@ -47,15 +47,6 @@ export default {
       error: ''
     }
   },
-  beforeRouteEnter(from, to, next) {
-    // TODO: is this reliable?
-    const sheetId = from.params.sheetId
-    next(vm => {
-      getSheetTitle(sheetId, title => {
-        appModel.pageName = title
-      })
-    })
-  },
 
   computed: {
     /**
@@ -67,7 +58,21 @@ export default {
     }
   },
 
+  created () {
+    this.fetchTitle()
+  },
+
+  watch: {
+    // call again the method if the route changes
+    '$route': 'fetchTitle'
+  },
+
   methods: {
+    fetchTitle() {
+      getSheetTitle(this.$route.params.sheetId, title => {
+        appModel.pageName = title
+      })
+    },
     logIt() {
       this.saveState = 'saving'
       const spreadsheetId = this.$route.params.sheetId

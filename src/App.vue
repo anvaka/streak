@@ -37,15 +37,20 @@
 
 <script>
 import appModel from './lib/appModel.js'
-import {signIn, signOut} from './lib/goog.js'
+import {signIn, signOut, initializeGoogleApi} from './lib/goog.js'
 
 export default {
   ready() {
     // This is just something required by materialize-css to let side navigation work:
     $('.button-collapse').sideNav()
   },
+
   data() {
     return appModel
+  },
+
+  created() {
+    initializeGoogleApi()
   },
 
   methods: {
@@ -55,7 +60,7 @@ export default {
     onSignOutClick() {
       // TODO: should I also navigate to root path?
       signOut(() => window.location.reload())
-    }
+    },
   },
   // The signed in state is a little bit tricky, since we want to show loader
   // only when visitor is not authenticated.
