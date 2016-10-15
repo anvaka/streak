@@ -2,6 +2,7 @@
  * The file provides a wrapper on top of Google API.
  */
 import appModel from './appModel.js'
+import {getNow} from './dateUtils.js'
 
 // This is my API client id. It's whitelisted only for the following domains
 //
@@ -134,7 +135,7 @@ export function getSheetTitle(spreadsheetId, callback) {
 export function logStreak(spreadsheetId, note) {
   note = note || ''
 
-  const now = (new Date()).toISOString()
+  const now = getNow()
 
   return gapi.client.sheets.spreadsheets.values.append({
     spreadsheetId,
