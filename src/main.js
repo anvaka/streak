@@ -1,29 +1,13 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import App from './App.vue'
-import ListFiles from './ListFiles.vue'
-import CreateStreak from './CreateStreak.vue'
-import Streak from './Streak.vue'
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue';
+import App from './App.vue';
+import router from './router';
 
-Vue.use(VueRouter)
-
-const routes = [
-  {
-    path: '/',
-    component: App,
-    children: [
-      { path: '', component: ListFiles },
-      { path: 'streak/:sheetId', component: Streak },
-      { path: 'create-streak', component: CreateStreak }
-    ]
-  }
-]
-
-const router = new VueRouter({
-  routes
-})
-
+/* eslint-disable no-new */
 new Vue({
-  router
-}).$mount('#app')
-
+  el: '#app',
+  router,
+  template: '<App/>',
+  components: { App },
+});
