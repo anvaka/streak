@@ -2,15 +2,25 @@ const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/r
 const CLIENT_ID = '808734092016-u5ss25nmh0j9o5ponusu5l3tnqb7vl9g.apps.googleusercontent.com';
 const SCOPES = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.file'].join(' ');
 
-const user = {
-  signedIn: false
+const signInStatus = {
+  // TODO: How to handle error here?
+  error: null,
+  loading: true,
+
+  // need to have both, because we can be in the 'error/loading' states.
+  // Maybe I should change this to enum
+  signedIn: false,
+  signedOut: false,
 };
 
 export default {
-  checkStatus
+  checkStatus,
+  signInStatus
 };
 
 function checkStatus() {
+  signInStatus.loading = true;
+
   return new Promise((resolve/* , reject */) => {
     // TODO: How to handle error here?
     gapi.load('client:auth2', initClient);
@@ -24,14 +34,37 @@ function checkStatus() {
         // Listen for sign-in state changes.
         gapi.auth2.getAuthInstance()
           .isSignedIn
-          .listen((isSignedIn) => (user.signedIn = isSignedIn));
+          .listen(updateSignInStatus);
 
         const initialSignInState = gapi.auth2.getAuthInstance().isSignedIn.get();
-        user.profile = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile();
-        user.signedIn = initialSignInState;
+        updateSignInStatus(initialSignInState);
 
-        resolve(user);
+        resolve(signInStatus);
       });
     }
   });
+}
+
+function updateSignInStatus(isSignedIn) {
+  signInStatus.loading = false;
+
+  if (isSignedIn) {
+    signInStatus.profile = extractProfile();
+    signInStatus.signedIn = true;
+    signInStatus.signedOut = false;
+  } else {
+    signInStatus.profile = null;
+    signInStatus.signedIn = false;
+    signInStatus.signedOut = true;
+  }
+}
+
+function extractProfile() {
+  const basicProfile = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile();
+
+  return {
+    image: basicProfile.getImageUrl(),
+    name: basicProfile.getName(),
+    email: basicProfile.getEmail()
+  };
 }

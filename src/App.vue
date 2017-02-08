@@ -7,37 +7,33 @@
       <p>Something is wrong. Try refreshing the page. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
       <pre>{{error}}</pre>
     </div>
-    <div v-if='authStatus.signedIn'>
+    <div v-if='signedIn'>
       <router-view></router-view>
+    </div>
+    <div v-if='signedOut'>
+      <welcome />
     </div>
   </div>
 </template>
 
 <script>
 import auth from './lib/auth';
+import Welcome from './components/Welcome.vue';
 
 export default {
   name: 'app',
   data() {
-    return {
-      loading: true,
-      error: null,
-      authStatus: {
-        signedIn: false
-      }
-    };
+    return auth.signInStatus;
   },
+  components: {
+    Welcome
+  },
+
   created () {
     this.loading = true;
     this.error = null;
 
-    auth.checkStatus().then((authStatus) => {
-      this.authStatus.signedIn = !!authStatus.profile;
-      this.loading = false;
-    }).catch(err => {
-      this.error = err;
-      this.loading = false;
-    });
+    auth.checkStatus();
   }
 
 };
