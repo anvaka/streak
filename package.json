@@ -13,7 +13,7 @@
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
   },
   "dependencies": {
-    "muicss": "^0.9.9-rc2",
+    "keen-ui": "^1.0.0",
     "vue": "^2.1.10",
     "vue-router": "^2.2.0"
   },

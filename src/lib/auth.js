@@ -15,8 +15,13 @@ const signInStatus = {
 
 export default {
   checkStatus,
-  signInStatus
+  signInStatus,
+  signOut,
 };
+
+function signOut() {
+  gapi.auth2.getAuthInstance().signOut();
+}
 
 function checkStatus() {
   signInStatus.loading = true;
