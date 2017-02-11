@@ -7,7 +7,7 @@
       <p>Something is wrong. Try refreshing the page. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
       <pre>{{error}}</pre>
     </div>
-    <div v-if='signedIn'>
+    <div v-if='signedIn' class='router-container'>
       <router-view></router-view>
     </div>
     <div v-if='signedOut'>
@@ -45,5 +45,12 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.router-container {
+  width: 100%;
+  height: 100%;
 }
 </style>

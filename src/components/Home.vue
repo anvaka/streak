@@ -1,13 +1,13 @@
 <template>
   <div class='home'>
-    <ui-toolbar text-color="white" brand='Streak' title='Projects' type='colored'>
+    <ui-toolbar brand='Streak' type='clear' :raised='false' :removeBrandDivider='true'>
       <div slot='icon'>
       </div>
       <div slot='actions'>
         <user-info :profile='profile' @signOut='signOut'></user-info>
       </div>
-
     </ui-toolbar>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -17,7 +17,7 @@ import auth from '../lib/auth';
 import UserInfo from './UserInfo.vue';
 
 export default {
-  name: 'hello',
+  name: 'Home',
 
   data() {
     return {
@@ -40,6 +40,10 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.home {
+  height: 100%;
+  width: 100%;
+}
 h1, h2 {
   font-weight: normal;
   margin: 0;
