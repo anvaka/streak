@@ -1,6 +1,6 @@
 <template>
   <div class='user'>
-      <ui-button color='primary' type='secondary' has-dropdown ref='profileButton'>
+      <ui-button color='default' type='secondary' has-dropdown ref='profileButton'>
           <ui-menu contain-focus has-icons has-secondary-text slot="dropdown" :options="profileOptions"
                   @select='onMenuClick'
                   @close="$refs.profileButton.closeDropdown()">

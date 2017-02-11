@@ -39,7 +39,8 @@ export default {
 };
 </script>
 
-<style>
+<style lang='stylus'>
+secondary-text-color = rgba(black, 0.54);
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -52,5 +53,8 @@ export default {
 .router-container {
   width: 100%;
   height: 100%;
+}
+.secondary {
+  color: secondary-text-color;
 }
 </style>

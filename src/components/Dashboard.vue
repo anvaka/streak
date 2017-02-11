@@ -2,11 +2,23 @@
   <div class='dashboard'>
     <div class='projects-list'>
       <div class='projects-container'>
-        <div class='projects-header'>
-          <h3>Your Projects</h3>
-          <ui-button color='green' type='secondary'>
-            New Project
-          </ui-button>
+        <div v-if='hasProjects'>
+          <div class='projects-header'>
+            <h3 class='secondary'>Your Projects</h3>
+            <ui-button color='green' type='secondary'> New Project </ui-button>
+          </div>
+          <div class='project-list'>
+            <router-link v-for='project in dashboard.projects' :to='{name: "project-details", params: {id: project.id}}'>{{project.name}}</router-link>
+          </div>
+        </div>
+
+        <div v-if='noProjects'>
+          You don't have any projects yet. <router-link to='new-project'>Create a new project</router-link>
+        </div>
+
+        <div v-if='dashboard.loading'>
+            <ui-icon-button icon="refresh" :loading="dashboard.loading" type='secondary'></ui-icon-button>
+            Loading your projects...
         </div>
       </div>
     </div>
@@ -15,22 +27,36 @@
   </div>
 </template>
 <script>
-import { UiButton } from 'keen-ui';
+import { UiButton, UiIconButton } from 'keen-ui';
+import dashboard from '../lib/dashboard';
 
 export default {
   name: 'Dashboard',
   data() {
-    return {};
+    return {
+      dashboard
+    };
+  },
+  created () {
+    dashboard.loadProjects();
+  },
+  computed: {
+    hasProjects() {
+      return !dashboard.loading && dashboard.projects.length > 0;
+    },
+    noProjects() {
+      return !dashboard.loading && dashboard.projects.length === 0;
+    }
   },
   components: {
     UiButton,
+    UiIconButton,
   },
 };
 </script>
 
 <style scoped lang='stylus'>
 sidebar-width = 300px;
-secondary-text-color = rgba(black, 0.54);
 
 .dashboard {
   position: relative;
@@ -60,7 +86,6 @@ secondary-text-color = rgba(black, 0.54);
   align-items: center;
   h3 {
     margin: 0;
-    color: secondary-text-color;
     font-weight: normal;
   }
 }
