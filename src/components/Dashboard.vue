@@ -5,7 +5,7 @@
         <div v-if='hasProjects'>
           <div class='projects-header'>
             <h3 class='secondary'>Your Projects</h3>
-            <ui-button color='green' type='secondary'> New Project </ui-button>
+            <router-link to='new-project'>Start new project</router-link>
           </div>
           <div class='project-list'>
             <router-link v-for='project in dashboard.projects' :to='{name: "project-details", params: {id: project.id}}'>{{project.name}}</router-link>
@@ -13,7 +13,7 @@
         </div>
 
         <div v-if='noProjects'>
-          You don't have any projects yet. <router-link to='new-project'>Create a new project</router-link>
+          You don't have any projects yet. <router-link to='new-project'>Start a new project</router-link>
         </div>
 
         <div v-if='dashboard.loading'>
