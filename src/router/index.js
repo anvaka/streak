@@ -3,7 +3,7 @@ import Router from 'vue-router';
 import Home from '../components/Home.vue';
 import Dashboard from '../components/Dashboard.vue';
 import NewProject from '../components/NewProject.vue';
-import ProjectDetails from '../components/ProjectDetails.vue';
+// import ProjectDetails from '../components/ProjectDetails.vue';
 
 Vue.use(Router);
 
@@ -21,9 +21,9 @@ export default new Router({
       name: 'new-project',
       component: NewProject
     }, {
-      path: '/project/:id',
+      path: '/project/:projectId',
       name: 'project-details',
-      component: ProjectDetails,
+      component: Dashboard,
       props: true
     }]
   }],

@@ -40,7 +40,8 @@ export default {
 </script>
 
 <style lang='stylus'>
-secondary-text-color = rgba(black, 0.54);
+@import './styles/variables.styl'
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

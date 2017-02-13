@@ -5,10 +5,15 @@
         <div v-if='hasProjects'>
           <div class='projects-header'>
             <h3 class='secondary'>Your Projects</h3>
-            <router-link to='new-project'>Start new project</router-link>
           </div>
           <div class='project-list'>
-            <router-link v-for='project in dashboard.projects' :to='{name: "project-details", params: {id: project.id}}'>{{project.name}}</router-link>
+            <router-link class='project-link'
+              v-for='project in dashboard.projects' :to='{name: "project-details", params: {projectId: project.id}}'
+              :class='{ current: projectId === project.id }'
+              >{{project.name}}</router-link>
+          </div>
+          <div>
+            <router-link to='new-project'>Start new project</router-link>
           </div>
         </div>
 
@@ -23,6 +28,7 @@
       </div>
     </div>
     <div class='projects-overview'>
+      {{projectId}}
     </div>
   </div>
 </template>
@@ -32,6 +38,7 @@ import dashboard from '../lib/dashboard';
 
 export default {
   name: 'Dashboard',
+  props: ['projectId'],
   data() {
     return {
       dashboard
@@ -56,7 +63,7 @@ export default {
 </script>
 
 <style scoped lang='stylus'>
-sidebar-width = 300px;
+@import '../styles/variables.styl'
 
 .dashboard {
   position: relative;
@@ -72,9 +79,24 @@ sidebar-width = 300px;
   bottom: 0;
 }
 
+.project-link {
+  text-decoration: none;
+  color: secondary-text-color;
+  line-height: 24px;
+}
+
+.project-link.current {
+  color: black;
+  font-weight: bold;
+}
+
 .projects-list {
   position: absolute;
   width: sidebar-width;
+}
+.project-list {
+  display: flex;
+  flex-direction: column;
 }
 
 .projects-container {

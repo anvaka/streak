@@ -10,7 +10,6 @@ export default dashboard;
 function loadProjects() {
   gapi.client.drive.files.list({
     q: "trashed = false and properties has { key='isAnvakaStreakFolder' and value='true' }",
-    // q: "properties has { key='isAnvakaStreakFolder' and value='true' }",
     pageSize: 10,
     fields: 'nextPageToken, files(id, name)'
   }).then((response) => {
