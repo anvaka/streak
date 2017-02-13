@@ -21,7 +21,7 @@ export default new Router({
       name: 'new-project',
       component: NewProject
     }, {
-      path: '/project/:projectId',
+      path: '/:projectId',
       name: 'project-details',
       component: Dashboard,
       props: true
