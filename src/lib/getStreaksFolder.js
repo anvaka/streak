@@ -2,7 +2,11 @@ export default getStreaksFolder;
 
 const ROOT_FOLDER_NAME = 'Streaks';
 const ROOT_FOLDER_MARKER = 'isAnvakaStreakFolderRoot';
+
+// Stores identifier of a folder that hosts all streak projects
 let parentStreakFolder;
+
+// Poor man's protection against race conditions. This might be gone.
 let isRunning = false;
 
 /**
@@ -21,21 +25,19 @@ function getStreaksFolder() {
     q: `trashed = false and properties has { key='${ROOT_FOLDER_MARKER}' and value='true' }`,
     pageSize: 1,
     fields: 'files(id, name)'
-  }).then((response) => {
-    const files = response.result.files;
-    if (files.length === 0) {
-      return makeNewRootFolder().then(folderId => {
-        parentStreakFolder = folderId;
-        isRunning = false;
-        return folderId;
-      });
-    }
+  }).then(processRootFolder);
+}
 
-    isRunning = false;
-    parentStreakFolder = files[0].id;
+function processRootFolder(response) {
+  const files = response.result.files;
+  if (files.length === 0) {
+    return makeNewRootFolder();
+  }
 
-    return parentStreakFolder;
-  });
+  isRunning = false;
+  parentStreakFolder = files[0].id;
+
+  return parentStreakFolder;
 }
 
 function makeNewRootFolder() {
@@ -51,5 +53,10 @@ function makeNewRootFolder() {
   return gapi.client.drive.files.create({
     resource: fileMetadata,
     fields: 'id'
-  }).then(response => response.result.id);
+  }).then(response => {
+    isRunning = false;
+
+    parentStreakFolder = response.result.id;
+    return parentStreakFolder;
+  });
 }
