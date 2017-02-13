@@ -17,16 +17,17 @@
           </div>
         </div>
 
-        <div v-if='noProjects'>
-          You don't have any projects yet. <router-link to='new-project'>Start a new project</router-link>
-        </div>
-
         <div v-if='dashboard.loading'>
             <ui-icon-button icon="refresh" :loading="dashboard.loading" type='secondary'></ui-icon-button>
             Loading your projects...
         </div>
       </div>
     </div>
+
+    <div v-if='noProjects'>
+      You don't have any projects yet. <router-link to='new-project'>Start a new project</router-link>
+    </div>
+
     <div class='projects-overview'>
       {{projectId}}
     </div>

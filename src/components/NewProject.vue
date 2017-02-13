@@ -19,6 +19,12 @@
           <ui-icon-button icon="refresh" :loading="true" type='secondary'></ui-icon-button>
           Creating new project...
       </div>
+      <div v-if='error' class='error'>
+        <h3>Something is wrong...</h3>
+          I couldn't create a new project. Please try again. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
+          <h4>Technical details</h4>
+          <pre>{{error}}</pre>
+      </div>
     </form>
   </div>
 </template>
@@ -33,6 +39,7 @@ export default {
       isLoading: false,
       projectName: '',
       nameTouched: false,
+      error: null,
     };
   },
   methods: {
@@ -42,6 +49,7 @@ export default {
 
         createProject(this.projectName).then((file) => {
           this.isLoading = false;
+          this.error = null;
 
           this.$router.push({
             name: 'project-details',
@@ -49,6 +57,9 @@ export default {
               id: file.id
             }
           });
+        }, err => {
+          this.isLoading = false;
+          this.error = err;
         });
       }
     }
@@ -60,3 +71,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.error {
+  color: orangered;
+}
+</style>

@@ -1,3 +1,5 @@
+import getStreaksFolder from './getStreaksFolder';
+
 const dashboard = {
   error: null,
   loading: true,
@@ -8,13 +10,16 @@ const dashboard = {
 export default dashboard;
 
 function loadProjects() {
-  gapi.client.drive.files.list({
-    q: "trashed = false and properties has { key='isAnvakaStreakFolder' and value='true' }",
+  return getStreaksFolder().then(listFiles);
+}
+
+function listFiles(parentId) {
+  return gapi.client.drive.files.list({
+    q: `trashed = false and '${parentId}' in parents`,
     pageSize: 10,
     fields: 'nextPageToken, files(id, name)'
   }).then((response) => {
     const files = response.result.files;
-    console.log(files);
     dashboard.projects = files;
     dashboard.loading = false;
     // TODO: errors handling should be done here.
