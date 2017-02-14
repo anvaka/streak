@@ -1,14 +1,13 @@
 import getStreaksFolder from './getStreaksFolder';
-// import createLogTemplate from './createLogTemplate';
 
 export default createProject;
 
 function createProject(name) {
   return getStreaksFolder()
-    .then(createFolderInParent)
+    .then(createProjectFolder)
     .then(createLogFile);
 
-  function createFolderInParent(parent) {
+  function createProjectFolder(parent) {
     if (!parent) throw new Error('Parent was not specified');
 
     const fileMetadata = {
@@ -45,8 +44,11 @@ function createProject(name) {
 }
 
 function updateSheetTemplate(spreadsheetId, name) {
+  // Since we've just created this template, the sheetId should be 0 (if I understand
+  // this correctly).
   const sheetId = 0;
 
+  // TODO: This should be configured by user.
   return gapi.client.sheets.spreadsheets.batchUpdate({
     spreadsheetId,
     requests: [{

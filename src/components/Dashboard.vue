@@ -29,12 +29,13 @@
     </div>
 
     <div class='projects-overview'>
-      {{projectId}}
+      <project-details :projectId='projectId'></project-details>
     </div>
   </div>
 </template>
 <script>
 import { UiButton, UiIconButton } from 'keen-ui';
+import ProjectDetails from './ProjectDetails';
 import dashboard from '../lib/dashboard';
 
 export default {
@@ -46,7 +47,7 @@ export default {
     };
   },
   created () {
-    dashboard.loadProjects();
+    dashboard.loadDashboard();
   },
   computed: {
     hasProjects() {
@@ -59,6 +60,7 @@ export default {
   components: {
     UiButton,
     UiIconButton,
+    ProjectDetails,
   },
 };
 </script>

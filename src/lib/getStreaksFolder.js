@@ -14,18 +14,20 @@ let isRunning = false;
  */
 function getStreaksFolder() {
   if (parentStreakFolder) {
-    // TODO: This promise may be different from gapi.promise
-    return new Promise((resolve) => resolve(parentStreakFolder));
+    return new Promise(resolve => resolve(parentStreakFolder));
   }
+
   if (isRunning) throw new Error('You are getting into race conditions. Make sure only one folder can exist here');
 
   isRunning = true;
 
-  return gapi.client.drive.files.list({
-    q: `trashed = false and properties has { key='${ROOT_FOLDER_MARKER}' and value='true' }`,
-    pageSize: 1,
-    fields: 'files(id, name)'
-  }).then(processRootFolder);
+  return new Promise((resolve, reject) => {
+    gapi.client.drive.files.list({
+      q: `trashed = false and properties has { key='${ROOT_FOLDER_MARKER}' and value='true' }`,
+      pageSize: 1,
+      fields: 'files(id, name)'
+    }).then(processRootFolder).then(resolve, reject);
+  });
 }
 
 function processRootFolder(response) {

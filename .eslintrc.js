@@ -36,6 +36,8 @@ module.exports = {
 
     'space-before-function-paren': 0,
     'comma-dangle': 0,
+    'import/extensions': 0,
+    'no-unused-vars': 1
   },
   globals: {
     gapi: true
