@@ -1,5 +1,6 @@
 <template>
   <div>
+    <div class='loading' v-if='loading'>Loading...</div>
     <h2>{{title}}</h2>
   </div>
 </template>
@@ -19,14 +20,36 @@ export default {
   },
 
   created() {
-    this.error = null;
-    this.loading = true;
+    this.loadCurrentProject();
+  },
 
-    loadProject(this.projectId)
-      .then((project) => {
-        this.title = project.sheetInfo.properties.title;
-        console.log(project);
-      });
+  watch: {
+    $route(/* to, from */) {
+      this.loadCurrentProject();
+    }
+  },
+
+  methods: {
+    loadCurrentProject() {
+      this.error = null;
+      this.loading = true;
+
+      loadProject(this.projectId)
+        .then((project) => {
+          this.loading = false;
+          this.title = project.title;
+          console.log(project);
+        });
+    }
   }
 };
 </script>
+
+<style scoped>
+.loading {
+  position: absolute;
+  text-align: right;
+  top: 0;
+  right: 16px;
+}
+</style>

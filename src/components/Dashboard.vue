@@ -28,7 +28,7 @@
       You don't have any projects yet. <router-link to='new-project'>Start a new project</router-link>
     </div>
 
-    <div class='projects-overview'>
+    <div class='projects-overview' v-if='projectId'>
       <project-details :projectId='projectId'></project-details>
     </div>
   </div>

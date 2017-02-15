@@ -6,13 +6,13 @@ const DISCOVERY_DOCS = [
 ];
 
 const SCOPES = [
+  'profile',
   'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/drive.file',
   'https://www.googleapis.com/auth/spreadsheets'
 ].join(' ');
 
 const signInStatus = {
-  // TODO: How to handle error here?
   error: null,
   loading: true,
 
@@ -35,8 +35,7 @@ function signOut() {
 function checkStatus() {
   signInStatus.loading = true;
 
-  return new Promise((resolve/* , reject */) => {
-    // TODO: How to handle error here?
+  return new Promise((resolve, reject) => {
     gapi.load('client:auth2', initClient);
 
     function initClient() {
@@ -54,6 +53,9 @@ function checkStatus() {
         updateSignInStatus(initialSignInState);
 
         resolve(signInStatus);
+      }, (err) => {
+        setSignInError(err);
+        reject(err);
       });
     }
   });
@@ -71,6 +73,12 @@ function updateSignInStatus(isSignedIn) {
     signInStatus.signedIn = false;
     signInStatus.signedOut = true;
   }
+}
+
+function setSignInError(err) {
+  signInStatus.signedIn = signInStatus.signedOut = false;
+  signInStatus.error = err;
+  signInStatus.loading = false;
 }
 
 function extractProfile() {

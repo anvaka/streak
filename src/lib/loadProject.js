@@ -1,5 +1,10 @@
 export default loadProject;
 
+// Note: We are assuming there can be only 25 columns. If we ever need more
+// we can use loadSheetInfo() results here.
+const DATA_RANGE = 'A2:Z';
+const HEADER_RANGE = 'A1:Z1';
+
 function loadProject(projectFolderId) {
   return getLogFileSpreadsheetId(projectFolderId)
     .then(laodSpreadsheet);
@@ -11,10 +16,10 @@ function laodSpreadsheet(spreadsheetId) {
 
   return Promise.all([sheetDataPromise, sheetInfoPromise])
     .then((results) => {
-      return {
+      return makeProjectViewModel({
         sheetData: results[0],
         sheetInfo: results[1]
-      };
+      });
     });
 }
 
@@ -22,6 +27,8 @@ function loadSheetInfo(spreadsheetId) {
   return new Promise((resolve, reject) => {
     gapi.client.sheets.spreadsheets.get({
       spreadsheetId,
+      includeGridData: true,
+      ranges: HEADER_RANGE
     }).then(data => {
       return data.result;
     }).then(resolve, reject);
@@ -32,9 +39,7 @@ function loadSheetData(spreadsheetId) {
   return new Promise((resolve, reject) => {
     gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId,
-      // Note: We are assuming there can be only 25 columns. If we ever need more
-      // we can use loadSheetInfo() results here.
-      range: 'A2:Z'
+      range: DATA_RANGE,
     }).then(data => {
       return data.result.values;
     }).then(resolve, reject);
@@ -59,4 +64,13 @@ function getLogFileSpreadsheetId(projectFolderId) {
       return files[0].id;
     }).then(resolve, reject);
   });
+}
+
+function makeProjectViewModel({ sheetData, sheetInfo }) {
+  const title = sheetInfo.properties.title;
+  return {
+    title,
+    sheetData,
+    raw: sheetInfo
+  };
 }
