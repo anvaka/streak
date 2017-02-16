@@ -1,9 +1,13 @@
+import _ from 'lodash';
+
 export default loadProject;
 
 // Note: We are assuming there can be only 25 columns. If we ever need more
 // we can use loadSheetInfo() results here.
 const DATA_RANGE = 'A2:Z';
-const HEADER_RANGE = 'A1:Z1';
+
+// We take one row for header, and one more to fetch data types.
+const HEADER_RANGE = 'A1:Z2';
 
 function loadProject(projectFolderId) {
   return getLogFileSpreadsheetId(projectFolderId)
@@ -68,9 +72,49 @@ function getLogFileSpreadsheetId(projectFolderId) {
 
 function makeProjectViewModel({ sheetData, sheetInfo }) {
   const title = sheetInfo.properties.title;
+  let headers = extractHeaders(sheetInfo.sheets[0]);
+  headers = trimHeadersToContent(headers, sheetData);
+
   return {
     title,
     sheetData,
+    headers,
     raw: sheetInfo
   };
+}
+
+function trimHeadersToContent(headers, sheetData) {
+  if (!sheetData) return headers;
+  let maxColumns = 0;
+
+  for (let i = 0; i < sheetData.length; ++i) {
+    if (sheetData[i].length > maxColumns) maxColumns = sheetData[i].length;
+  }
+
+  return headers.slice(0, maxColumns);
+}
+
+function extractHeaders(mainSeet) {
+  if (!mainSeet) throw new Error('Sheet with headers is missing');
+  const { data } = mainSeet;
+  if (!data || data.length === 0) return [];
+
+  const { rowData } = data[0];
+  if (!rowData || rowData.length === 0) return [];
+
+  return rowData[0].values.map((x, columnIndex) => ({
+    title: x.formattedValue,
+    valueType: guessType(rowData[1], columnIndex)
+  }));
+
+  function guessType(rowWithValues, columnIndex) {
+    if (!rowWithValues || !rowWithValues.values) return 'string';
+
+    const cellValue = rowWithValues.values[columnIndex];
+    const format = _.get(cellValue, 'effectiveFormat.numberFormat', {
+      type: 'string'
+    });
+
+    return format;
+  }
 }
