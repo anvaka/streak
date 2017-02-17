@@ -34,6 +34,7 @@ module.exports = {
     'no-console': 0,
     'no-multi-assign': 0,
     'no-plusplus': 0,
+    'no-return-assign': 0,
     'arrow-body-style': 0,
     'object-curly-spacing ': 0,
 

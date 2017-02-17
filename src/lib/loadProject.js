@@ -77,6 +77,7 @@ function makeProjectViewModel({ sheetData, sheetInfo }) {
 
   return {
     title,
+    spreadsheetId: sheetInfo.spreadsheetId,
     sheetData,
     headers,
     raw: sheetInfo
