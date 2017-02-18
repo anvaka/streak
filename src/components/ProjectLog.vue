@@ -8,5 +8,5 @@
 export default {
   name: 'ProjectLog',
   props: ['sheet']
-}
+};
 </script>
