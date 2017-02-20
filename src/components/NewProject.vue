@@ -1,36 +1,38 @@
 <template>
   <div class='new-project'>
     <form @submit.prevent='createProject' >
-      <h3 class='title'>New project</h3>
+      <h3 class='title'>Step 1: Give your project a name</h3>
       <ui-textbox
                 autofocus
                 autocomplete='off'
                 error='Project name is required'
-                placeholder='Give your project a name'
+                placeholder='Enter project name here'
                 required
-                :invalid='nameTouched && projectName.length === 0'
+                :invalid='nameTouched && isProjectNameInvalid()'
                 @touch='nameTouched = true'
                 v-model='projectName'
             ></ui-textbox>
-      <h4 class='title'>Project structure <span class='secondary'>describe which columns to record for each log entry.</span></h4>
-      <div v-for='column in columns' class='column-pair'>
-        <ui-textbox
-              label='Column name'
-              autocomplete='off'
-              placeholder='Give this column a name'
-              v-model='column.name'
-          ></ui-textbox>
-        <ui-select
-              label='Column type'
-              placeholder='Select a column type'
-              :options='columnTypes'
-              v-model='column.type'
-          ></ui-select>
-        <ui-button type='secondary' class='remove-row' @click.prevent='removeColumn(column)' buttonType='link'>Remove</ui-button>
+      <div class='columns-config' :class='{"invalid-project": isProjectNameInvalid()}'>
+        <h3 class='title' title='Describe which columns to record for each log entry'>Step 2: Configure project columns</h3>
+        <div v-for='column in columns' class='column-pair'>
+          <ui-textbox
+                label='Column name'
+                autocomplete='off'
+                placeholder='Give this column a name'
+                v-model='column.name'
+            ></ui-textbox>
+          <ui-select
+                label='Column type'
+                placeholder='Select a column type'
+                :options='columnTypes'
+                v-model='column.type'
+            ></ui-select>
+          <ui-button type='secondary' class='remove-row' @click.prevent='removeColumn(column)' buttonType='button'>Remove</ui-button>
+        </div>
+        <ui-button type='secondary' @click.prevent='addColumn' class='add-column' buttonType='button'>
+          Add column
+        </ui-button>
       </div>
-      <ui-button type='secondary' @click.prevent='addColumn' class='add-column' buttonType='link'>
-        Add column
-      </ui-button>
 
       <ui-button type='secondary' v-if='!isLoading' color='primary'  buttonType='submit' class='create-project'>
         Create project
@@ -39,6 +41,7 @@
           <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
           Creating new project...
       </div>
+
       <div v-if='error' class='error'>
         <h3>Something is wrong...</h3>
           I couldn't create a new project. Please try again. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
@@ -84,6 +87,7 @@ export default {
       isLoading: false,
       projectName: '',
       nameTouched: false,
+      projectStructureStep: false,
       error: null,
       columns: [{
         name: 'Date',
@@ -95,6 +99,10 @@ export default {
     };
   },
   methods: {
+    isProjectNameInvalid() {
+      return this.projectName.length === 0;
+    },
+
     removeColumn(column) {
       const idxToRemove = this.columns.indexOf(column);
       if (idxToRemove < 0) throw new Error('Wrong index to remove');
@@ -148,6 +156,9 @@ export default {
 <style scoped lang='stylus'>
 @import '../styles/variables.styl'
 
+.title {
+  text-transform: uppercase;
+}
 .error {
   color: orangered;
 }
@@ -158,6 +169,10 @@ export default {
   .secondary {
     font-weight: normal;
   }
+}
+
+.invalid-project {
+  opacity: 0.2;
 }
 
 .column-pair {
