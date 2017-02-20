@@ -8,7 +8,7 @@ import getStreaksFolder from './getStreaksFolder';
 
 export default createProject;
 
-function createProject(name) {
+function createProject(name, columns) {
   return getStreaksFolder()
     .then(createProjectFolder)
     .then(createLogFile);
@@ -31,30 +31,32 @@ function createProject(name) {
     }).then(response => response.result.id);
   }
 
-  function createLogFile(parentFolder) {
+  function createLogFile(parentFolderId) {
     const fileMetadata = {
       name,
       mimeType: 'application/vnd.google-apps.spreadsheet',
-      parents: [parentFolder],
+      parents: [parentFolderId],
       properties: {
-        createdByStreak: 'true'
+        createdByStreak: 'true',
+        columns
       }
     };
+
     return gapi.client.drive.files.create({
       resource: fileMetadata,
       fields: 'id'
     }).then(response => {
       return response.result.id;
-    }).then(spreadsheetId => updateSheetTemplate(spreadsheetId, name));
+    }).then(spreadsheetId => updateSheetTemplate(spreadsheetId, name, columns))
+      .then(() => parentFolderId);
   }
 }
 
-function updateSheetTemplate(spreadsheetId, name) {
+function updateSheetTemplate(spreadsheetId, name, columns) {
   // Since we've just created this template, the sheetId should be 0 (if I understand
   // this correctly).
   const sheetId = 0;
 
-  // TODO: This should be configured by user.
   return gapi.client.sheets.spreadsheets.batchUpdate({
     spreadsheetId,
     requests: [{
@@ -75,17 +77,11 @@ function updateSheetTemplate(spreadsheetId, name) {
         sheetId,
         fields: '*',
         rows: [{
-          values: [
-            header('Time'),
-            header('Comments')
-          ]
+          values: columns.map(column => header(column.name))
         }]
       }
     }]
-  }).then(res => {
-    console.log('sheet updated', res);
-    return spreadsheetId;
-  });
+  }).then(() => spreadsheetId);
 }
 
 

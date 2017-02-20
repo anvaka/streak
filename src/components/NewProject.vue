@@ -1,22 +1,43 @@
 <template>
-  <div>
-    <h3>Start a new project</h3>
+  <div class='new-project'>
     <form @submit.prevent='createProject' >
+      <h3 class='title'>New project</h3>
       <ui-textbox
-                autocomplete="off"
-                error="Project name is required"
-                label="Project Name"
-                placeholder="Enter project name here"
+                autofocus
+                autocomplete='off'
+                error='Project name is required'
+                placeholder='Give your project a name'
                 required
-                :invalid="nameTouched && projectName.length === 0"
-                @touch="nameTouched = true"
-                v-model="projectName"
+                :invalid='nameTouched && projectName.length === 0'
+                @touch='nameTouched = true'
+                v-model='projectName'
             ></ui-textbox>
-      <ui-button type='secondary' v-if='!isLoading' color='primary'  buttonType='submit'>
+      <h4 class='title'>Project structure <span class='secondary'>describe which columns to record for each log entry.</span></h4>
+      <div v-for='column in columns' class='column-pair'>
+        <ui-textbox
+              label='Column name'
+              autocomplete='off'
+              placeholder='Give this column a name'
+              v-model='column.name'
+          ></ui-textbox>
+        <ui-select
+              label='Column type'
+              placeholder='Select a column type'
+              :options='columnTypes'
+              v-model='column.type'
+          ></ui-select>
+        <ui-button type='secondary' class='remove-row' @click.prevent='removeColumn(column)'>Remove</ui-button>
+      </div>
+      <ui-button type='secondary' color='green' @click.prevent='addColumn' class='add-column'>
+        Add column
+      </ui-button>
+      <hr>
+
+      <ui-button type='secondary' v-if='!isLoading' color='primary'  buttonType='submit' class='create-project'>
         Create project
       </ui-button>
       <div v-if='isLoading'>
-          <ui-icon-button icon="refresh" :loading="true" type='secondary'></ui-icon-button>
+          <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
           Creating new project...
       </div>
       <div v-if='error' class='error'>
@@ -29,32 +50,84 @@
   </div>
 </template>
 <script>
-import { UiTextbox, UiIconButton, UiButton } from 'keen-ui';
+import { UiTextbox, UiIconButton, UiButton, UiSelect } from 'keen-ui';
 import createProject from '../lib/createProject';
+
+const MAX_COLUMNS = 26; // TODO: this should come from shared place
+
+const DATE = {
+  label: 'Date',
+  value: 'date'
+};
+
+const MULTI_LINE_TEXT = {
+  label: 'Multiline text',
+  value: 'multiline-text',
+};
+
+const SINGLE_LINE_TEXT = {
+  label: 'Single line text',
+  value: 'string'
+};
+
+const NUMBER = {
+  label: 'Number',
+  value: 'number'
+};
+
+const COLUMN_TYPES = [DATE, MULTI_LINE_TEXT, SINGLE_LINE_TEXT, NUMBER];
 
 export default {
   name: 'NewProject',
   data() {
     return {
+      columnTypes: COLUMN_TYPES,
       isLoading: false,
       projectName: '',
       nameTouched: false,
       error: null,
+      columns: [{
+        name: 'Date',
+        type: DATE
+      }, {
+        name: 'Note',
+        type: MULTI_LINE_TEXT
+      }]
     };
   },
   methods: {
+    removeColumn(column) {
+      const idxToRemove = this.columns.indexOf(column);
+      if (idxToRemove < 0) throw new Error('Wrong index to remove');
+
+      this.columns.splice(idxToRemove, 1);
+
+      // TODO: Should I disable removing all columns?
+    },
+
+    addColumn() {
+      if (this.columns.length > MAX_COLUMNS) {
+        throw new Error('So much columns! Not supported yet');
+      }
+
+      this.columns.push({
+        name: '',
+        type: MULTI_LINE_TEXT
+      });
+    },
+
     createProject() {
       if (this.projectName) {
         this.isLoading = true;
 
-        createProject(this.projectName).then((file) => {
+        createProject(this.projectName, this.columns).then((projectId) => {
           this.isLoading = false;
           this.error = null;
 
           this.$router.push({
             name: 'project-details',
             params: {
-              id: file.id
+              projectId
             }
           });
         }, err => {
@@ -67,13 +140,44 @@ export default {
   components: {
     UiTextbox,
     UiButton,
+    UiSelect,
     UiIconButton,
   }
 };
 </script>
 
-<style scoped>
+<style scoped lang='stylus'>
+@import '../styles/variables.styl'
+
 .error {
   color: orangered;
+}
+.new-project {
+  padding: 8px;
+}
+.title {
+  .secondary {
+    font-weight: normal;
+  }
+}
+
+.column-pair {
+  display: flex;
+  width: 100%;
+  div {
+    flex: 1;
+  }
+}
+.remove-row {
+  align-self: flex-end;
+  margin-bottom: 16px;
+  padding-top: 16px;
+  color: secondary-text-color;
+}
+.create-project {
+  float: right;
+}
+.add-column {
+  padding-left: 0;
 }
 </style>
