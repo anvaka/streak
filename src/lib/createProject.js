@@ -1,3 +1,9 @@
+/**
+ * Creates a new project in google docs;
+ *
+ * The project is always stored in its own folder, which is a child of all streaks folder.
+ * Each project has at least one spreadsheet file, where project log is saved.
+ */
 import getStreaksFolder from './getStreaksFolder';
 
 export default createProject;

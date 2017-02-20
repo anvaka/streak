@@ -1,3 +1,6 @@
+/**
+ * Loads a project from data store
+ */
 import _ from 'lodash';
 
 export default loadProject;

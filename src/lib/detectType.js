@@ -1,3 +1,6 @@
+/**
+ * Detects input string type (string, date, or number)
+ */
 export default function detectType(inputString) {
   if (!inputString) return 'text';
 
@@ -11,6 +14,7 @@ export default function detectType(inputString) {
 function parseDate(inputString) {
   const trimmedString = trim(inputString);
   const checkers = [
+    // TODO: Add more date formats
     new DateExpression(/^(\d?\d)\/(\d?\d)\/(\d\d\d\d)( (\d?\d):(\d?\d)(:\d?\d)?)?$/, match => {
       const month = match[1];
       const day = match[2];
@@ -22,6 +26,7 @@ function parseDate(inputString) {
 
   let i;
 
+  // Use for-loop to quit faster if possible.
   for (i = 0; i < checkers.length; ++i) {
     const checker = checkers[i];
     if (checker.parse(trimmedString)) return true;

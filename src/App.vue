@@ -33,7 +33,7 @@ export default {
     this.loading = true;
     this.error = null;
 
-    auth.checkStatus();
+    auth.initiateSignInStatus();
   }
 
 };

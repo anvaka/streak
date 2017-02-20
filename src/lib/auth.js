@@ -1,17 +1,29 @@
+/**
+ * Provides helper authentication functions with
+ */
 const CLIENT_ID = '808734092016-u5ss25nmh0j9o5ponusu5l3tnqb7vl9g.apps.googleusercontent.com';
+
+const SCOPES = [
+  // Profile is required to make sure we will be able to perform server side
+  // validation of the current user.
+  'profile',
+
+  // All streak projects are stored on google drive, thuse we need access here:
+  'https://www.googleapis.com/auth/drive',
+  'https://www.googleapis.com/auth/drive.file',
+
+  // Project log is stored as a Google Spreadsheet document
+  'https://www.googleapis.com/auth/spreadsheets'
+].join(' ');
 
 const DISCOVERY_DOCS = [
   'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
   'https://sheets.googleapis.com/$discovery/rest?version=v4'
 ];
 
-const SCOPES = [
-  'profile',
-  'https://www.googleapis.com/auth/drive',
-  'https://www.googleapis.com/auth/drive.file',
-  'https://www.googleapis.com/auth/spreadsheets'
-].join(' ');
-
+/**
+ * This is where authentication state is stored inside application
+ */
 const signInStatus = {
   error: null,
   loading: true,
@@ -23,16 +35,27 @@ const signInStatus = {
 };
 
 export default {
-  checkStatus,
-  signInStatus,
+  /**
+   * Initiates signInStatus data structure
+   */
+  initiateSignInStatus,
+
+  /**
+   * Rewquest to sign out current user
+   */
   signOut,
+
+  /**
+   * gets current sign in status
+   */
+  signInStatus,
 };
 
 function signOut() {
   gapi.auth2.getAuthInstance().signOut();
 }
 
-function checkStatus() {
+function initiateSignInStatus() {
   signInStatus.loading = true;
 
   return new Promise((resolve, reject) => {

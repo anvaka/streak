@@ -1,3 +1,6 @@
+/**
+ * Appends a new log record to a project log
+ */
 const RANGE_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 export default function appendRecord(spreadsheetId, record) {
