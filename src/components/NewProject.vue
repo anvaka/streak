@@ -26,9 +26,9 @@
               :options='columnTypes'
               v-model='column.type'
           ></ui-select>
-        <ui-button type='secondary' class='remove-row' @click.prevent='removeColumn(column)'>Remove</ui-button>
+        <ui-button type='secondary' class='remove-row' @click.prevent='removeColumn(column)' buttonType='link'>Remove</ui-button>
       </div>
-      <ui-button type='secondary' @click.prevent='addColumn' class='add-column'>
+      <ui-button type='secondary' @click.prevent='addColumn' class='add-column' buttonType='link'>
         Add column
       </ui-button>
 

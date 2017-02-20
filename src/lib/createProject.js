@@ -32,14 +32,19 @@ function createProject(name, columns) {
   }
 
   function createLogFile(parentFolderId) {
+    const properties = {
+      createdByStreak: 'true',
+      columns: JSON.stringify(columns.map(column => ({
+        name: column.name,
+        type: column.type.value
+      })))
+    };
+
     const fileMetadata = {
       name,
       mimeType: 'application/vnd.google-apps.spreadsheet',
       parents: [parentFolderId],
-      properties: {
-        createdByStreak: 'true',
-        columns
-      }
+      properties
     };
 
     return gapi.client.drive.files.create({
