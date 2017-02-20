@@ -28,10 +28,9 @@
           ></ui-select>
         <ui-button type='secondary' class='remove-row' @click.prevent='removeColumn(column)'>Remove</ui-button>
       </div>
-      <ui-button type='secondary' color='green' @click.prevent='addColumn' class='add-column'>
+      <ui-button type='secondary' @click.prevent='addColumn' class='add-column'>
         Add column
       </ui-button>
-      <hr>
 
       <ui-button type='secondary' v-if='!isLoading' color='primary'  buttonType='submit' class='create-project'>
         Create project
@@ -168,16 +167,22 @@ export default {
     flex: 1;
   }
 }
+
 .remove-row {
   align-self: flex-end;
   margin-bottom: 16px;
   padding-top: 16px;
   color: secondary-text-color;
+  font-size: 10px;
 }
+
 .create-project {
-  float: right;
+  width: 100%;
+  font-size: 26px;
 }
+
 .add-column {
   padding-left: 0;
+  color: secondary-text-color;
 }
 </style>
