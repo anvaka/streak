@@ -63,9 +63,12 @@ function getLogFileSpreadsheetId(projectFolderId) {
     }).then(response => {
       const { result } = response;
       const { files } = result;
+      if (files.length === 0) {
+        throw new Error('This project does not exist');
+      }
       if (files.length !== 1) {
         // TODO: Implement this. Need to find best candidate.
-        throw new Error('Handle this case better!');
+        throw new Error('At the moment, only one log file is supported');
       }
 
       return files[0].id;

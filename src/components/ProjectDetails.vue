@@ -5,6 +5,10 @@
     <div v-if='project'>
       <add-record :fields='fields' :spreadsheet-id='project.spreadsheetId'></add-record>
     </div>
+    <div v-if='error'>
+      <h3>Something is wrong...</h3>
+      <pre>{{error}}</pre>
+    </div>
   </div>
 </template>
 
@@ -47,7 +51,6 @@ export default {
 
       loadProject(this.projectId)
         .then((project) => {
-          console.log(project);
           this.fields = project.headers.map(header => ({
             title: header.title,
             value: '',
@@ -56,6 +59,15 @@ export default {
           this.loading = false;
           this.title = project.title;
           this.project = project;
+        }).catch(err => {
+          this.loading = false;
+          this.project = null;
+          this.title = '';
+          if (err && err.message) {
+            this.error = err.message;
+          } else {
+            this.error = err;
+          }
         });
     }
   }
