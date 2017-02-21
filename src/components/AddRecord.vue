@@ -23,6 +23,7 @@
 </template>
 <script>
 import { UiTextbox, UiButton, UiIconButton } from 'keen-ui';
+import resetFields from 'src/lib/resetFields';
 import Date from './inputs/Date';
 import appendRecord from '../lib/appendRecord';
 
@@ -43,7 +44,10 @@ export default {
     commitChanges() {
       this.isSaveInProgress = true;
       const sheetRow = this.fields.map(field => field.value);
-      appendRecord(this.spreadsheetId, sheetRow).then(() => this.isSaveInProgress = false);
+      appendRecord(this.spreadsheetId, sheetRow).then(() => {
+        this.isSaveInProgress = false;
+        resetFields(this.fields);
+      });
     },
   }
 };

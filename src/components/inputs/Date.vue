@@ -7,19 +7,23 @@
 <script>
 
 import Flatpickr from 'flatpickr';
-import { getNow } from 'src/lib/dateUtils';
+import { getNow, toDateInputStr } from 'src/lib/dateUtils';
 
 export default {
   props: ['vm'],
   mounted() {
     const self = this;
+    const initialValue = new Date();
+
+    this.vm.value = toDateInputStr(initialValue);
+
     const pickerConfig = {
       allowInput: true,
       enableTime: true,
       time_24hr: true,
       enableSeconds: true,
-      defaultDate: new Date(),
-      dateFormat: 'Y-m-d H:i:S',
+      defaultDate: initialValue,
+      dateFormat: 'm/d/Y H:i:S',
       utc: false,
       onChange() {
         self.changeFromFlatPickr = true;
@@ -27,9 +31,11 @@ export default {
     };
     this.flatPickr = new Flatpickr(this.$refs.date, pickerConfig);
   },
+
   beforeDestroy() {
     this.flatPickr.destroy();
   },
+
   methods: {
     setNow() {
       this.vm.value = getNow();

@@ -21,16 +21,14 @@ export function getNow() {
 }
 
 /**
- * Given a Date object returns its string value that can be set on <input type='datetime-local'/>
- *
- * @see https://www.w3.org/TR/html-markup/input.datetime.html#input.datetime.attrs.value
+ * Given a Date object returns its string value in US format MM/DD/YYYY
  */
 export function toDateInputStr(date) {
   /* eslint prefer-template: 0 */
-  return date.getFullYear() +
-        '-' + pad(date.getMonth() + 1) +
-        '-' + pad(date.getDate()) +
-        'T' + pad(date.getHours()) +
+  return pad(date.getMonth() + 1) +
+        '/' + pad(date.getDate()) +
+        '/' + date.getFullYear() +
+        ' ' + pad(date.getHours()) +
         ':' + pad(date.getMinutes()) +
         ':' + pad(date.getSeconds());
 }
