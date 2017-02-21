@@ -54,6 +54,7 @@ export default {
           this.fields = project.headers.map(header => ({
             title: header.title,
             value: '',
+            valueType: header.valueType
           }));
 
           this.loading = false;

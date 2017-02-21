@@ -1,7 +1,7 @@
 /**
  * Loads a project from data store
  */
-import _ from 'lodash';
+import detectType from './detectType';
 
 export default loadProject;
 
@@ -17,17 +17,49 @@ function loadProject(projectFolderId) {
     .then(laodSpreadsheet);
 }
 
-function laodSpreadsheet(spreadsheetId) {
+function laodSpreadsheet(spreadsheetFile) {
+  const spreadsheetId = spreadsheetFile.id;
+  const columnTypeByName = getColumnTypesFromFileProperties(spreadsheetFile.properties);
+
   const sheetDataPromise = loadSheetData(spreadsheetId);
   const sheetInfoPromise = loadSheetInfo(spreadsheetId);
 
   return Promise.all([sheetDataPromise, sheetInfoPromise])
-    .then((results) => {
-      return makeProjectViewModel({
-        sheetData: results[0],
-        sheetInfo: results[1]
-      });
-    });
+    .then(convertToViewModel);
+
+  function convertToViewModel(results) {
+    return makeProjectViewModel({
+      sheetData: results[0],
+      sheetInfo: results[1]
+    }, columnTypeByName);
+  }
+
+  function getColumnTypesFromFileProperties(properties) {
+    // When we save a new project we set file properties to describe column types
+    // Here we will try to restore saved properties and create a look up from
+    // column name to column type. That way we can make better guesses about
+    // column types, and render most appropriate input control.
+    const columnMetadata = properties && properties.columns;
+    const columnTypeByName = new Map();
+
+    if (!columnMetadata) {
+      // This can happen if file was not created by us. In this case we will try to
+      // dedcue column types from data.
+      return columnTypeByName;
+    }
+
+    let columnTypesFromProperties;
+    try {
+      columnTypesFromProperties = JSON.parse(columnMetadata);
+    } catch (err) {
+      console.error('Failed to parse column types', columnMetadata);
+      return columnTypeByName;
+    }
+
+    columnTypesFromProperties.forEach(column => columnTypeByName.set(column.name, column.type));
+
+    return columnTypeByName;
+  }
 }
 
 function loadSheetInfo(spreadsheetId) {
@@ -59,7 +91,7 @@ function getLogFileSpreadsheetId(projectFolderId) {
     gapi.client.drive.files.list({
       q: `trashed = false and '${projectFolderId}' in parents and mimeType='application/vnd.google-apps.spreadsheet'`,
       pageSize: 10,
-      fields: 'nextPageToken, files(id, name)'
+      fields: 'nextPageToken, files(id, name, properties)'
     }).then(response => {
       const { result } = response;
       const { files } = result;
@@ -71,14 +103,14 @@ function getLogFileSpreadsheetId(projectFolderId) {
         throw new Error('At the moment, only one log file is supported');
       }
 
-      return files[0].id;
+      return files[0];
     }).then(resolve, reject);
   });
 }
 
-function makeProjectViewModel({ sheetData, sheetInfo }) {
+function makeProjectViewModel({ sheetData, sheetInfo }, columnTypeByName) {
   const title = sheetInfo.properties.title;
-  let headers = extractHeaders(sheetInfo.sheets[0]);
+  let headers = extractHeaders(sheetInfo.sheets[0], columnTypeByName);
   headers = trimHeadersToContent(headers, sheetData);
 
   return {
@@ -91,6 +123,8 @@ function makeProjectViewModel({ sheetData, sheetInfo }) {
 }
 
 function trimHeadersToContent(headers, sheetData) {
+  // sometimes we receive more header columns than there are in the file.
+  // We figure out the longest row, and assume we have that many headers:
   if (!sheetData) return headers;
   let maxColumns = 0;
 
@@ -98,12 +132,13 @@ function trimHeadersToContent(headers, sheetData) {
     if (sheetData[i].length > maxColumns) maxColumns = sheetData[i].length;
   }
 
+  // TODO: What if `maxColumns > headers.length?`
   return headers.slice(0, maxColumns);
 }
 
-function extractHeaders(mainSeet) {
-  if (!mainSeet) throw new Error('Sheet with headers is missing');
-  const { data } = mainSeet;
+function extractHeaders(mainSheet, columnTypeByName) {
+  if (!mainSheet) throw new Error('Sheet with headers is missing');
+  const { data } = mainSheet;
   if (!data || data.length === 0) return [];
 
   const { rowData } = data[0];
@@ -111,17 +146,32 @@ function extractHeaders(mainSeet) {
 
   return rowData[0].values.map((x, columnIndex) => ({
     title: x.formattedValue,
-    valueType: guessType(rowData[1], columnIndex)
+    valueType: guessType(rowData, columnIndex, x.formattedValue)
   }));
 
-  function guessType(rowWithValues, columnIndex) {
-    if (!rowWithValues || !rowWithValues.values) return 'string';
+  function guessType(rowData, columnIndex, columnTitle) {
+    if (columnTypeByName.has(columnTitle)) {
+      // we are lucky: The column name matches to what we stored during project
+      // creation. We trust this data 100%;
+      return columnTypeByName.get(columnTitle);
+    }
 
-    const cellValue = rowWithValues.values[columnIndex];
-    const format = _.get(cellValue, 'effectiveFormat.numberFormat', {
-      type: 'string'
-    });
+    const DEFAULT_TYPE = 'string';
 
-    return format;
+    // Okay, we don't have informatino about file. Let's see if we have any data:
+    if (rowData.length < 2) {
+      // This means we have only one header row. We cannot guess anything here
+      return DEFAULT_TYPE;
+    }
+
+    return guessTypeFromRow(rowData[1], columnIndex) || DEFAULT_TYPE;
+
+    function guessTypeFromRow(rowWithValues, columnIndex) {
+      if (!rowWithValues || !rowWithValues.values) return;
+
+      const cellValue = rowWithValues.values[columnIndex].formattedValue;
+
+      return detectType(cellValue);
+    }
   }
 }

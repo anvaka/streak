@@ -1,14 +1,16 @@
+const DEFAULT_TYPE = 'string';
+
 /**
  * Detects input string type (string, date, or number)
  */
 export default function detectType(inputString) {
-  if (!inputString) return 'text';
+  if (!inputString) return DEFAULT_TYPE;
 
   if (isFinite(inputString)) return 'number';
 
   if (parseDate(inputString)) return 'date';
 
-  return 'text';
+  return DEFAULT_TYPE;
 }
 
 function parseDate(inputString) {

@@ -34,7 +34,8 @@
         </ui-button>
       </div>
 
-      <ui-button type='secondary' v-if='!isLoading' color='primary'  buttonType='submit' class='create-project'>
+      <ui-button type='secondary' v-if='!isLoading' color='primary'
+        buttonType='submit' class='create-project' :class='{"invalid-project": isProjectNameInvalid()}'>
         Create project
       </ui-button>
       <div v-if='isLoading'>

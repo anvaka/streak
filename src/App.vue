@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import 'flatpickr/dist/flatpickr.css';
 import auth from './lib/auth';
 import Welcome from './components/Welcome.vue';
 

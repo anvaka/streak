@@ -1,11 +1,15 @@
 <template>
   <form @submit.prevent='commitChanges'>
     <div class='input-container' v-for='field in fields'>
-      <ui-textbox
-            floating-label
-            :label='field.title'
-            v-model='field.value'
-        ></ui-textbox>
+      <div v-if='field.valueType === "date"'>
+        <date :vm='field'></date>
+      </div>
+      <div v-if='field.valueType !== "date"'>
+        <ui-textbox
+              floating-label
+              :label='field.title'
+              v-model='field.value'></ui-textbox>
+      </div>
     </div>
     <ui-button type='secondary' v-if='!isSaveInProgress' color='primary'  buttonType='submit'>
       Commit
@@ -19,6 +23,7 @@
 </template>
 <script>
 import { UiTextbox, UiButton, UiIconButton } from 'keen-ui';
+import Date from './inputs/Date';
 import appendRecord from '../lib/appendRecord';
 
 export default {
@@ -27,6 +32,7 @@ export default {
     UiTextbox,
     UiButton,
     UiIconButton,
+    Date
   },
   data() {
     return {

@@ -1,6 +1,9 @@
 <template>
   <div class='home'>
-    <ui-toolbar brand='Streak' type='clear' :raised='false' :removeBrandDivider='true'>
+    <ui-toolbar type='clear' :raised='false' :removeBrandDivider='true'>
+      <div slot='brand'>
+        <router-link to='/' class='logo-text'>Streak</router-link>
+      </div>
       <div slot='icon'>
       </div>
       <div slot='actions'>
@@ -44,6 +47,12 @@ export default {
   height: 100%;
   width: 100%;
 }
+.logo-text {
+  color: rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+  font-size: 24px;
+}
+
 h1, h2 {
   font-weight: normal;
   margin: 0;
