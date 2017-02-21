@@ -78,8 +78,7 @@ export default {
 <style scoped>
 .loading {
   position: absolute;
-  text-align: right;
+  text-align: left;
   top: 0;
-  right: 16px;
 }
 </style>

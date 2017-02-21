@@ -10,6 +10,7 @@ import Flatpickr from 'flatpickr';
 import { getNow, toDateInputStr } from 'src/lib/dateUtils';
 
 export default {
+  name: 'Date',
   props: ['vm'],
   mounted() {
     const self = this;

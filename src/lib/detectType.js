@@ -1,4 +1,6 @@
-const DEFAULT_TYPE = 'string';
+import InputTypes from 'src/types/InputTypes';
+
+const DEFAULT_TYPE = InputTypes.SINGLE_LINE_TEXT;
 
 /**
  * Detects input string type (string, date, or number)
@@ -6,9 +8,9 @@ const DEFAULT_TYPE = 'string';
 export default function detectType(inputString) {
   if (!inputString) return DEFAULT_TYPE;
 
-  if (isFinite(inputString)) return 'number';
+  if (isFinite(inputString)) return InputTypes.NUMBER;
 
-  if (parseDate(inputString)) return 'date';
+  if (parseDate(inputString)) return InputTypes.DATE;
 
   return DEFAULT_TYPE;
 }

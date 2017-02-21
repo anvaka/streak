@@ -4,11 +4,14 @@
       <div v-if='field.valueType === "date"'>
         <date :vm='field'></date>
       </div>
-      <div v-if='field.valueType !== "date"'>
-        <ui-textbox
-              floating-label
-              :label='field.title'
-              v-model='field.value'></ui-textbox>
+      <div v-if='field.valueType === "multiline-text"'>
+        <multi-line-text :vm='field'></multi-line-text>
+      </div>
+      <div v-if='field.valueType === "string"'>
+        <single-line-text :vm='field'></single-line-text>
+      </div>
+      <div v-if='field.valueType === "number"'>
+        <number :vm='field'></number>
       </div>
     </div>
     <ui-button type='secondary' v-if='!isSaveInProgress' color='primary'  buttonType='submit'>
@@ -25,6 +28,10 @@
 import { UiTextbox, UiButton, UiIconButton } from 'keen-ui';
 import resetFields from 'src/lib/resetFields';
 import Date from './inputs/Date';
+import MultiLineText from './inputs/MultiLineText';
+import SingleLineText from './inputs/SingleLineText';
+import Number from './inputs/Number';
+
 import appendRecord from '../lib/appendRecord';
 
 export default {
@@ -33,7 +40,10 @@ export default {
     UiTextbox,
     UiButton,
     UiIconButton,
-    Date
+    Date,
+    MultiLineText,
+    SingleLineText,
+    Number
   },
   data() {
     return {

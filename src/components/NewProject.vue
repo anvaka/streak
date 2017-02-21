@@ -54,28 +54,29 @@
 </template>
 <script>
 import { UiTextbox, UiIconButton, UiButton, UiSelect } from 'keen-ui';
+import InputTypes from 'src/types/InputTypes';
 import createProject from '../lib/createProject';
 
 const MAX_COLUMNS = 26; // TODO: this should come from shared place
 
 const DATE = {
   label: 'Date',
-  value: 'date'
+  value: InputTypes.DATE
 };
 
 const MULTI_LINE_TEXT = {
   label: 'Multiline text',
-  value: 'multiline-text',
+  value: InputTypes.MULTI_LINE_TEXT,
 };
 
 const SINGLE_LINE_TEXT = {
   label: 'Single line text',
-  value: 'string'
+  value: InputTypes.SINGLE_LINE_TEXT
 };
 
 const NUMBER = {
   label: 'Number',
-  value: 'number'
+  value: InputTypes.NUMBER
 };
 
 const COLUMN_TYPES = [DATE, MULTI_LINE_TEXT, SINGLE_LINE_TEXT, NUMBER];
