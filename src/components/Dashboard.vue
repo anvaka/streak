@@ -4,7 +4,7 @@
       <div class='projects-container'>
         <div v-if='hasProjects'>
           <div class='projects-header'>
-            <h3 class='secondary'>Your Projects</h3>
+            <h3>Your Projects</h3>
           </div>
           <div class='project-list'>
             <router-link class='project-link'
@@ -13,7 +13,7 @@
               >{{project.name}}</router-link>
           </div>
           <div>
-            <router-link to='new-project'>Start new project</router-link>
+            <router-link to='new-project' class='start-new-project'>Start new project</router-link>
           </div>
         </div>
 
@@ -85,7 +85,8 @@ export default {
 .project-link {
   text-decoration: none;
   color: secondary-text-color;
-  line-height: 24px;
+  line-height: 28px;
+  font-size: 18px;
 }
 
 .project-link.current {
@@ -100,11 +101,20 @@ export default {
 .project-list {
   display: flex;
   flex-direction: column;
+
 }
 
 .projects-container {
   padding: 7px;
+  .start-new-project {
+    font-size: 12px;
+    text-decoration: none;
+    color: secondary-text-color;
+    display: inline-block;
+    margin-top: 22px;
+  }
 }
+
 .projects-header {
   display: flex;
   justify-content: space-between;
@@ -112,6 +122,8 @@ export default {
   h3 {
     margin: 0;
     font-weight: normal;
+    font-size: 32px;
+    color: rgba(0, 0, 0, 0.4);
   }
 }
 
