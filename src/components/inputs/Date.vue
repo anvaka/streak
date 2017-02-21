@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <label>{{vm.title}} <a href='#' @click.prevent='setNow()'>set to now</a></label>
+  <div class='date-container'>
     <input ref='date' type='datetime-local' v-model='vm.value' data-input>
+    <label class='secondary'>{{vm.title}} <a href='#' @click.prevent='setNow()'>set to now</a></label>
   </div>
 </template>
 <script>
@@ -55,3 +55,44 @@ export default {
   },
 };
 </script>
+<style lang='stylus'>
+focus-color=#2196f3;
+
+.date-container {
+  display: flex;
+  font-size: 15px;
+  flex-direction: column-reverse;
+  margin-bottom: 1rem;
+
+  label {
+    font-family: Roboto,-apple-system,BlinkMacSystemFont,Segoe UI,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica,Arial,sans-serif;
+    a {
+      text-decoration: none;
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.54);
+    }
+  }
+
+  input.active + label {
+    a {
+      text-decoration: underscore;
+      color: focus-color;
+    }
+  }
+
+  input {
+    height: 2rem;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,.12);
+    font-size: 1rem;
+    &:hover {
+      border-bottom: 1px solid rgba(0,0,0,.54);
+    }
+    &:focus {
+      outline: none;
+      border-bottom-color: focus-color;
+      border-bottom-width: 2px;
+    }
+  }
+}
+</style>

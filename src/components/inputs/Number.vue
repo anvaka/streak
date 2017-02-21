@@ -1,6 +1,7 @@
 <template>
   <ui-textbox
       :label='vm.title'
+      floating-label
       type='number'
       v-model='vm.value'></ui-textbox>
 </template>
