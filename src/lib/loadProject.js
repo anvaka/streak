@@ -2,6 +2,7 @@
  * Loads a project from data store
  */
 import detectType from './detectType';
+import extractColumnTypesMetadata from './extractColumnTypesMetadata';
 
 export default loadProject;
 
@@ -19,7 +20,7 @@ function loadProject(projectFolderId) {
 
 function laodSpreadsheet(spreadsheetFile) {
   const spreadsheetId = spreadsheetFile.id;
-  const columnTypeByName = getColumnTypesFromFileProperties(spreadsheetFile.properties);
+  const columnTypeByName = extractColumnTypesMetadata(spreadsheetFile.properties);
 
   const sheetDataPromise = loadSheetData(spreadsheetId);
   const sheetInfoPromise = loadSheetInfo(spreadsheetId);
@@ -32,33 +33,6 @@ function laodSpreadsheet(spreadsheetFile) {
       sheetData: results[0],
       sheetInfo: results[1]
     }, columnTypeByName);
-  }
-
-  function getColumnTypesFromFileProperties(properties) {
-    // When we save a new project we set file properties to describe column types
-    // Here we will try to restore saved properties and create a look up from
-    // column name to column type. That way we can make better guesses about
-    // column types, and render most appropriate input control.
-    const columnMetadata = properties && properties.columns;
-    const columnTypeByName = new Map();
-
-    if (!columnMetadata) {
-      // This can happen if file was not created by us. In this case we will try to
-      // dedcue column types from data.
-      return columnTypeByName;
-    }
-
-    let columnTypesFromProperties;
-    try {
-      columnTypesFromProperties = JSON.parse(columnMetadata);
-    } catch (err) {
-      console.error('Failed to parse column types', columnMetadata);
-      return columnTypeByName;
-    }
-
-    columnTypesFromProperties.forEach(column => columnTypeByName.set(column.name, column.type));
-
-    return columnTypeByName;
   }
 }
 

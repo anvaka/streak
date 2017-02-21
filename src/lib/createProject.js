@@ -34,11 +34,19 @@ function createProject(name, columns) {
   function createLogFile(parentFolderId) {
     const properties = {
       createdByStreak: 'true',
-      columns: JSON.stringify(columns.map(column => ({
-        name: column.name,
-        type: column.type.value
-      })))
     };
+
+    // Properties and app properties are limited to 124 bytes in UTF-8 encoding,
+    // counting both the key and the value. So we split each property into multiple
+    // keys:
+    columns.forEach((column, idx) => {
+      const nameKey = `col.${idx}.name`;
+      properties[nameKey] = column.name;
+
+      const typeKey = `col.${idx}.type`;
+      properties[typeKey] = column.type.value;
+      // TODO: probabyl worth to check max length
+    });
 
     const fileMetadata = {
       name,
