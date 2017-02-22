@@ -4,6 +4,11 @@
     <h2>{{title}}</h2>
     <div v-if='project'>
       <add-record :fields='fields' :spreadsheet-id='project.spreadsheetId'></add-record>
+      <div v-for='row in project.sheetData'>
+        <div v-for='column in row'>
+          {{column}}
+        </div>
+      </div>
     </div>
     <div v-if='error'>
       <h3>Something is wrong...</h3>

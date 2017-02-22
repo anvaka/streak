@@ -14,7 +14,7 @@
         <number :vm='field'></number>
       </div>
     </div>
-    <ui-button type='secondary' v-if='!isSaveInProgress' color='primary'  buttonType='submit'>
+    <ui-button type='secondary' class='commit-btn' v-if='!isSaveInProgress' color='primary'  buttonType='submit'>
       Commit
     </ui-button>
 
@@ -62,3 +62,9 @@ export default {
   }
 };
 </script>
+
+<style>
+.commit-btn {
+  padding-left: 0;
+}
+</style>
