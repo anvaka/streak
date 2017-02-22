@@ -127,4 +127,16 @@ export default {
   }
 }
 
+@media only screen and (max-width: 560px) {
+  .projects-list {
+    width: 100%;
+    height: 100px;
+    overflow-y: auto;
+  }
+  .projects-overview {
+    left: 0;
+    top: 100px;
+  }
+}
+
 </style>

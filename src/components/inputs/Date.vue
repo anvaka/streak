@@ -85,6 +85,9 @@ focus-color=#2196f3;
     border: none;
     border-bottom: 1px solid rgba(0,0,0,.12);
     font-size: 1rem;
+    border-radius: 0;
+    padding-left: 0;
+    -webkit-appearance: initial;
     &:hover {
       border-bottom: 1px solid rgba(0,0,0,.54);
     }
