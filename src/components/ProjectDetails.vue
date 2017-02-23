@@ -1,12 +1,20 @@
 <template>
-  <div>
+  <div class='project-details-container'>
     <div class='loading' v-if='loading'>Loading...</div>
     <h2>{{title}}</h2>
-    <div v-if='project'>
+    <div v-if='project' class='project-details'>
       <add-record :fields='fields' :spreadsheet-id='project.spreadsheetId'></add-record>
-      <div v-for='row in project.sheetData'>
-        <div v-for='column in row'>
-          {{column}}
+      <div v-if='project.projectHistory'>
+        <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
+          <h4>{{getUICellValue(groupRecord.group)}}</h4>
+          <div v-for='row in groupRecord.items' class='subgroup'>
+            <div v-for='column in row' v-if='column.value'  class='cell-record'>
+              <div class='secondary column-title'>{{column.title}}</div>
+              <div class='column-value'>
+              {{getUICellValue(column)}}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -18,6 +26,8 @@
 </template>
 
 <script>
+import moment from 'moment';
+
 import loadProject from '../lib/loadProject';
 import AddRecord from './AddRecord.vue';
 
@@ -50,6 +60,15 @@ export default {
   },
 
   methods: {
+    getUICellValue(cell) {
+      const { value } = cell;
+      if (value instanceof Date) {
+        return moment(value).format('LL');
+      }
+
+      return value;
+    },
+
     loadCurrentProject() {
       this.error = null;
       this.loading = true;
@@ -85,5 +104,30 @@ export default {
   position: absolute;
   text-align: left;
   top: 0;
+}
+.project-details-container {
+  height: 100%;
+  position: relative;
+}
+
+.project-details {
+  height: 100%;
+  max-width: 941px;
+  overflow-y: auto;
+}
+.cell-record {
+  display: table-row;
+}
+.column-title {
+  text-align: right;
+  padding-right: 10px;
+  display: table-cell;
+  font-size: 12px;
+}
+.column-value {
+  display: table-cell;
+}
+.subgroup {
+  padding-bottom: 10px;
 }
 </style>

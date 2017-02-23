@@ -3,6 +3,7 @@
  */
 import detectType from './detectType';
 import extractColumnTypesMetadata from './extractColumnTypesMetadata';
+import ProjectHistoryViewModel from './ProjectHistoryViewModel';
 
 export default loadProject;
 
@@ -29,6 +30,7 @@ function laodSpreadsheet(spreadsheetFile) {
     .then(convertToViewModel);
 
   function convertToViewModel(results) {
+    // TODO: use capabilities.canEdit to determine whether current user can edit this project.
     return makeProjectViewModel({
       sheetData: results[0],
       sheetInfo: results[1]
@@ -65,7 +67,7 @@ function getLogFileSpreadsheetId(projectFolderId) {
     gapi.client.drive.files.list({
       q: `trashed = false and '${projectFolderId}' in parents and mimeType='application/vnd.google-apps.spreadsheet'`,
       pageSize: 10,
-      fields: 'nextPageToken, files(id, name, properties)'
+      fields: 'files(id, name, properties, capabilities)'
     }).then(response => {
       const { result } = response;
       const { files } = result;
@@ -91,6 +93,7 @@ function makeProjectViewModel({ sheetData, sheetInfo }, columnTypeByName) {
     title,
     spreadsheetId: sheetInfo.spreadsheetId,
     sheetData,
+    projectHistory: new ProjectHistoryViewModel(sheetData, headers),
     headers,
     raw: sheetInfo
   };
@@ -118,10 +121,13 @@ function extractHeaders(mainSheet, columnTypeByName) {
   const { rowData } = data[0];
   if (!rowData || rowData.length === 0) return [];
 
-  return rowData[0].values.map((x, columnIndex) => ({
-    title: x.formattedValue,
-    valueType: guessType(rowData, columnIndex, x.formattedValue)
-  }));
+  return rowData[0].values.map((x, columnIndex) => {
+    const title = x && x.formattedValue;
+    return {
+      title,
+      valueType: guessType(rowData, columnIndex, title)
+    };
+  });
 
   function guessType(rowData, columnIndex, columnTitle) {
     if (columnTypeByName.has(columnTitle)) {
@@ -143,7 +149,8 @@ function extractHeaders(mainSheet, columnTypeByName) {
     function guessTypeFromRow(rowWithValues, columnIndex) {
       if (!rowWithValues || !rowWithValues.values) return;
 
-      const cellValue = rowWithValues.values[columnIndex].formattedValue;
+      const cellValues = rowWithValues.values[columnIndex];
+      const cellValue = cellValues && cellValues.formattedValue;
 
       return detectType(cellValue);
     }
