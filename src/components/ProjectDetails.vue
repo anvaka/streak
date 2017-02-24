@@ -1,9 +1,9 @@
 <template>
   <div class='project-details-container'>
     <div class='loading' v-if='loading'>Loading...</div>
-    <h2>{{title}}</h2>
+    <h2>{{title}} </h2>
+    <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>Add record</router-link>
     <div v-if='project' class='project-details'>
-      <add-record :fields='fields' :spreadsheet-id='project.spreadsheetId'></add-record>
       <div v-if='project.projectHistory'>
         <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
           <h4>{{getUICellValue(groupRecord.group)}}</h4>
@@ -27,9 +27,7 @@
 
 <script>
 import moment from 'moment';
-
-import loadProject from '../lib/loadProject';
-import AddRecord from './AddRecord.vue';
+import loadProject from 'src/lib/loadProject';
 
 export default {
   props: ['projectId'],
@@ -38,15 +36,10 @@ export default {
     return {
       loading: true,
       isSaveInProgress: false,
-      fields: [],
       error: null,
       title: '',
       project: null,
     };
-  },
-
-  components: {
-    AddRecord
   },
 
   created() {
@@ -75,12 +68,6 @@ export default {
 
       loadProject(this.projectId)
         .then((project) => {
-          this.fields = project.headers.map(header => ({
-            title: header.title,
-            value: '',
-            valueType: header.valueType
-          }));
-
           this.loading = false;
           this.title = project.title;
           this.project = project;
@@ -103,11 +90,15 @@ export default {
 .loading {
   position: absolute;
   text-align: left;
-  top: 0;
+  top: -42px;
 }
 .project-details-container {
   height: 100%;
   position: relative;
+}
+
+.project-details-container h2 {
+  margin: 0;
 }
 
 .project-details {
@@ -129,5 +120,9 @@ export default {
 }
 .subgroup {
   padding-bottom: 10px;
+}
+.add-record-link {
+  font-size: 18px;
+  text-decoration: none;
 }
 </style>

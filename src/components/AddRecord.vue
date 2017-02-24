@@ -14,9 +14,14 @@
         <number :vm='field'></number>
       </div>
     </div>
-    <ui-button type='secondary' class='commit-btn' v-if='!isSaveInProgress' color='primary'  buttonType='submit'>
-      Commit
-    </ui-button>
+    <div class='actions' v-if='!isSaveInProgress'>
+      <ui-button type='secondary' class='cancel-btn'  buttonType='button' @click.prevent='cancel'>
+        Cancel
+      </ui-button>
+      <ui-button type='secondary' class='commit-btn' v-if='!isSaveInProgress' color='primary'  buttonType='submit'>
+        Add new record
+      </ui-button>
+    </div>
 
     <div v-if='isSaveInProgress'>
       <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
@@ -57,14 +62,19 @@ export default {
       appendRecord(this.spreadsheetId, sheetRow).then(() => {
         this.isSaveInProgress = false;
         resetFields(this.fields);
+        this.$emit('saved');
       });
     },
+    cancel() {
+      this.$emit('cancel');
+    }
   }
 };
 </script>
 
 <style>
-.commit-btn {
-  padding-left: 0;
+.actions {
+  display: flex;
+  justify-content: space-between;
 }
 </style>

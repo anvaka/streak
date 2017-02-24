@@ -59,4 +59,10 @@ export default {
 .secondary {
   color: secondary-text-color;
 }
+.action {
+  color: action-color;
+}
+.ui-button--type-secondary.ui-button--color-primary {
+  color: action-color;
+}
 </style>

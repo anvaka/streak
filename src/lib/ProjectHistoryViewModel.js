@@ -5,7 +5,7 @@ export default class ProjectHistoryViewModel {
     const typedRows = convertToTypedRows(sheetData, headers);
     const dateIndex = getDateIndex(headers);
 
-    this.groups = groupBy(0, typedRows);
+    this.groups = groupBy(dateIndex, typedRows);
   }
 }
 

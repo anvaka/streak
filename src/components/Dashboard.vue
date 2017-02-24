@@ -4,7 +4,7 @@
       <div class='projects-container'>
         <div v-if='hasProjects'>
           <div class='projects-header'>
-            <h3>Your Projects</h3>
+            <h2>Your Projects</h2>
           </div>
           <div class='project-list'>
             <router-link class='project-link'
@@ -105,7 +105,7 @@ export default {
 }
 
 .projects-container {
-  padding: 7px;
+  padding: 0 7px 7px 7px;
   .start-new-project {
     font-size: 12px;
     text-decoration: none;
@@ -119,10 +119,10 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  h3 {
+  h2 {
     margin: 0;
     font-weight: normal;
-    font-size: 32px;
+    font-size: 1.5rem;
     color: rgba(0, 0, 0, 0.4);
   }
 }

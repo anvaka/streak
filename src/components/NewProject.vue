@@ -194,6 +194,7 @@ export default {
 }
 
 .create-project {
+  margin-top: 32px;
   width: 100%;
   font-size: 26px;
 }

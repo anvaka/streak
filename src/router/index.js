@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Home from '../components/Home.vue';
 import Dashboard from '../components/Dashboard.vue';
+import AddRecordContainer from '../components/AddRecordContainer.vue';
 import NewProject from '../components/NewProject.vue';
 // import ProjectDetails from '../components/ProjectDetails.vue';
 
@@ -23,6 +24,11 @@ export default new Router({
       path: '/:projectId',
       name: 'project-details',
       component: Dashboard,
+      props: true
+    }, {
+      path: '/:projectId/add',
+      name: 'add-record',
+      component: AddRecordContainer,
       props: true
     }]
   }],
