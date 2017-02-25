@@ -44,8 +44,8 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .home {
-  height: 100%;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 .logo-text {
   color: rgba(0, 0, 0, 0.2);

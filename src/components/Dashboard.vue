@@ -67,17 +67,14 @@ export default {
 @import '../styles/variables.styl'
 
 .dashboard {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  flex: 1;
 }
 
 .projects-overview {
-  position: absolute;
   left: sidebar-width;
-  top: 0;
-  right: 0;
   bottom: 0;
+  top: 56px;
+  position: absolute;
 }
 
 .project-link {

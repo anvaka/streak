@@ -2,7 +2,7 @@
   <div class='project-details-container'>
     <div class='loading' v-if='loading'>Loading...</div>
     <h2>{{title}} </h2>
-    <div v-if='!loading && hasNoData'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
+    <div v-if='!loading && hasNoData && !error'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
     </div>
     <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
 
@@ -13,7 +13,7 @@
           <div v-for='row in groupRecord.items' class='subgroup'>
             <div v-for='column in row' v-if='column.value'  class='cell-record'>
               <div class='secondary column-title'>{{column.title}}</div>
-              <div class='column-value' v-html='getUICellValue(column)'>
+              <div class='column-value cell-container' v-html='getUICellValue(column)'>
               </div>
             </div>
           </div>
@@ -101,43 +101,51 @@ export default {
 };
 </script>
 
-<style scoped>
-.loading {
-  position: absolute;
-  text-align: left;
-  top: -42px;
-}
+<style lang='stylus'>
 .project-details-container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  position: relative;
-}
 
-.project-details-container h2 {
-  margin: 0;
-}
+  .loading {
+    position: absolute;
+    text-align: left;
+    top: -42px;
+  }
 
-.project-details {
-  height: 100%;
-  max-width: 941px;
-  overflow-y: auto;
-}
-.cell-record {
-  display: table-row;
-}
-.column-title {
-  text-align: right;
-  padding-right: 10px;
-  display: table-cell;
-  font-size: 12px;
-}
-.column-value {
-  display: table-cell;
-}
-.subgroup {
-  padding-bottom: 10px;
-}
-.add-record-link {
-  font-size: 18px;
-  text-decoration: none;
+  .cell-container {
+    p {
+      margin: 0;
+    }
+  }
+
+  .project-details-container h2 {
+    margin: 0;
+  }
+
+  .project-details {
+    flex: 1;
+    max-width: 941px;
+    overflow-y: auto;
+  }
+  .cell-record {
+    display: table-row;
+  }
+  .column-title {
+    text-align: right;
+    padding-right: 10px;
+    display: table-cell;
+    font-size: 12px;
+  }
+  .column-value {
+    display: table-cell;
+  }
+  .subgroup {
+    padding-bottom: 10px;
+  }
+  .add-record-link {
+    font-size: 18px;
+    text-decoration: none;
+  }
 }
 </style>
