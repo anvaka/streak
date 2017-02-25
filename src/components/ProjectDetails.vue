@@ -2,7 +2,10 @@
   <div class='project-details-container'>
     <div class='loading' v-if='loading'>Loading...</div>
     <h2>{{title}} </h2>
-    <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>Add record</router-link>
+    <div v-if='hasNoData'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
+    </div>
+    <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
+
     <div v-if='project' class='project-details'>
       <div v-if='project.projectHistory'>
         <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
@@ -10,8 +13,7 @@
           <div v-for='row in groupRecord.items' class='subgroup'>
             <div v-for='column in row' v-if='column.value'  class='cell-record'>
               <div class='secondary column-title'>{{column.title}}</div>
-              <div class='column-value'>
-              {{getUICellValue(column)}}
+              <div class='column-value' v-html='getUICellValue(column)'>
               </div>
             </div>
           </div>
@@ -26,7 +28,10 @@
 </template>
 
 <script>
+import _ from 'lodash';
 import moment from 'moment';
+import marked from 'marked';
+import InputTypes from 'src/types/InputTypes';
 import loadProject from 'src/lib/loadProject';
 
 export default {
@@ -45,6 +50,11 @@ export default {
   created() {
     this.loadCurrentProject();
   },
+  computed: {
+    hasNoData() {
+      return !this.project || this.project.projectHistory.groups.length === 0;
+    }
+  },
 
   watch: {
     $route(/* to, from */) {
@@ -59,7 +69,11 @@ export default {
         return moment(value).format('LL');
       }
 
-      return value;
+      if (cell.valueType === InputTypes.MULTI_LINE_TEXT) {
+        return marked(value);
+      }
+
+      return _.escape(value);
     },
 
     loadCurrentProject() {

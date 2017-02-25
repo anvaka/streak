@@ -94,7 +94,8 @@ function convertToTypedRows(sheetData, headers) {
 
       rowRecords.push({
         value: typedValue,
-        title: column.title
+        title: column.title,
+        valueType: column.valueType
       });
     });
   });

@@ -50,7 +50,7 @@ export default {
       this.error = null;
       this.loading = true;
 
-      loadProject(this.projectId)
+      loadProject(this.projectId, /* allowCachedData = */ true)
         .then((project) => {
           this.fields = project.headers.map(header => ({
             title: header.title,

@@ -14,16 +14,21 @@ const DATA_RANGE = 'A2:Z';
 // We take one row for header, and one more to fetch data types.
 const HEADER_RANGE = 'A1:Z2';
 
-function loadProject(projectFolderId) {
+// TODO: Caches might need to have expiration time.
+const sheetIdToSheetInfo = new Map();
+const projetIdToProjectFile = new Map();
+const sheetIdToSheetData = new Map();
+
+function loadProject(projectFolderId, allowCachedData) {
   return getLogFileSpreadsheetId(projectFolderId)
-    .then(laodSpreadsheet);
+    .then(file => loadSpreadsheet(file, allowCachedData));
 }
 
-function laodSpreadsheet(spreadsheetFile) {
+function loadSpreadsheet(spreadsheetFile, allowCachedData) {
   const spreadsheetId = spreadsheetFile.id;
   const columnTypeByName = extractColumnTypesMetadata(spreadsheetFile.properties);
 
-  const sheetDataPromise = loadSheetData(spreadsheetId);
+  const sheetDataPromise = loadSheetData(spreadsheetId, allowCachedData);
   const sheetInfoPromise = loadSheetInfo(spreadsheetId);
 
   return Promise.all([sheetDataPromise, sheetInfoPromise])
@@ -40,30 +45,50 @@ function laodSpreadsheet(spreadsheetFile) {
 
 function loadSheetInfo(spreadsheetId) {
   return new Promise((resolve, reject) => {
+    const cachedInfo = sheetIdToSheetInfo.get(spreadsheetId);
+    if (cachedInfo) {
+      resolve(cachedInfo);
+      return;
+    }
+
     gapi.client.sheets.spreadsheets.get({
       spreadsheetId,
       includeGridData: true,
       ranges: HEADER_RANGE
     }).then(data => {
+      sheetIdToSheetInfo.set(spreadsheetId, data.result);
       return data.result;
     }).then(resolve, reject);
   });
 }
 
-function loadSheetData(spreadsheetId) {
+function loadSheetData(spreadsheetId, allowCachedData) {
   return new Promise((resolve, reject) => {
+    const cachedData = sheetIdToSheetData.get(spreadsheetId);
+    if (cachedData && allowCachedData) {
+      resolve(cachedData);
+      return;
+    }
+
     gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId,
       range: DATA_RANGE,
     }).then(data => {
-      return data.result.values;
+      const sheetData = data.result.values;
+      sheetIdToSheetData.set(spreadsheetId, sheetData);
+      return sheetData;
     }).then(resolve, reject);
   });
 }
 
 function getLogFileSpreadsheetId(projectFolderId) {
-  // TODO: This potentially can be cached. Not caching now to avoid premature optimization
   return new Promise((resolve, reject) => {
+    const cachedFile = projetIdToProjectFile.get(projectFolderId);
+    if (cachedFile) {
+      resolve(cachedFile);
+      return;
+    }
+
     gapi.client.drive.files.list({
       q: `trashed = false and '${projectFolderId}' in parents and mimeType='application/vnd.google-apps.spreadsheet'`,
       pageSize: 10,
@@ -78,6 +103,8 @@ function getLogFileSpreadsheetId(projectFolderId) {
         // TODO: Implement this. Need to find best candidate.
         throw new Error('At the moment, only one log file is supported');
       }
+
+      projetIdToProjectFile.set(projectFolderId, files[0]);
 
       return files[0];
     }).then(resolve, reject);
