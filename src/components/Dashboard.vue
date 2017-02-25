@@ -28,14 +28,13 @@
       You don't have any projects yet. <router-link to='new-project'>Start a new project</router-link>
     </div>
 
-    <div class='projects-overview' v-if='projectId'>
-      <project-details :projectId='projectId'></project-details>
+    <div class='projects-overview'>
+      <router-view></router-view>
     </div>
   </div>
 </template>
 <script>
 import { UiButton, UiIconButton } from 'keen-ui';
-import ProjectDetails from './ProjectDetails';
 import dashboard from '../lib/dashboard';
 
 export default {
@@ -60,7 +59,6 @@ export default {
   components: {
     UiButton,
     UiIconButton,
-    ProjectDetails,
   },
 };
 </script>

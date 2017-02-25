@@ -2,7 +2,7 @@
   <div class='project-details-container'>
     <div class='loading' v-if='loading'>Loading...</div>
     <h2>{{title}} </h2>
-    <div v-if='hasNoData'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
+    <div v-if='!loading && hasNoData'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
     </div>
     <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
 
@@ -50,6 +50,7 @@ export default {
   created() {
     this.loadCurrentProject();
   },
+
   computed: {
     hasNoData() {
       return !this.project || this.project.projectHistory.groups.length === 0;

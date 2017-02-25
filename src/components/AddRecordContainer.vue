@@ -78,7 +78,6 @@ export default {
 
 <style>
 .add-record-container {
-  margin: 7px;
   max-width: 600px;
 }
 
