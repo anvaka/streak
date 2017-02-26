@@ -152,10 +152,23 @@ export default {
   }
 }
 @media only screen and (max-width: small-screen-size) {
-  .project-details-container .cell-record {
-    display: flex;
-    flex-direction: column;
+  .project-details-container {
+    .cell-record {
+      display: flex;
+      flex-direction: column;
+    }
+    .loading {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      left: 0;
+      display: flex;
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+    }
   }
 }
-
 </style>

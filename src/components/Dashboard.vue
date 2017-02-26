@@ -8,10 +8,10 @@
       <router-view></router-view>
     </div>
 
-    <div class='projects-container'>
+    <div class='projects-list-container' :class='{expanded: projectsListExpanded}'>
       <div v-if='hasProjects'>
-        <div class='projects-header'>
-          <h2>Your Projects</h2>
+        <div class='projects-header' @click.prevent='toggleProjectLists'>
+          <h2>Your Projects <span class='toggle-list'>{{projectsListExpanded ? "hide" : "show"}}</span></h2>
         </div>
         <div class='project-list'>
           <router-link class='project-link'
@@ -40,11 +40,19 @@ export default {
   props: ['projectId'],
   data() {
     return {
-      dashboard
+      dashboard,
+      projectsListExpanded: false
     };
   },
   created () {
     dashboard.loadDashboard();
+  },
+
+  watch: {
+    $route(/* to, from */) {
+      // TODO: this doesn't work very well, if you click on the same project.
+      this.projectsListExpanded = false;
+    }
   },
   computed: {
     hasProjects() {
@@ -52,6 +60,11 @@ export default {
     },
     noProjects() {
       return !dashboard.loading && dashboard.projects.length === 0;
+    }
+  },
+  methods: {
+    toggleProjectLists() {
+      this.projectsListExpanded = !this.projectsListExpanded;
     }
   },
   components: {
@@ -94,7 +107,7 @@ export default {
 
 }
 
-.projects-container {
+.projects-list-container {
   position: absolute;
   width: sidebar-width;
   .start-new-project {
@@ -117,20 +130,34 @@ export default {
     color: rgba(0, 0, 0, 0.4);
   }
 }
+.toggle-list {
+  display: none;
+}
 
 @media only screen and (max-width: small-screen-size) {
-  .projects-container {
+  .projects-list-container {
     width: 100%;
     height: 50px;
     padding-top: 12px;
     bottom: 0;
     overflow-y: auto;
+    background: screen-background;
   }
+  .projects-list-container.expanded {
+    top: 50px;
+    height: initial;
+  }
+
   .projects-overview {
     left: 0;
     top: 55px;
     bottom: 50px;
     padding: 7px;
+  }
+  .toggle-list {
+    display: inline-block;
+    font-size: 14px;
+    color: action-color;
   }
 }
 
