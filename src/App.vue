@@ -51,6 +51,7 @@ export default {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  padding: 0 7px;
 }
 .router-container {
   width: 100%;
@@ -64,5 +65,15 @@ export default {
 }
 .ui-button--type-secondary.ui-button--color-primary {
   color: action-color;
+}
+.ui-toolbar {
+  padding: 0;
+  .ui-toolbar__brand {
+    min-width: initial;
+  }
+  .ui-toolbar__nav-icon {
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 </style>

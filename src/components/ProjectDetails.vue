@@ -119,7 +119,7 @@ export default {
     }
   }
 
-  .project-details-container h2 {
+  h2 {
     margin: 0;
   }
 
