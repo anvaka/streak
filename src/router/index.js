@@ -18,7 +18,7 @@ export default new Router({
       component: Dashboard,
       props: true
     }, {
-      path: '/new-project',
+      path: 'new-project',
       name: 'new-project',
       component: NewProject
     }, {

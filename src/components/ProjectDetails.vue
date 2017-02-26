@@ -102,6 +102,8 @@ export default {
 </script>
 
 <style lang='stylus'>
+@import '../styles/variables.styl';
+
 .project-details-container {
   display: flex;
   flex-direction: column;
@@ -131,6 +133,7 @@ export default {
   .cell-record {
     display: table-row;
   }
+
   .column-title {
     text-align: right;
     padding-right: 10px;
@@ -148,4 +151,11 @@ export default {
     text-decoration: none;
   }
 }
+@media only screen and (max-width: small-screen-size) {
+  .project-details-container .cell-record {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 </style>
