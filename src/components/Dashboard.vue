@@ -41,7 +41,8 @@ export default {
   data() {
     return {
       dashboard,
-      projectsListExpanded: false
+      // If there is no project ID, we are looking at home page
+      projectsListExpanded: this.projectId === undefined
     };
   },
   created () {
