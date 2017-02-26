@@ -76,4 +76,11 @@ export default {
     margin-right: 0;
   }
 }
+
+@media (max-width: small-screen-size) {
+  .list {
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+}
 </style>

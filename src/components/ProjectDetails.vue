@@ -6,15 +6,13 @@
     </div>
     <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
 
-    <div v-if='project' class='project-details'>
-      <div v-if='project.projectHistory'>
-        <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
-          <h4>{{getUICellValue(groupRecord.group)}}</h4>
-          <div v-for='row in groupRecord.items' class='subgroup'>
-            <div v-for='column in row' v-if='column.value'  class='cell-record'>
-              <div class='secondary column-title'>{{column.title}}</div>
-              <div class='column-value cell-container' v-html='getUICellValue(column)'>
-              </div>
+    <div v-if='project && project.projectHistory' class='project-details list'>
+      <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
+        <h4>{{getUICellValue(groupRecord.group)}}</h4>
+        <div v-for='row in groupRecord.items' class='subgroup'>
+          <div v-for='column in row' v-if='column.value'  class='cell-record'>
+            <div class='secondary column-title'>{{column.title}}</div>
+            <div class='column-value cell-container' v-html='getUICellValue(column)'>
             </div>
           </div>
         </div>
