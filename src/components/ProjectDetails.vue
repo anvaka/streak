@@ -6,7 +6,7 @@
     </div>
     <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
 
-    <div v-if='project && project.projectHistory' class='project-details list'>
+    <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
       <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
         <h4>{{getUICellValue(groupRecord.group)}}</h4>
         <div v-for='row in groupRecord.items' class='subgroup'>
@@ -84,6 +84,11 @@ export default {
           this.loading = false;
           this.title = project.title;
           this.project = project;
+          const { projectList } = this.$refs;
+
+          if (projectList) {
+            projectList.scrollTop = 0;
+          }
         }).catch(err => {
           this.loading = false;
           this.project = null;
@@ -149,6 +154,7 @@ export default {
     text-decoration: none;
   }
 }
+
 @media only screen and (max-width: small-screen-size) {
   .project-details-container {
     .cell-record {
