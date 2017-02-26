@@ -20,7 +20,7 @@
             >{{project.name}}</router-link>
         </div>
         <div>
-          <router-link to='new-project' class='start-new-project'>Start new project</router-link>
+          <router-link :to='{name: "new-project"}' class='start-new-project'>Start new project</router-link>
         </div>
       </div>
 
@@ -71,6 +71,7 @@ export default {
 .projects-overview {
   left: sidebar-width;
   bottom: 0;
+  right: 0;
   top: 56px;
   position: absolute;
 }
@@ -97,9 +98,9 @@ export default {
   position: absolute;
   width: sidebar-width;
   .start-new-project {
-    font-size: 12px;
+    font-size: 14px;
     text-decoration: none;
-    color: secondary-text-color;
+    color: action-color;
     display: inline-block;
     margin-top: 22px;
   }
@@ -117,7 +118,7 @@ export default {
   }
 }
 
-@media only screen and (max-width: 560px) {
+@media only screen and (max-width: small-screen-size) {
   .projects-container {
     width: 100%;
     height: 50px;
