@@ -2,7 +2,9 @@
   <div class='add-record-container'>
     <div class='loading' v-if='loading'>Loading...</div>
     <h2>{{title}}</h2>
-    <add-record :fields='fields' :spreadsheet-id='project.spreadsheetId' v-if='project'
+    <add-record :fields='fields' :row='row'
+      :spreadsheet-id='project.spreadsheetId'
+      v-if='project'
       @saved='goToProjects' @cancel='goToProjects'></add-record>
     <div v-if='error'>
       <h3>Something is wrong...</h3>
@@ -16,7 +18,7 @@ import AddRecord from './AddRecord.vue';
 
 export default {
   name: 'AddRecordContainer',
-  props: ['projectId'],
+  props: ['projectId', 'row'],
   components: {
     AddRecord
   },
@@ -52,12 +54,7 @@ export default {
 
       loadProject(this.projectId, /* allowCachedData = */ true)
         .then((project) => {
-          this.fields = project.headers.map(header => ({
-            title: header.title,
-            value: '',
-            valueType: header.valueType
-          }));
-
+          this.fields = getFieldsFromProject(project, this.row);
           this.loading = false;
           this.title = project.title;
           this.project = project;
@@ -74,11 +71,24 @@ export default {
     }
   }
 };
+
+function getFieldsFromProject(project, row) {
+  const rowWithData = (project.sheetData && project.sheetData[row]) || {};
+
+  return project.headers.map((header, index) => ({
+    title: header.title,
+    value: rowWithData[index] || '',
+    valueType: header.valueType
+  }));
+}
 </script>
 
 <style>
 .add-record-container {
   max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .add-record-container h2 {

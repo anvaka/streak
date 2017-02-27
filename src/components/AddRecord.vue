@@ -1,17 +1,19 @@
 <template>
-  <form @submit.prevent='commitChanges'>
-    <div class='input-container' v-for='field in fields'>
-      <div v-if='field.valueType === "date"'>
-        <date :vm='field'></date>
-      </div>
-      <div v-if='field.valueType === "multiline-text"'>
-        <multi-line-text :vm='field'></multi-line-text>
-      </div>
-      <div v-if='field.valueType === "string"'>
-        <single-line-text :vm='field'></single-line-text>
-      </div>
-      <div v-if='field.valueType === "number"'>
-        <number :vm='field'></number>
+  <form @submit.prevent='commitChanges' class='editor-form'>
+    <div class='input-fields'>
+      <div class='input-container' v-for='field in fields'>
+        <div v-if='field.valueType === "date"'>
+          <date :vm='field'></date>
+        </div>
+        <div v-if='field.valueType === "multiline-text"'>
+          <multi-line-text :vm='field'></multi-line-text>
+        </div>
+        <div v-if='field.valueType === "string"'>
+          <single-line-text :vm='field'></single-line-text>
+        </div>
+        <div v-if='field.valueType === "number"'>
+          <number :vm='field'></number>
+        </div>
       </div>
     </div>
     <div class='actions' v-if='!isSaveInProgress'>
@@ -19,7 +21,7 @@
         Cancel
       </ui-button>
       <ui-button type='secondary' class='commit-btn' v-if='!isSaveInProgress' color='primary'  buttonType='submit'>
-        Add new record
+        Save record
       </ui-button>
     </div>
 
@@ -37,10 +39,10 @@ import MultiLineText from './inputs/MultiLineText';
 import SingleLineText from './inputs/SingleLineText';
 import Number from './inputs/Number';
 
-import appendRecord from '../lib/appendRecord';
+import updateRow from '../lib/updateRow';
 
 export default {
-  props: ['fields', 'spreadsheetId'],
+  props: ['fields', 'spreadsheetId', 'row'],
   components: {
     UiTextbox,
     UiButton,
@@ -58,8 +60,9 @@ export default {
   methods: {
     commitChanges() {
       this.isSaveInProgress = true;
-      const sheetRow = this.fields.map(field => field.value);
-      appendRecord(this.spreadsheetId, sheetRow).then(() => {
+      const newRowValues = this.fields.map(field => field.value);
+
+      updateRow(this.spreadsheetId, newRowValues, this.row).then(() => {
         this.isSaveInProgress = false;
         resetFields(this.fields);
         this.$emit('saved');
@@ -72,9 +75,19 @@ export default {
 };
 </script>
 
-<style>
+<style lang='stylus'>
 .actions {
   display: flex;
   justify-content: space-between;
+  margin: 14px 0;
+}
+
+.editor-form {
+  display: flex;
+  flex-direction: column;
+}
+.input-fields {
+  overflow-y: auto;
+  flex: 1;
 }
 </style>

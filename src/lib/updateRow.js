@@ -3,13 +3,15 @@
  */
 const RANGE_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-export default function appendRecord(spreadsheetId, record) {
+export default function appendRecord(spreadsheetId, record, row) {
   if (record.length >= RANGE_NAMES.length) throw new Error('Too many columns');
 
-  const range = `A2:${RANGE_NAMES[record.length]}`;
+  const prefix = row !== undefined ? 'A' + (row + 2) : 'A2'; // +2 because we are zero based, and skip headers
+  const range = `${prefix}:${RANGE_NAMES[record.length]}`;
 
   return new Promise((resolve, reject) => {
-    return gapi.client.sheets.spreadsheets.values.append({
+    const method = row !== undefined ? 'update' : 'append';
+    return gapi.client.sheets.spreadsheets.values[method]({
       spreadsheetId,
       range,
       valueInputOption: 'USER_ENTERED',

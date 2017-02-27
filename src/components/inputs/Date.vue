@@ -14,7 +14,7 @@ export default {
   props: ['vm'],
   mounted() {
     const self = this;
-    const initialValue = new Date();
+    const initialValue = this.vm.value ? new Date(this.vm.value) : new Date();
 
     this.vm.value = toDateInputStr(initialValue);
 

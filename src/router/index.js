@@ -35,6 +35,11 @@ export default new Router({
         name: 'add-record',
         component: AddRecordContainer,
         props: true
+      }, {
+        path: 'edit-record/:row',
+        name: 'edit-record',
+        component: AddRecordContainer,
+        props: true
       }]
     }
     ]

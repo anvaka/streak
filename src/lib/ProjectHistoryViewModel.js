@@ -13,7 +13,7 @@ function groupBy(groupIndex, typedRows) {
   const groups = new Map(); // group key -> group records.
 
   typedRows.forEach(row => {
-    const cellRecord = row.rowRecords[groupIndex];
+    const cellRecord = row.cells[groupIndex];
     const groupKey = getGroupKey(cellRecord);
     let groupRecords = groups.get(groupKey);
 
@@ -26,7 +26,8 @@ function groupBy(groupIndex, typedRows) {
       groups.set(groupKey, groupRecords);
     }
     const rowItems = [];
-    row.rowRecords.forEach((otherCellRecord, otherIndex) => {
+
+    row.cells.forEach((otherCellRecord, otherIndex) => {
       if (otherIndex === groupIndex) {
         // Don't include group itself into group records.
         return;
@@ -70,11 +71,10 @@ function convertToTypedRows(sheetData, headers) {
 
   const typedRows = [];
 
-  sheetData.forEach(row => {
-    const rowRecords = [];
+  sheetData.forEach((row, rowIndex) => {
+    const cells = [];
     const typedRow = {
-      rowRecords,
-      // TODO: save original range address, so that we can edit it.
+      cells,
     };
     typedRows.push(typedRow);
 
@@ -92,10 +92,12 @@ function convertToTypedRows(sheetData, headers) {
         typedValue = rowValue;
       }
 
-      rowRecords.push({
+      cells.push({
         value: typedValue,
         title: column.title,
-        valueType: column.valueType
+        valueType: column.valueType,
+        rowIndex,
+        columnIndex
       });
     });
   });

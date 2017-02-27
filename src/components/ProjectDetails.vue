@@ -15,6 +15,7 @@
             <div class='column-value cell-container' v-html='getUICellValue(column)'>
             </div>
           </div>
+          <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: groupRecord.group.rowIndex}}'>edit</router-link>
         </div>
       </div>
     </div>
