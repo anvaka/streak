@@ -6,7 +6,22 @@ export default class ProjectHistoryViewModel {
     const dateIndex = getDateIndex(headers);
 
     this.groups = groupBy(dateIndex, typedRows);
+
+    this.contributionsByDay = makeContributionsByDayIndex(dateIndex, typedRows);
   }
+}
+
+function makeContributionsByDayIndex(dateIndex, typedRows) {
+  const contributions = {};
+
+  typedRows.forEach(row => {
+    const cellRecord = row.cells[dateIndex];
+    const dayKey = getGroupKey(cellRecord);
+    // TODO aggregate
+    contributions[dayKey] = row;
+  });
+
+  return contributions;
 }
 
 function groupBy(groupIndex, typedRows) {

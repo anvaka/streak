@@ -5,6 +5,7 @@
     <div v-if='!loading && hasNoData && !error'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
     </div>
     <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
+    <contributions-wall :project='project' v-if='project && project.projectHistory'></contributions-wall>
 
     <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
       <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
@@ -15,7 +16,9 @@
             <div class='column-value cell-container' v-html='getUICellValue(column)'>
             </div>
           </div>
-          <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: groupRecord.group.rowIndex}}'>edit</router-link>
+          <div class='actions-row'>
+            <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: groupRecord.group.rowIndex}}'>edit</router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -32,6 +35,8 @@ import moment from 'moment';
 import marked from 'marked';
 import InputTypes from 'src/types/InputTypes';
 import loadProject from 'src/lib/loadProject';
+
+import ContributionsWall from './ContributionsWall.vue';
 
 export default {
   props: ['projectId'],
@@ -60,6 +65,10 @@ export default {
     $route(/* to, from */) {
       this.loadCurrentProject();
     }
+  },
+
+  components: {
+    ContributionsWall
   },
 
   methods: {
@@ -153,6 +162,14 @@ export default {
   .add-record-link {
     font-size: 18px;
     text-decoration: none;
+  }
+  .actions-row {
+    text-align: center;
+    width: 100%;
+    .edit-record-link {
+      text-decoration: none;
+      font-size: 14px;
+    }
   }
 }
 
