@@ -1,4 +1,5 @@
 import InputTypes from 'src/types/InputTypes';
+import { getDateString } from './dateUtils.js';
 
 export default class ProjectHistoryViewModel {
   constructor(sheetData, headers) {
@@ -62,10 +63,8 @@ function getGroupKey(cellRecord) {
   const cellValue = cellRecord.value;
 
   if (cellValue instanceof Date) {
-    // "2017-02-22T17:36:08.041Z" -> take only date part. This probably need to be
-    // configurable. E.g. what if someone wants to group by hour?
-    const groupLength = 4 + 2 + 2 + 2; // YYYY (4) MM (2) DD (2) + 2 separators
-    return cellValue.toISOString().substring(0, groupLength);
+    //  This probably need to be configurable. E.g. what if someone wants to group by hour?
+    return getDateString(cellValue);
   }
 
   return cellValue;

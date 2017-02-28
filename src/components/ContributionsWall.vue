@@ -10,6 +10,8 @@
 </template>
 
 <script>
+import { getDateString } from 'src/lib/dateUtils.js';
+
 export default {
   name: 'ContributionsWall',
   props: ['project'],
@@ -86,8 +88,7 @@ function getFillForDate(day, project) {
   if (!projectHistory) {
     return '#eee';
   }
-  // TODO: Move to shared module
-  const dayKey = day.toISOString().substring(0, '2017-02-27'.length);
+  const dayKey = getDateString(day);
   const contributions = projectHistory.contributionsByDay[dayKey];
   if (contributions) {
     return '#d6e685';

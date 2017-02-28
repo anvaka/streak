@@ -33,6 +33,10 @@ export function toDateInputStr(date) {
         ':' + pad(date.getSeconds());
 }
 
+export function getDateString(date) {
+  return date.toLocaleDateString('us').replace(/\//g, '-');
+}
+
 function pad(number) {
   if (number < 10) {
     return '0' + number;
