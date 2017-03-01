@@ -1,24 +1,39 @@
 <template>
   <div class='contributions-wall'>
-    <svg width='676' height='104'>
+    <svg width='676' height='104' ref='contributions'>
       <g v-for='week in weeks' :transform='getWeekTransform(week)'>
         <rect v-for='day in week.days' :fill='day.fill' width='10' height='10' x='0' :y='getDayYPosition(day)'
-              :title='day.day'></rect>
+              :title='day.day' class='contribution-day' :data-day='day.tooltip'></rect>
       </g>
     </svg>
   </div>
 </template>
 
 <script>
+import moment from 'moment';
 import { getDateString } from 'src/lib/dateUtils.js';
+import Tooltip from 'tether-tooltip';
 
 export default {
   name: 'ContributionsWall',
   props: ['project'],
-  data() {
-    return {
-      weeks: buildWeeks(this.project)
-    };
+  computed: {
+    weeks() {
+      return buildWeeks(this.project);
+    }
+  },
+  mounted() {
+    const svg = this.$refs.contributions;
+    this.mouseEnterHandler = this.mouseEnter.bind(this);
+    svg.addEventListener('mouseenter', this.mouseEnterHandler, true);
+  },
+
+  beforeDestroy() {
+    const svg = this.$refs.contributions;
+    svg.removeEventListener('mouseenter', this.mouseEnterHandler, true);
+    if (this.tooltip) {
+      this.tooltip.destroy();
+    }
   },
   methods: {
     getWeekTransform(week) {
@@ -28,6 +43,21 @@ export default {
     getDayYPosition(day) {
       const y = day.dayNumber * 12;
       return y;
+    },
+    mouseEnter(e) {
+      const dayDom = e.target;
+      if (!dayDom.classList.contains('contribution-day')) {
+        return;
+      }
+      if (this.tooltip) {
+        this.tooltip.destroy();
+      }
+      this.tooltip = new Tooltip({
+        target: dayDom,
+        content: dayDom.getAttribute('data-day'),
+        classes: 'ui-tooltip--theme-default',
+      });
+      this.tooltip.open();
     }
   }
 };
@@ -75,6 +105,7 @@ function buildWeekDays(sunday, project) {
 
     weekDays.push({
       day,
+      tooltip: moment(day).format('LL'),
       dayNumber: i,
       fill: getFillForDate(day, project)
     });
