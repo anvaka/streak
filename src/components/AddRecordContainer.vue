@@ -75,11 +75,17 @@ export default {
 function getFieldsFromProject(project, row) {
   const rowWithData = (project.sheetData && project.sheetData[row]) || {};
 
-  return project.headers.map((header, index) => ({
-    title: header.title,
-    value: rowWithData[index] || '',
-    valueType: header.valueType
-  }));
+  return project.headers.map((header, index) => {
+    const field = {
+      title: header.title,
+      value: rowWithData[index] || '',
+      valueType: header.valueType
+    };
+
+    if (header.autocomplete) field.autocomplete = header.autocomplete;
+
+    return field;
+  });
 }
 </script>
 

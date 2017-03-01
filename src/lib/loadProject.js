@@ -1,6 +1,7 @@
 /**
  * Loads a project from data store
  */
+import InputTypes from 'src/types/InputTypes';
 import detectType from './detectType';
 import extractColumnTypesMetadata from './extractColumnTypesMetadata';
 import ProjectHistoryViewModel from './ProjectHistoryViewModel';
@@ -115,6 +116,7 @@ function makeProjectViewModel({ sheetData, sheetInfo }, columnTypeByName) {
   const title = sheetInfo.properties.title;
   let headers = extractHeaders(sheetInfo.sheets[0], columnTypeByName);
   headers = trimHeadersToContent(headers, sheetData);
+  augmentSingleLineHeadersWithAutosuggestions(headers, sheetData);
 
   return {
     title,
@@ -124,6 +126,33 @@ function makeProjectViewModel({ sheetData, sheetInfo }, columnTypeByName) {
     headers,
     raw: sheetInfo
   };
+}
+
+function augmentSingleLineHeadersWithAutosuggestions(headers, sheetData) {
+  if (!sheetData) return;
+
+  const headersToUpdate = [];
+  headers.forEach((header, headerIndex) => {
+    if (header.valueType === InputTypes.SINGLE_LINE_TEXT) {
+      headersToUpdate.push({
+        index: headerIndex,
+        completions: new Set()
+      });
+    }
+  });
+
+  if (headersToUpdate.length === 0) return;
+
+  sheetData.forEach(row => {
+    // remember all unique values that we saw
+    headersToUpdate.forEach(header => {
+      header.completions.add(row[header.index]);
+    });
+  });
+
+  headersToUpdate.forEach(header => {
+    headers[header.index].autocomplete = Array.from(header.completions);
+  });
 }
 
 function trimHeadersToContent(headers, sheetData) {

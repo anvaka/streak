@@ -1,17 +1,27 @@
 <template>
-  <ui-textbox
+  <ui-autocomplete
       floating-label
+      :min-chars='1'
       :label='vm.title'
-      v-model='vm.value'></ui-textbox>
+      :suggestions='vm.autocomplete'
+      v-model='vm.value'></ui-autocomplete>
 </template>
 <script>
-import { UiTextbox } from 'keen-ui';
+import { UiAutocomplete } from 'keen-ui';
 
 export default {
   name: 'SingleLineText',
   props: ['vm'],
   components: {
-    UiTextbox
+    UiAutocomplete
   }
 };
 </script>
+
+<style>
+.ui-autocomplete__suggestions {
+  position: fixed;
+  width: 600px;
+  min-width: initial;
+}
+</style>

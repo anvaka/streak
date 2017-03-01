@@ -4,8 +4,8 @@
     <h2>{{title}} </h2>
     <div v-if='!loading && hasNoData && !error'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
     </div>
+    <contributions-wall :project='project' v-if='!hasNoData'></contributions-wall>
     <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
-    <contributions-wall :project='project' v-if='project && project.projectHistory'></contributions-wall>
 
     <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
       <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
@@ -160,7 +160,7 @@ export default {
     padding-bottom: 10px;
   }
   .add-record-link {
-    font-size: 18px;
+    font-size: 24px;
     text-decoration: none;
   }
   .actions-row {
