@@ -1,10 +1,12 @@
 <template>
   <div class='contributions-wall'>
     <svg width='676' height='104' ref='contributions'>
-      <g v-for='week in weeks' :transform='getWeekTransform(week)'>
+      <g v-for='week in wall.weeks' :transform='getWeekTransform(week)'>
         <rect v-for='day in week.days' :fill='day.fill' width='10' height='10' x='0' :y='getDayYPosition(day)'
               :title='day.day' class='contribution-day' :data-day='day.tooltip'></rect>
       </g>
+      <text v-for='dow in daysOfTheWeek' x='0' font-size='9'  :y='dow.y'>{{dow.name}}</text>
+      <text v-for='month in wall.months' :x='month.x' font-size='9' y='12'>{{month.name}}</text>
     </svg>
   </div>
 </template>
@@ -14,12 +16,37 @@ import moment from 'moment';
 import { getDateString } from 'src/lib/dateUtils.js';
 import Tooltip from 'tether-tooltip';
 
+const DAY_HEIGHT = 12;
+const DAY_WIDTH = 13;
+const DAY_OF_THE_WEEK_LENGTH = 25;
+const MONTH_NAMES_HEIGHT = 18;
+const MAX_WEEKS_TO_SHOW = 45;
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 export default {
   name: 'ContributionsWall',
   props: ['project'],
+  data() {
+    return {
+      daysOfTheWeek: [{
+        name: 'Mon',
+        y: getDayOfTheYOffset(1)
+      }, {
+        name: 'Wed',
+        y: getDayOfTheYOffset(3)
+      }, {
+        name: 'Fri',
+        y: getDayOfTheYOffset(5)
+      }],
+      months: [{
+        x: 20,
+        name: 'Jan'
+      }]
+    };
+  },
   computed: {
-    weeks() {
-      return buildWeeks(this.project);
+    wall() {
+      return buildWall(this.project);
     }
   },
   mounted() {
@@ -37,11 +64,11 @@ export default {
   },
   methods: {
     getWeekTransform(week) {
-      const xOffset = week.index * 13;
-      return `translate(${xOffset}, 0)`;
+      const xOffset = week.index * DAY_WIDTH + DAY_OF_THE_WEEK_LENGTH;
+      return `translate(${xOffset}, ${MONTH_NAMES_HEIGHT})`;
     },
     getDayYPosition(day) {
-      const y = day.dayNumber * 12;
+      const y = day.dayNumber * DAY_HEIGHT;
       return y;
     },
     mouseEnter(e) {
@@ -62,7 +89,7 @@ export default {
   }
 };
 
-function buildWeeks(project) {
+function buildWall(project) {
   const weeks = [];
   const today = new Date();
   const sunday = getSunday(today);
@@ -70,11 +97,11 @@ function buildWeeks(project) {
   const thisWeek = buildWeekDays(sunday, project).filter(removeFutureDays);
 
   weeks.push({
-    index: 51,
+    index: MAX_WEEKS_TO_SHOW,
     days: thisWeek
   });
 
-  for (let i = 50; i > -1; --i) {
+  for (let i = MAX_WEEKS_TO_SHOW - 1; i > -1; --i) {
     sunday.setDate(sunday.getDate() - 7);
 
     weeks.push({
@@ -83,10 +110,36 @@ function buildWeeks(project) {
     });
   }
 
-  return weeks;
+  const months = getMonths(weeks);
+
+  return {
+    weeks,
+    months
+  };
 
   function removeFutureDays(day) {
     return today >= day.day;
+  }
+
+  function getMonths(weeks) {
+    let lastMonth = -1;
+    const months = [];
+
+    weeks.forEach(week => {
+      const firstDayMonth = week.days[0].day.getMonth();
+      if (firstDayMonth !== lastMonth) {
+        lastMonth = firstDayMonth;
+        months.push({
+          name: MONTH_NAMES[lastMonth],
+          weekIndex: week.index
+        });
+      }
+    });
+
+    return months.map(month => ({
+      name: month.name,
+      x: (month.weekIndex - 0.5) * DAY_WIDTH
+    })).filter(month => month.x > DAY_OF_THE_WEEK_LENGTH);
   }
 }
 
@@ -125,6 +178,11 @@ function getFillForDate(day, project) {
     return '#d6e685';
   }
 
-  return '#ddd';
+  return 'rgb(235, 237, 240)';
+}
+
+function getDayOfTheYOffset(dayIndex) {
+  const FONT_SIZE = 9;
+  return dayIndex * DAY_HEIGHT + DAY_HEIGHT - FONT_SIZE / 2 + MONTH_NAMES_HEIGHT;
 }
 </script>
