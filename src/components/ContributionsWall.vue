@@ -1,9 +1,11 @@
 <template>
   <div class='contributions-wall'>
-    <svg width='676' height='104' ref='contributions'>
+    <svg width='676' height='104' ref='contributions' :class='{"has-range-filter": hasRangeFilter}'>
       <g v-for='week in wall.weeks' :transform='getWeekTransform(week)'>
         <rect v-for='day in week.days' :fill='day.fill' width='10' height='10' x='0' :y='getDayYPosition(day)'
-              :title='day.day' class='contribution-day' :data-day='day.tooltip'></rect>
+              :title='day.day' class='contribution-day' :data-day='day.tooltip'
+              :class='{"inside-range": isDayInsideRange(day)}'
+              @click='onDayClick($event, day)'></rect>
       </g>
       <text v-for='dow in daysOfTheWeek' x='0' font-size='9'  :y='dow.y'>{{dow.name}}</text>
       <text v-for='month in wall.months' :x='month.x' font-size='9' y='12'>{{month.name}}</text>
@@ -13,7 +15,7 @@
 
 <script>
 import moment from 'moment';
-import { getDateString } from 'src/lib/dateUtils.js';
+import { getDateString, isDayInside } from 'src/lib/dateUtils.js';
 import Tooltip from 'tether-tooltip';
 
 const DAY_HEIGHT = 12;
@@ -47,6 +49,9 @@ export default {
   computed: {
     wall() {
       return buildWall(this.project);
+    },
+    hasRangeFilter() {
+      return this.$route.query.from;
     }
   },
   mounted() {
@@ -63,6 +68,21 @@ export default {
     }
   },
   methods: {
+    isDayInsideRange(day) {
+      const min = this.$route.query.from;
+      const max = this.$route.query.to;
+      return isDayInside(day.day, min, max);
+    },
+
+    onDayClick(e, day) {
+      let from = getDateString(day.day);
+      let to = from;
+      if (e.shiftKey) {
+        to = from;
+        from = this.$route.query.from || from;
+      }
+      this.$emit('filter', from, to);
+    },
     getWeekTransform(week) {
       const xOffset = week.index * DAY_WIDTH + DAY_OF_THE_WEEK_LENGTH;
       return `translate(${xOffset}, ${MONTH_NAMES_HEIGHT})`;
@@ -186,3 +206,13 @@ function getDayOfTheYOffset(dayIndex) {
   return dayIndex * DAY_HEIGHT + DAY_HEIGHT - FONT_SIZE / 2 + MONTH_NAMES_HEIGHT;
 }
 </script>
+
+<style lang='stylus'>
+svg.has-range-filter rect {
+  opacity: 0.5;
+}
+
+svg.has-range-filter rect.inside-range {
+  opacity: 1;
+}
+</style>

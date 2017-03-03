@@ -43,3 +43,13 @@ function pad(number) {
   }
   return number;
 }
+
+export function isDayInside(day, min, max) {
+  if (!min) return true;
+
+  const dayDate = (typeof day === 'string') ? day : getDateString(day);
+  if (!max) return dayDate === min;
+  const dayWithoutTime = new Date(dayDate);
+
+  return (new Date(min) <= dayWithoutTime && dayWithoutTime <= new Date(max));
+}

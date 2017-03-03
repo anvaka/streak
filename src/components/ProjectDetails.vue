@@ -4,7 +4,7 @@
     <h2>{{title}} </h2>
     <div v-if='!loading && hasNoData && !error'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
     </div>
-    <contributions-wall :project='project' v-if='!hasNoData'></contributions-wall>
+    <contributions-wall :project='project' v-if='!hasNoData' @filter='filterContributions'></contributions-wall>
     <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
 
     <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
@@ -72,6 +72,20 @@ export default {
   },
 
   methods: {
+    filterContributions(from, to) {
+      const query = { from };
+      if (to !== from) {
+        query.to = to;
+      }
+      this.$router.replace({
+        name: 'project-details',
+        params: {
+          projectId: this.projectId,
+        },
+        query
+      });
+    },
+
     getUICellValue(cell) {
       const { value } = cell;
       if (value instanceof Date) {
@@ -94,6 +108,8 @@ export default {
           this.loading = false;
           this.title = project.title;
           this.project = project;
+          project.projectHistory.filter(this.$route.query.from, this.$route.query.to);
+
           const { projectList } = this.$refs;
 
           if (projectList) {

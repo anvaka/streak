@@ -1,5 +1,5 @@
 import InputTypes from 'src/types/InputTypes';
-import { getDateString } from './dateUtils.js';
+import { getDateString, isDayInside } from './dateUtils.js';
 
 export default class ProjectHistoryViewModel {
   constructor(sheetData, headers) {
@@ -10,6 +10,15 @@ export default class ProjectHistoryViewModel {
 
     this.contributionsByDay = makeContributionsByDayIndex(dateIndex, typedRows);
   }
+  filter(from, to) {
+    this.groups = this.groups.filter(group => {
+      // TODO: this will not work only for date groups
+      if (group.group.valueType !== InputTypes.DATE) {
+        return true;
+      }
+      return isDayInside(group.key, from, to);
+    });
+  }
 }
 
 function makeContributionsByDayIndex(dateIndex, typedRows) {
@@ -18,14 +27,14 @@ function makeContributionsByDayIndex(dateIndex, typedRows) {
   typedRows.forEach(row => {
     const cellRecord = row.cells[dateIndex];
     const dayKey = getGroupKey(cellRecord);
-    // TODO aggregate
+    // TODO aggregate?
     contributions[dayKey] = row;
   });
 
   return contributions;
 }
 
-function groupBy(groupIndex, typedRows) {
+function groupBy(groupIndex, typedRows, from, to) {
   const groups = new Map(); // group key -> group records.
 
   typedRows.forEach(row => {
@@ -35,6 +44,7 @@ function groupBy(groupIndex, typedRows) {
 
     if (!groupRecords) {
       groupRecords = {
+        key: groupKey,
         group: cellRecord,
         items: []
       };
