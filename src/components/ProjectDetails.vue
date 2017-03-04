@@ -2,10 +2,11 @@
   <div class='project-details-container'>
     <div class='loading' v-if='loading'>Loading...</div>
     <h2>{{title}} </h2>
-    <div v-if='!loading && hasNoData && !error'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.
-    </div>
-    <contributions-wall :project='project' v-if='!hasNoData' @filter='filterContributions'></contributions-wall>
-    <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='!hasNoData'>Add record</router-link>
+    <contributions-wall :project='project' @filter='filterContributions'></contributions-wall>
+    <div v-if='noRecordsAtAll'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.</div>
+    <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='projectId'></selected-filters>
+    <div v-if='noRecordsWithThisFilter'>There is nothing recorded {{getFilterPeriodMessage()}}. <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}'>add record</router-link>.</div>
+    <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='hasSomethingOnTheWall'>Add record</router-link>
 
     <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
       <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
@@ -37,6 +38,7 @@ import InputTypes from 'src/types/InputTypes';
 import loadProject from 'src/lib/loadProject';
 
 import ContributionsWall from './ContributionsWall.vue';
+import SelectedFilters from './SelectedFilters.vue';
 
 export default {
   props: ['projectId'],
@@ -56,8 +58,17 @@ export default {
   },
 
   computed: {
-    hasNoData() {
-      return !this.project || this.project.projectHistory.groups.length === 0;
+    hasSomethingOnTheWall() {
+      return this.hasValidProject() && this.project.projectHistory.groups.length > 0;
+    },
+    noRecordsAtAll() {
+      return this.hasValidProject() && this.project.projectHistory.recordsCount === 0;
+    },
+    noRecordsWithThisFilter() {
+      if (!this.hasValidProject()) return false;
+      const { projectHistory } = this.project;
+
+      return projectHistory.recordsCount > 0 && projectHistory.groups.length === 0;
     }
   },
 
@@ -68,16 +79,31 @@ export default {
   },
 
   components: {
-    ContributionsWall
+    ContributionsWall,
+    SelectedFilters
   },
 
   methods: {
+    getFromDate() {
+      return this.$route.query.from;
+    },
+    hasValidProject() {
+      return !this.loading && !this.error && this.project;
+    },
+    getFilterPeriodMessage() {
+      const { from, to } = this.$route.query;
+      if (!to || from === to) {
+        return 'on this day';
+      }
+
+      return 'on these days';
+    },
     filterContributions(from, to) {
       const query = { from };
       if (to !== from) {
         query.to = to;
       }
-      this.$router.replace({
+      this.$router.push({
         name: 'project-details',
         params: {
           projectId: this.projectId,

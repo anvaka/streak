@@ -1,3 +1,10 @@
+/**
+ * Given a spreadsheet buidls a project history. Project history has information
+ * about log entries grouped by date (though this can be customezed0. And has
+ * an index of all rows by given day.
+ *
+ * Additionally, project contributions can be filtered to be only within specific range.
+ */
 import InputTypes from 'src/types/InputTypes';
 import { getDateString, isDayInside } from './dateUtils.js';
 
@@ -9,7 +16,9 @@ export default class ProjectHistoryViewModel {
     this.groups = groupBy(dateIndex, typedRows);
 
     this.contributionsByDay = makeContributionsByDayIndex(dateIndex, typedRows);
+    this.recordsCount = typedRows.length;
   }
+
   filter(from, to) {
     this.groups = this.groups.filter(group => {
       // TODO: this will not work only for date groups
@@ -34,7 +43,7 @@ function makeContributionsByDayIndex(dateIndex, typedRows) {
   return contributions;
 }
 
-function groupBy(groupIndex, typedRows, from, to) {
+function groupBy(groupIndex, typedRows) {
   const groups = new Map(); // group key -> group records.
 
   typedRows.forEach(row => {

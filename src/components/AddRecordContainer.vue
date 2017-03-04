@@ -14,11 +14,12 @@
 </template>
 <script>
 import loadProject from 'src/lib/loadProject';
+import InputTypes from 'src/types/InputTypes';
 import AddRecord from './AddRecord.vue';
 
 export default {
   name: 'AddRecordContainer',
-  props: ['projectId', 'row'],
+  props: ['projectId', 'row', 'date'],
   components: {
     AddRecord
   },
@@ -54,7 +55,7 @@ export default {
 
       loadProject(this.projectId, /* allowCachedData = */ true)
         .then((project) => {
-          this.fields = getFieldsFromProject(project, this.row);
+          this.fields = getFieldsFromProject(project, this.row, this.$route.query.date);
           this.loading = false;
           this.title = project.title;
           this.project = project;
@@ -72,14 +73,20 @@ export default {
   }
 };
 
-function getFieldsFromProject(project, row) {
+function getFieldsFromProject(project, row, date) {
   const rowWithData = (project.sheetData && project.sheetData[row]) || {};
 
   return project.headers.map((header, index) => {
+    let fieldValue = rowWithData[index] || '';
+    const { valueType, title } = header;
+    if (valueType === InputTypes.DATE && !fieldValue && date) {
+      fieldValue = date;
+    }
+
     const field = {
-      title: header.title,
-      value: rowWithData[index] || '',
-      valueType: header.valueType
+      title,
+      valueType,
+      value: fieldValue,
     };
 
     if (header.autocomplete) field.autocomplete = header.autocomplete;

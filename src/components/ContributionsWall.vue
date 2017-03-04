@@ -80,6 +80,7 @@ export default {
       if (e.shiftKey) {
         to = from;
         from = this.$route.query.from || from;
+        e.preventDefault();
       }
       this.$emit('filter', from, to);
     },
@@ -188,12 +189,11 @@ function buildWeekDays(sunday, project) {
 }
 
 function getFillForDate(day, project) {
-  const { projectHistory } = project;
-  if (!projectHistory) {
+  if (!project || !project.projectHistory) {
     return '#eee';
   }
   const dayKey = getDateString(day);
-  const contributions = projectHistory.contributionsByDay[dayKey];
+  const contributions = project.projectHistory.contributionsByDay[dayKey];
   if (contributions) {
     return '#d6e685';
   }
