@@ -64,7 +64,9 @@ function makeContributionsByDayIndex(dateIndex, typedRows, getCellValue) {
     contributions.forEach((dayContributions) => {
       let dayTotalValue = 0;
       dayContributions.rows.forEach(row => {
-        dayTotalValue += getCellValue(row.cells);
+        let value = getCellValue(row.cells);
+        if (Number.isNaN(value)) value = 0;
+        dayTotalValue += value;
       });
       dayContributions.value = dayTotalValue;
       if (dayTotalValue < minValue) minValue = dayTotalValue;
