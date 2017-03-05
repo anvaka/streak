@@ -16,6 +16,7 @@
 <script>
 import moment from 'moment';
 import { getDateString, isDayInside } from 'src/lib/dateUtils.js';
+import { rgbToHsl, hslToRgb } from 'src/lib/color';
 import Tooltip from 'tether-tooltip';
 
 const DAY_HEIGHT = 12;
@@ -195,10 +196,22 @@ function getFillForDate(day, project) {
   const dayKey = getDateString(day);
   const contributions = project.projectHistory.contributionsByDay[dayKey];
   if (contributions) {
-    return '#d6e685';
+    const hsl = rgbToHsl(0xff, 0x00, 0xd0);
+    // l = 50 -> most number of contributions
+    // l = 85 -> min number of contributions
+    // range: 0..35
+    const rgb = hslToRgb(hsl[0], hsl[1], hsl[2] + 0.35 * (1 - contributions.scaledValue))
+      .map(toHex).join('');
+
+    return `#${rgb}`;
   }
 
   return 'rgb(235, 237, 240)';
+}
+
+function toHex(x) {
+  const value = x.toString(16);
+  return value.length !== 2 ? `0${value}` : value;
 }
 
 function getDayOfTheYOffset(dayIndex) {

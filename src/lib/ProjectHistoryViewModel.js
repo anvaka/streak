@@ -11,11 +11,15 @@ import { getDateString, isDayInside } from './dateUtils.js';
 export default class ProjectHistoryViewModel {
   constructor(sheetData, headers) {
     const typedRows = convertToTypedRows(sheetData, headers);
-    const dateIndex = getDateIndex(headers);
+    const dateIndex = getColumnIndex(headers, header => header.valueType === InputTypes.DATE);
+    if (dateIndex < 0) throw new Error('non-date data sets are not supported yet');
+
+    const numberIndex = getColumnIndex(headers, header => header.valueType === InputTypes.NUMBER);
+    const getCellValue = (numberIndex < 0) ? () => 1 : (row) => row[numberIndex].value;
 
     this.groups = groupBy(dateIndex, typedRows);
 
-    this.contributionsByDay = makeContributionsByDayIndex(dateIndex, typedRows);
+    this.contributionsByDay = makeContributionsByDayIndex(dateIndex, typedRows, getCellValue);
     this.recordsCount = typedRows.length;
   }
 
@@ -30,17 +34,48 @@ export default class ProjectHistoryViewModel {
   }
 }
 
-function makeContributionsByDayIndex(dateIndex, typedRows) {
-  const contributions = {};
+function makeContributionsByDayIndex(dateIndex, typedRows, getCellValue) {
+  const contributionsByDay = {};
 
-  typedRows.forEach(row => {
-    const cellRecord = row.cells[dateIndex];
-    const dayKey = getGroupKey(cellRecord);
-    // TODO aggregate?
-    contributions[dayKey] = row;
-  });
+  groupRowsByDate();
+  calculateGroupValue();
 
-  return contributions;
+  return contributionsByDay;
+
+  function groupRowsByDate() {
+    typedRows.forEach(row => {
+      const cellRecord = row.cells[dateIndex];
+      const dayKey = getGroupKey(cellRecord);
+      let dayContributions = contributionsByDay[dayKey];
+      if (!dayContributions) {
+        dayContributions = {
+          rows: [],
+        };
+        contributionsByDay[dayKey] = dayContributions;
+      }
+      dayContributions.rows.push(row);
+    });
+  }
+
+  function calculateGroupValue() {
+    let minValue = Number.POSITIVE_INFINITY;
+    let maxValue = Number.NEGATIVE_INFINITY;
+    const contributions = Object.keys(contributionsByDay).map(day => contributionsByDay[day]);
+    contributions.forEach((dayContributions) => {
+      let dayTotalValue = 0;
+      dayContributions.rows.forEach(row => {
+        dayTotalValue += getCellValue(row.cells);
+      });
+      dayContributions.value = dayTotalValue;
+      if (dayTotalValue < minValue) minValue = dayTotalValue;
+      if (dayTotalValue > maxValue) maxValue = dayTotalValue;
+    });
+
+    contributions.forEach(dayContributions => {
+      dayContributions.scaledValue = (maxValue === minValue) ? 0 :
+        (dayContributions.value - minValue) / (maxValue - minValue);
+    });
+  }
 }
 
 function groupBy(groupIndex, typedRows) {
@@ -89,14 +124,14 @@ function getGroupKey(cellRecord) {
   return cellValue;
 }
 
-function getDateIndex(headers) {
+function getColumnIndex(headers, predicateCallback) {
   if (!headers || headers.length === 0) throw new Error('headers are required');
 
   for (let i = 0; i < headers.length; ++i) {
-    if (headers[i].valueType === InputTypes.DATE) return i;
+    if (predicateCallback(headers[i])) return i;
   }
 
-  return 0;
+  return -1;
 }
 
 function convertToTypedRows(sheetData, headers) {
