@@ -145,6 +145,7 @@ function buildWall(project) {
   }
 
   function getMonths(weeks) {
+    debugger;
     let lastMonth = -1;
     const months = [];
 
@@ -162,7 +163,13 @@ function buildWall(project) {
     return months.map(month => ({
       name: month.name,
       x: (month.weekIndex - 0.5) * DAY_WIDTH
-    })).filter(month => month.x > DAY_OF_THE_WEEK_LENGTH);
+    })).filter((month, index, array) => {
+      if (month.x <= DAY_OF_THE_WEEK_LENGTH) return false;
+      if (index < array.length - 1) {
+        return month.x - array[index + 1].x > 30;
+      }
+      return true;
+    });
   }
 }
 
