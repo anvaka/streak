@@ -14,12 +14,16 @@ export default class ProjectHistoryViewModel {
     const dateIndex = getColumnIndex(headers, header => header.valueType === InputTypes.DATE);
     if (dateIndex < 0) throw new Error('non-date data sets are not supported yet');
 
-    const numberIndex = getColumnIndex(headers, header => header.valueType === InputTypes.NUMBER);
-    const getCellValue = (numberIndex < 0) ? () => 1 : (row) => row[numberIndex].value;
-
     this.groups = groupBy(dateIndex, typedRows);
 
-    this.contributionsByDay = makeContributionsByDayIndex(dateIndex, typedRows, getCellValue);
+    const numericColumn = getColumnIndex(headers, header => header.valueType === InputTypes.NUMBER);
+    const categoricalColumn = getColumnIndex(
+      headers, header => header.valueType === InputTypes.SINGLE_LINE_TEXT
+    );
+    this.contributionsByDay = makeContributionsByDayIndex(
+      dateIndex, typedRows, makeCellGetter(numericColumn), makeCellGetter(categoricalColumn)
+    );
+
     this.recordsCount = typedRows.length;
   }
 
@@ -34,7 +38,9 @@ export default class ProjectHistoryViewModel {
   }
 }
 
-function makeContributionsByDayIndex(dateIndex, typedRows, getCellValue) {
+function makeContributionsByDayIndex(
+  dateIndex, typedRows, getNumericCellValue, getCategoricalValue
+) {
   const contributionsByDay = {};
 
   groupRowsByDate();
@@ -60,14 +66,19 @@ function makeContributionsByDayIndex(dateIndex, typedRows, getCellValue) {
   function calculateGroupValue() {
     let minValue = Number.POSITIVE_INFINITY;
     let maxValue = Number.NEGATIVE_INFINITY;
+
     const contributions = Object.keys(contributionsByDay).map(day => contributionsByDay[day]);
     contributions.forEach((dayContributions) => {
       let dayTotalValue = 0;
       dayContributions.rows.forEach(row => {
-        let value = getCellValue(row.cells);
+        let value = getNumericCellValue(row.cells);
         if (Number.isNaN(value)) value = 0;
         dayTotalValue += value;
+
+        // TODO: what if it's multiple different groups?
+        dayContributions.groupKey = getCategoricalValue(row.cells);
       });
+
       dayContributions.value = dayTotalValue;
       if (dayTotalValue < minValue) minValue = dayTotalValue;
       if (dayTotalValue > maxValue) maxValue = dayTotalValue;
@@ -173,4 +184,8 @@ function convertToTypedRows(sheetData, headers) {
   });
 
   return typedRows;
+}
+
+function makeCellGetter(columnIndex) {
+  return (columnIndex < 0) ? () => 1 : (row) => row[columnIndex].value;
 }

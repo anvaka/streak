@@ -16,7 +16,7 @@
 <script>
 import moment from 'moment';
 import { getDateString, isDayInside } from 'src/lib/dateUtils.js';
-import { rgbToHsl, hslToRgb } from 'src/lib/color';
+import { hslToRgb, makeColorBag } from 'src/lib/color';
 import Tooltip from 'tether-tooltip';
 
 const DAY_HEIGHT = 12;
@@ -25,6 +25,7 @@ const DAY_OF_THE_WEEK_LENGTH = 25;
 const MONTH_NAMES_HEIGHT = 18;
 const MAX_WEEKS_TO_SHOW = 45;
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const colorBag = makeColorBag();
 
 export default {
   name: 'ContributionsWall',
@@ -193,10 +194,11 @@ function getFillForDate(day, project) {
   if (!project || !project.projectHistory) {
     return '#eee';
   }
+
   const dayKey = getDateString(day);
   const contributions = project.projectHistory.contributionsByDay[dayKey];
   if (contributions) {
-    const hsl = rgbToHsl(0xff, 0x00, 0xd0);
+    const hsl = colorBag.getColor(contributions.groupKey); // [0.97, 1, 0.5];
     // l = 50 -> most number of contributions
     // l = 85 -> min number of contributions
     // range: 0..35
