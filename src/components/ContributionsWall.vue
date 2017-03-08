@@ -145,7 +145,6 @@ function buildWall(project) {
   }
 
   function getMonths(weeks) {
-    debugger;
     let lastMonth = -1;
     const months = [];
 

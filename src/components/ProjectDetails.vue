@@ -33,7 +33,7 @@
 <script>
 import _ from 'lodash';
 import moment from 'moment';
-import marked from 'marked';
+import marked from 'marked'; // makrdown renderer
 import InputTypes from 'src/types/InputTypes';
 import loadProject from 'src/lib/loadProject';
 

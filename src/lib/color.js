@@ -100,7 +100,6 @@ export function makeColorBag() {
       // const hue = random(hashCode(key)).nextDouble();
       // hslColor = [hue, 1, 0.5];
       hslColor = predefinedGroups[groupKeyToColorHsl.size % predefinedGroups.length];
-      console.log(hslColor);
       groupKeyToColorHsl.set(key, hslColor);
       return hslColor;
     }

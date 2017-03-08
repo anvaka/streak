@@ -53,7 +53,7 @@ export default {
       this.error = null;
       this.loading = true;
 
-      loadProject(this.projectId, /* allowCachedData = */ true)
+      loadProject(this.projectId)
         .then((project) => {
           this.fields = getFieldsFromProject(project, this.row, this.$route.query.date);
           this.loading = false;
