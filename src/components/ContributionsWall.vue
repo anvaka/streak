@@ -4,7 +4,6 @@
       <g v-for='week in wall.weeks' :transform='getWeekTransform(week)'>
         <rect v-for='day in week.days' :fill='day.fill' width='10' height='10' x='0' :y='getDayYPosition(day)'
               :title='day.day' class='contribution-day' :data-day='day.tooltip'
-              :class='{"inside-range": isDayInsideRange(day)}'
               @click='onDayClick($event, day)'></rect>
       </g>
       <text v-for='dow in daysOfTheWeek' x='0' font-size='9'  :y='dow.y'>{{dow.name}}</text>
@@ -15,7 +14,7 @@
 
 <script>
 import moment from 'moment';
-import { getDateString, isDayInside } from 'src/lib/dateUtils.js';
+import { getDateString } from 'src/lib/dateUtils.js';
 import { makeColorBag } from 'src/lib/color';
 import Tooltip from 'tether-tooltip';
 
@@ -70,12 +69,6 @@ export default {
     }
   },
   methods: {
-    isDayInsideRange(day) {
-      const min = this.$route.query.from;
-      const max = this.$route.query.to;
-      return isDayInside(day.day, min, max);
-    },
-
     onDayClick(e, day) {
       let from = getDateString(day.day);
       let to = from;
@@ -224,11 +217,4 @@ function getDayOfTheYOffset(dayIndex) {
 </script>
 
 <style lang='stylus'>
-svg.has-range-filter rect {
-  opacity: 0.5;
-}
-
-svg.has-range-filter rect.inside-range {
-  opacity: 1;
-}
 </style>
