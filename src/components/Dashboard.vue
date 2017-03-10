@@ -86,7 +86,9 @@ export default {
   left: sidebar-width;
   bottom: 0;
   right: 0;
-  top: 56px;
+  top: 0;
+  padding-top: 56px;
+  overflow-y: auto;
   position: absolute;
 }
 

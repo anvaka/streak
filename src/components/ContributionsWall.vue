@@ -217,4 +217,7 @@ function getDayOfTheYOffset(dayIndex) {
 </script>
 
 <style lang='stylus'>
+.contributions-wall {
+  overflow-x: auto;
+}
 </style>

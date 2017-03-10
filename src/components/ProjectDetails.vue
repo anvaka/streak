@@ -162,7 +162,6 @@ export default {
 .project-details-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
 
   .loading {
     position: absolute;
