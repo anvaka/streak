@@ -4,6 +4,7 @@ const HEADER_RANGE = 'A1:Z2';
 // Note: We are assuming there can be only 25 columns. If we ever need more
 // we can use loadSheetInfo() results here.
 const DATA_RANGE = 'A2:Z';
+// TODO: gapi.auth2.getAuthInstance().currentUser.get().reloadAuthResponse()
 
 export function loadSheetData(spreadsheetId) {
   return new Promise((resolve, reject) => {
@@ -12,6 +13,9 @@ export function loadSheetData(spreadsheetId) {
       range: DATA_RANGE,
     }).then(data => {
       return data.result.values;
+    }, err => {
+      console.log(err);
+      throw err;
     }).then(resolve, reject);
   });
 }
@@ -25,6 +29,9 @@ export function loadSheetInfo(spreadsheetId) {
       ranges: HEADER_RANGE
     }).then(data => {
       return data.result;
+    }, err => {
+      console.log(err);
+      throw err;
     }).then(resolve, reject);
   });
 }
@@ -47,6 +54,9 @@ export function getLogFileSpreadsheetId(projectFolderId) {
       }
 
       return files[0];
+    }, err => {
+      console.log(err);
+      throw err;
     }).then(resolve, reject);
   });
 }

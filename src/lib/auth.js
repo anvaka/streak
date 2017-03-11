@@ -68,11 +68,10 @@ function initiateSignInStatus() {
         scope: SCOPES
       }).then(() => {
         // Listen for sign-in state changes.
-        gapi.auth2.getAuthInstance()
-          .isSignedIn
-          .listen(updateSignInStatus);
+        const auth2 = gapi.auth2.getAuthInstance();
+        auth2.isSignedIn.listen(updateSignInStatus);
 
-        const initialSignInState = gapi.auth2.getAuthInstance().isSignedIn.get();
+        const initialSignInState = auth2.isSignedIn.get();
         updateSignInStatus(initialSignInState);
 
         resolve(signInStatus);
@@ -86,6 +85,7 @@ function initiateSignInStatus() {
 
 function updateSignInStatus(isSignedIn) {
   signInStatus.loading = false;
+  console.log('sign in status changed');
 
   if (isSignedIn) {
     signInStatus.profile = extractProfile();
