@@ -11,12 +11,10 @@ export function loadSheetData(spreadsheetId) {
     gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId,
       range: DATA_RANGE,
-    }).then(data => {
-      return data.result.values;
-    }, err => {
-      console.log(err);
-      throw err;
-    }).then(resolve, reject);
+    }).then(
+      data => data.result.values,
+      handleAuthError(() => loadSheetData(spreadsheetId))
+    ).then(resolve, reject);
   });
 }
 
@@ -27,12 +25,10 @@ export function loadSheetInfo(spreadsheetId) {
       spreadsheetId,
       includeGridData: true,
       ranges: HEADER_RANGE
-    }).then(data => {
-      return data.result;
-    }, err => {
-      console.log(err);
-      throw err;
-    }).then(resolve, reject);
+    }).then(
+      data => data.result,
+      handleAuthError(() => loadSheetInfo(spreadsheetId))
+    ).then(resolve, reject);
   });
 }
 
@@ -54,9 +50,25 @@ export function getLogFileSpreadsheetId(projectFolderId) {
       }
 
       return files[0];
-    }, err => {
-      console.log(err);
-      throw err;
-    }).then(resolve, reject);
+    }, handleAuthError(() => getLogFileSpreadsheetId(projectFolderId))).then(resolve, reject);
   });
 }
+
+function handleAuthError(retryCallback) {
+  return err => {
+    const isInvalidCredentials = (err.status === 401) &&
+      err.result && (err.result.message === 'Invalid Credentials');
+
+    if (!isInvalidCredentials) {
+      throw err;
+    }
+
+    return (
+      new Promise((resolve, reject) => {
+        gapi.auth2.getAuthInstance().currentUser.get().reloadAuthResponse()
+          .then(resolve, reject);
+      })
+    ).then(retryCallback);
+  };
+}
+
