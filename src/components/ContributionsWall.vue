@@ -40,10 +40,6 @@ export default {
       }, {
         name: 'Fri',
         y: getDayOfTheYOffset(5)
-      }],
-      months: [{
-        x: 20,
-        name: 'Jan'
       }]
     };
   },
