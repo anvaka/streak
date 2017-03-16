@@ -35,6 +35,6 @@ export default {
 
 <style lang='stylus'>
 .filter-message {
-  font-size: 12px;
+  font-size: 1.5em;
 }
 </style>
