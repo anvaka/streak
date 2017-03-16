@@ -1,3 +1,5 @@
+import gapiFiles from './gapi/files.js';
+
 export default getStreaksFolder;
 
 const ROOT_FOLDER_NAME = 'Streaks';
@@ -21,17 +23,15 @@ function getStreaksFolder() {
 
   isRunning = true;
 
-  return new Promise((resolve, reject) => {
-    gapi.client.drive.files.list({
-      q: `trashed = false and properties has { key='${ROOT_FOLDER_MARKER}' and value='true' }`,
-      pageSize: 1,
-      fields: 'files(id, name)'
-    }).then(processRootFolder).then(resolve, reject);
-  });
+  return gapiFiles('list', {
+    q: `trashed = false and properties has { key='${ROOT_FOLDER_MARKER}' and value='true' }`,
+    pageSize: 1,
+    fields: 'files(id, name)'
+  }).then(processRootFolder);
 }
 
-function processRootFolder(response) {
-  const files = response.result.files;
+function processRootFolder(result) {
+  const files = result.files;
   if (files.length === 0) {
     return makeNewRootFolder();
   }
@@ -52,13 +52,13 @@ function makeNewRootFolder() {
     }
   };
 
-  return gapi.client.drive.files.create({
+  return gapiFiles('create', {
     resource: fileMetadata,
     fields: 'id'
-  }).then(response => {
+  }).then(result => {
     isRunning = false;
 
-    parentStreakFolder = response.result.id;
+    parentStreakFolder = result.id;
     return parentStreakFolder;
   });
 }

@@ -5,6 +5,8 @@
  * Each project has at least one spreadsheet file, where project log is saved.
  */
 import getStreaksFolder from './getStreaksFolder';
+import gapiFiles from './gapi/files.js';
+import gapiSheets from './gapi/sheets.js';
 
 export default createProject;
 
@@ -25,10 +27,10 @@ function createProject(name, columns) {
       }
     };
 
-    return gapi.client.drive.files.create({
+    return gapiFiles('create', {
       resource: fileMetadata,
       fields: 'id'
-    }).then(response => response.result.id);
+    }).then(result => result.id);
   }
 
   function createLogFile(parentFolderId) {
@@ -55,12 +57,11 @@ function createProject(name, columns) {
       properties
     };
 
-    return gapi.client.drive.files.create({
+    return gapiFiles('create', {
       resource: fileMetadata,
       fields: 'id'
-    }).then(response => {
-      return response.result.id;
-    }).then(spreadsheetId => updateSheetTemplate(spreadsheetId, name, columns))
+    }).then(result => result.id)
+      .then(spreadsheetId => updateSheetTemplate(spreadsheetId, name, columns))
       .then(() => parentFolderId);
   }
 }
@@ -70,7 +71,7 @@ function updateSheetTemplate(spreadsheetId, name, columns) {
   // this correctly).
   const sheetId = 0;
 
-  return gapi.client.sheets.spreadsheets.batchUpdate({
+  return gapiSheets('batchUpdate', {
     spreadsheetId,
     requests: [{
       updateSheetProperties: {

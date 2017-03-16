@@ -85,7 +85,6 @@ function initiateSignInStatus() {
 
 function updateSignInStatus(isSignedIn) {
   signInStatus.loading = false;
-  console.log('sign in status changed');
 
   if (isSignedIn) {
     signInStatus.profile = extractProfile();

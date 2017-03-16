@@ -2,6 +2,7 @@
  * Appends a new log record to a project log
  */
 import { resetSheetDataCache } from './store/cachingDocs.js';
+import gapiSeets from './gapi/sheets.js';
 
 const RANGE_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -13,13 +14,12 @@ export default function updateRow(spreadsheetId, record, row) {
 
   resetSheetDataCache(spreadsheetId);
 
-  return new Promise((resolve, reject) => {
-    const method = row !== undefined ? 'update' : 'append';
-    return gapi.client.sheets.spreadsheets.values[method]({
-      spreadsheetId,
-      range,
-      valueInputOption: 'USER_ENTERED',
-      values: [record],
-    }).then(resolve, reject);
+  const method = row !== undefined ? 'update' : 'append';
+
+  return gapiSeets(`values.${method}`, {
+    spreadsheetId,
+    range,
+    valueInputOption: 'USER_ENTERED',
+    values: [record],
   });
 }
