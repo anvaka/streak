@@ -1,14 +1,18 @@
 <template>
   <div class='contributions-wall'>
-    <svg width='676' height='104' ref='contributions' :class='{"has-range-filter": hasRangeFilter}'>
-      <g v-for='week in wall.weeks' :transform='getWeekTransform(week)'>
-        <rect v-for='day in week.days' :fill='day.fill' width='10' height='10' x='0' :y='getDayYPosition(day)'
-              :title='day.day' class='contribution-day' :data-day='day.tooltip'
-              @click='onDayClick($event, day)'></rect>
-      </g>
-      <text v-for='dow in daysOfTheWeek' x='0' font-size='9'  :y='dow.y'>{{dow.name}}</text>
-      <text v-for='month in wall.months' :x='month.x' font-size='9' y='12'>{{month.name}}</text>
-    </svg>
+    <div class='dow-container'>
+      <div v-for='dow in daysOfTheWeek' :style='{"top": dow.y + "px"}' class='dow'>{{dow.name}}</div>
+    </div>
+    <div class='days-container'>
+      <svg width='676' height='104' ref='contributions' :class='{"has-range-filter": hasRangeFilter}'>
+        <g v-for='week in wall.weeks' :transform='getWeekTransform(week)'>
+          <rect v-for='day in week.days' :fill='day.fill' width='10' height='10' x='0' :y='getDayYPosition(day)'
+                :title='day.day' class='contribution-day' :data-day='day.tooltip'
+                @click='onDayClick($event, day)'></rect>
+        </g>
+        <text v-for='month in wall.months' :x='month.x' font-size='9' y='12'>{{month.name}}</text>
+      </svg>
+    </div>
   </div>
 </template>
 
@@ -19,10 +23,10 @@ import { makeColorBag } from 'src/lib/color';
 import Tooltip from 'tether-tooltip';
 
 const DAY_HEIGHT = 12;
-const DAY_WIDTH = 13;
-const DAY_OF_THE_WEEK_LENGTH = 25;
+const DAY_WIDTH = 12;
+const DAY_OF_THE_WEEK_LENGTH = 0;
 const MONTH_NAMES_HEIGHT = 18;
-const MAX_WEEKS_TO_SHOW = 45;
+const MAX_WEEKS_TO_SHOW = 52;
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const colorBag = makeColorBag();
 
@@ -55,6 +59,7 @@ export default {
     const svg = this.$refs.contributions;
     this.mouseEnterHandler = this.mouseEnter.bind(this);
     svg.addEventListener('mouseenter', this.mouseEnterHandler, true);
+    scrollToTheEnd(svg);
   },
 
   beforeDestroy() {
@@ -100,6 +105,11 @@ export default {
     }
   }
 };
+
+function scrollToTheEnd(svg) {
+  // always scroll to the very end.
+  svg.parentElement.scrollLeft = 600;
+}
 
 function buildWall(project) {
   const weeks = [];
@@ -208,12 +218,25 @@ function getFillForDate(day, project) {
 
 function getDayOfTheYOffset(dayIndex) {
   const FONT_SIZE = 9;
-  return dayIndex * DAY_HEIGHT + DAY_HEIGHT - FONT_SIZE / 2 + MONTH_NAMES_HEIGHT;
+  return dayIndex * DAY_HEIGHT + MONTH_NAMES_HEIGHT;
 }
 </script>
 
 <style lang='stylus'>
 .contributions-wall {
-  overflow-x: auto;
+  display: flex;
+  .dow-container {
+    position: relative;
+    width: 25px;
+    background: white;
+    .dow {
+      font-size: 9px;
+      position: absolute;
+    }
+  }
+  .days-container {
+    overflow-x: auto;
+    flex: 1;
+  }
 }
 </style>
