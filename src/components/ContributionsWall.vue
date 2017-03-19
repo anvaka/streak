@@ -217,7 +217,6 @@ function getFillForDate(day, project) {
 
 
 function getDayOfTheYOffset(dayIndex) {
-  const FONT_SIZE = 9;
   return dayIndex * DAY_HEIGHT + MONTH_NAMES_HEIGHT;
 }
 </script>
