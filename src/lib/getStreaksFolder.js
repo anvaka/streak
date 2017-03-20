@@ -1,3 +1,11 @@
+/**
+ * Looks at the current user google drive, and attempts to find `Streaks` folder.
+ *
+ * It is okay to have multiple folders called `Streak`. Ours will have a special
+ * folder marker (`isAnvakaStreakFolderRoot`) as a file property.
+ *
+ * If such folder does not exist, a new one will be created.
+ */
 import gapiFiles from './gapi/files.js';
 
 export default getStreaksFolder;

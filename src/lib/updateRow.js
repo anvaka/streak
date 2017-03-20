@@ -1,5 +1,5 @@
 /**
- * Appends a new log record to a project log
+ * Appends or updates a new log record to a project log
  */
 import { resetSheetDataCache } from './store/cachingDocs.js';
 import gapiSeets from './gapi/sheets.js';

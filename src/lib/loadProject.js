@@ -1,5 +1,13 @@
 /**
- * Loads a project from data store
+ * Loads a project from data store. The project is stored into `Streaks` folder
+ * and is supposed to have one spreadsheet file. That file is used for
+ * log entries. The spreadsheet file when created (see ./createProject.js)
+ * contains information about every column type, so that we can present
+ * custom UI element to edit the column. E.g. multi-line text uses markdown
+ * to render itself.
+ *
+ * The folder itself may contain more files in future. E.g. if we allow users
+ * to upload their images with every "commit".
  */
 import InputTypes from 'src/types/InputTypes';
 import detectType from './detectType';
