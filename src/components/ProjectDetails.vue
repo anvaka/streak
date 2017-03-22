@@ -2,7 +2,7 @@
   <div class='project-details-container'>
     <div class='loading' v-if='loading'>Loading...</div>
     <h2>{{title}} </h2>
-    <contributions-wall :project='project' @filter='filterContributions' v-if='!error'></contributions-wall>
+    <contributions-wall :project='project' @filter='filterContributions' v-if='!error && !loading'></contributions-wall>
     <div v-if='noRecordsAtAll'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.</div>
     <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='projectId'></selected-filters>
     <div v-if='noRecordsWithThisFilter'>There is nothing recorded {{getFilterPeriodMessage()}}. <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}'>add record</router-link>.</div>
