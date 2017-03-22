@@ -90,6 +90,7 @@ export default {
   padding-top: 56px;
   overflow-y: auto;
   position: absolute;
+  -webkit-overflow-scrolling: touch;
 }
 
 .project-link {
