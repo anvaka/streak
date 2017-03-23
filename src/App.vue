@@ -43,6 +43,10 @@ export default {
 <style lang='stylus'>
 @import './styles/variables.styl'
 
+a {
+  text-decoration: none;
+}
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

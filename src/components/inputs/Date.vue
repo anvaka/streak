@@ -75,7 +75,6 @@ focus-color=#2196f3;
 
   input.active + label {
     a {
-      text-decoration: underscore;
       color: focus-color;
     }
   }

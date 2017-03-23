@@ -5,7 +5,7 @@
     <contributions-wall :project='project' @filter='filterContributions' v-if='!error && !loading'></contributions-wall>
     <div v-if='noRecordsAtAll'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.</div>
     <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='projectId'></selected-filters>
-    <div v-if='noRecordsWithThisFilter'>There is nothing recorded {{getFilterPeriodMessage()}}. <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}'>add record</router-link>.</div>
+    <div v-if='noRecordsWithThisFilter'>There is nothing recorded {{getFilterPeriodMessage()}}. <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}'>Add record</router-link>.</div>
     <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='hasSomethingOnTheWall'>Add record</router-link>
 
     <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
@@ -202,13 +202,11 @@ export default {
   }
   .add-record-link {
     font-size: 24px;
-    text-decoration: none;
   }
   .actions-row {
     text-align: center;
     width: 100%;
     .edit-record-link {
-      text-decoration: none;
       font-size: 14px;
     }
   }

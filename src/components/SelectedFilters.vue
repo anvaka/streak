@@ -1,6 +1,6 @@
 <template>
-  <div v-if='hasFilters' class='filter-message secondary'>
-    Selected filters: {{filterMessage}}
+  <div v-if='hasFilters' class='filter-message'>
+   {{filterMessage}}
     <router-link class='action' :to='{name: "project-details", params: {projectId}}'>reset</router-link>
   </div>
 </template>
