@@ -223,6 +223,7 @@ function getDayOfTheYOffset(dayIndex) {
 
 <style lang='stylus'>
 .contributions-wall {
+  user-select: none;
   display: flex;
   .dow-container {
     position: relative;

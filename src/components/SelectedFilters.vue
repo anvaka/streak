@@ -27,7 +27,7 @@ export default {
         [fromFormatted, toFormatted] = [toFormatted, fromFormatted];
       }
       // TODO: This is duplicated.
-      return `between ${fromFormatted} and ${toFormatted}`;
+      return `${fromFormatted} - ${toFormatted}`;
     }
   }
 };
