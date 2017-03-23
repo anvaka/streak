@@ -11,7 +11,7 @@
     <div class='projects-list-container' :class='{expanded: projectsListExpanded}'>
       <div v-if='hasProjects'>
         <div class='projects-header' @click.prevent='toggleProjectLists'>
-          <h2>Your Projects <span class='toggle-list'>{{projectsListExpanded ? "hide" : "show"}}</span></h2>
+          <h2>Your Projects <span class='toggle-list' v-if='canHide'>{{projectsListExpanded ? "hide" : "show"}}</span></h2>
         </div>
         <div class='project-list'>
           <router-link class='project-link'
@@ -50,12 +50,18 @@ export default {
   },
 
   watch: {
-    $route(/* to, from */) {
+    $route(to) {
       // TODO: this doesn't work very well, if you click on the same project.
-      this.projectsListExpanded = false;
+      // if we clicked on the "Home" folder, the name is not projects anymore
+      this.projectsListExpanded = to.name === 'dashboard';
     }
   },
   computed: {
+    canHide () {
+      // Only shouw hide button when on project details view
+      return this.$route.name === 'project-details';
+    },
+
     hasProjects() {
       return !dashboard.loading && dashboard.projects.length > 0;
     },
@@ -94,7 +100,6 @@ export default {
 }
 
 .project-link {
-  text-decoration: none;
   color: secondary-text-color;
   line-height: 28px;
   font-size: 18px;
@@ -116,7 +121,6 @@ export default {
   width: sidebar-width;
   .start-new-project {
     font-size: 14px;
-    text-decoration: none;
     color: action-color;
     display: inline-block;
     margin-top: 22px;
@@ -141,21 +145,22 @@ export default {
 @media only screen and (max-width: small-screen-size) {
   .projects-list-container {
     width: 100%;
-    height: 50px;
+    height: 100%;
     padding-top: 12px;
     bottom: 0;
     overflow-y: auto;
     background: screen-background;
+    display: none;
   }
   .projects-list-container.expanded {
     top: 50px;
-    height: initial;
+    display: block;
   }
 
   .projects-overview {
     left: 0;
     top: 55px;
-    bottom: 50px;
+    bottom: 0;
     padding: 7px;
   }
   .toggle-list {

@@ -67,7 +67,6 @@ focus-color=#2196f3;
   label {
     font-family: Roboto,-apple-system,BlinkMacSystemFont,Segoe UI,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica,Arial,sans-serif;
     a {
-      text-decoration: none;
       font-size: 12px;
       color: rgba(0, 0, 0, 0.54);
     }
