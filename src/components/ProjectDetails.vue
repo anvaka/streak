@@ -18,7 +18,7 @@
             </div>
           </div>
           <div class='actions-row'>
-            <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: groupRecord.group.rowIndex}}'>edit</router-link>
+            <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: groupRecord.group.rowIndex}}' v-if='project.canEdit'>edit</router-link>
           </div>
         </div>
       </div>
@@ -33,10 +33,10 @@
 <script>
 import _ from 'lodash';
 import moment from 'moment';
-import marked from 'marked'; // makrdown renderer
 import InputTypes from 'src/types/InputTypes';
 import loadProject from 'src/lib/loadProject';
 
+import renderMakrdown from '../lib/markdown/index.js';
 import ContributionsWall from './ContributionsWall.vue';
 import SelectedFilters from './SelectedFilters.vue';
 
@@ -119,7 +119,7 @@ export default {
       }
 
       if (cell.valueType === InputTypes.MULTI_LINE_TEXT) {
-        return marked(value);
+        return renderMakrdown(value);
       }
 
       return _.escape(value);
