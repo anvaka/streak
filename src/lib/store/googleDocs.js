@@ -29,7 +29,7 @@ export function getLogFileSpreadsheetId(projectFolderId) {
   return gapiFiles('list', {
     q: `trashed = false and '${projectFolderId}' in parents and mimeType='application/vnd.google-apps.spreadsheet'`,
     pageSize: 10,
-    fields: 'files(id, name, properties, capabilities)'
+    fields: 'files(id, name, properties, capabilities, owners)'
   }).then(result => {
     const { files } = result;
     if (files.length === 0) {

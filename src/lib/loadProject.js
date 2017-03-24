@@ -28,6 +28,8 @@ function loadProject(projectFolderId) {
 
 function loadSpreadsheet(spreadsheetFile) {
   const spreadsheetId = spreadsheetFile.id;
+  const { canEdit } = spreadsheetFile.capabilities;
+  const { owners } = spreadsheetFile;
   const columnTypeByName = extractColumnTypesMetadata(spreadsheetFile.properties);
 
   const sheetDataPromise = loadSheetData(spreadsheetId);
@@ -39,6 +41,8 @@ function loadSpreadsheet(spreadsheetFile) {
   function convertToViewModel(results) {
     // TODO: use capabilities.canEdit to determine whether current user can edit this project.
     const vm = makeProjectViewModel({
+      canEdit,
+      owners,
       sheetData: results[0],
       sheetInfo: results[1]
     }, columnTypeByName);
@@ -47,14 +51,20 @@ function loadSpreadsheet(spreadsheetFile) {
   }
 }
 
-function makeProjectViewModel({ sheetData, sheetInfo }, columnTypeByName) {
+function makeProjectViewModel(project, columnTypeByName) {
+  const { sheetData, sheetInfo, canEdit, owners } = project;
   const { title } = sheetInfo.properties;
   let headers = extractHeaders(sheetInfo.sheets[0], columnTypeByName);
   headers = trimHeadersToContent(headers, sheetData);
   augmentSingleLineHeadersWithAutosuggestions(headers, sheetData);
+  if (owners.length > 1) {
+    console.log('This file has multiple owners. Expected?', sheetInfo.spreadsheetId);
+  }
 
   return {
     title,
+    canEdit,
+    owner: owners[0],
     spreadsheetId: sheetInfo.spreadsheetId,
     sheetData,
     projectHistory: new ProjectHistoryViewModel(sheetData, headers),
