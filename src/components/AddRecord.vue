@@ -14,6 +14,9 @@
         <div v-if='field.valueType === "number"'>
           <number :vm='field'></number>
         </div>
+        <div v-if='field.valueType === "image"'>
+          <image-input :vm='field'></image-input>
+        </div>
       </div>
     </div>
     <div class='actions' v-if='!isSaveInProgress'>
@@ -38,6 +41,7 @@ import Date from './inputs/Date';
 import MultiLineText from './inputs/MultiLineText';
 import SingleLineText from './inputs/SingleLineText';
 import Number from './inputs/Number';
+import ImageInput from './inputs/Image';
 
 import updateRow from '../lib/updateRow';
 
@@ -50,7 +54,8 @@ export default {
     Date,
     MultiLineText,
     SingleLineText,
-    Number
+    Number,
+    ImageInput
   },
   data() {
     return {

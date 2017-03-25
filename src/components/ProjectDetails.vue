@@ -3,7 +3,16 @@
     <loading :isLoading='loading'></loading>
     <project-title :project='project'></project-title>
     <contributions-wall :project='project' @filter='filterContributions' v-if='!error && !loading'></contributions-wall>
-    <div v-if='noRecordsAtAll'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.</div>
+
+    <div v-if='noRecordsAtAll'>
+      <p>
+      This project does not have any records yet.
+      </p>
+      <p>
+      Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>
+      </p>
+    </div>
+
     <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='projectId'></selected-filters>
 
     <div v-if='noRecordsWithThisFilter' class='vertical-padding'>
@@ -12,6 +21,7 @@
         Add record
       </router-link>.
     </div>
+
     <router-link class='add-record-link action vertical-padding' :to='{name: "add-record", params: {projectId}}' v-if='hasSomethingOnTheWall && project.canEdit'>Add record</router-link>
 
     <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
@@ -123,12 +133,19 @@ export default {
 
     getUICellValue(cell) {
       const { value } = cell;
+
+      // TODO: This should be more extensible. The `inputs` should
+      // be related to the rendrers here.
       if (value instanceof Date) {
         return moment(value).format('LL');
       }
 
       if (cell.valueType === InputTypes.MULTI_LINE_TEXT) {
         return renderMakrdown(value);
+      }
+
+      if (cell.valueType === InputTypes.IMAGE) {
+        return `<img src='${value}'>`;
       }
 
       return _.escape(value);

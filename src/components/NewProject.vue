@@ -79,7 +79,12 @@ const NUMBER = {
   value: InputTypes.NUMBER
 };
 
-const COLUMN_TYPES = [DATE, MULTI_LINE_TEXT, SINGLE_LINE_TEXT, NUMBER];
+const IMAGE = {
+  label: 'Image',
+  value: InputTypes.IMAGE
+};
+
+const COLUMN_TYPES = [DATE, MULTI_LINE_TEXT, SINGLE_LINE_TEXT, NUMBER, IMAGE];
 
 export default {
   name: 'NewProject',

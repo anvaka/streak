@@ -54,8 +54,13 @@ function loadSpreadsheet(spreadsheetFile) {
 function makeProjectViewModel(project, columnTypeByName) {
   const { sheetData, sheetInfo, canEdit, owners } = project;
   const { title } = sheetInfo.properties;
-  let headers = extractHeaders(sheetInfo.sheets[0], columnTypeByName);
-  headers = trimHeadersToContent(headers, sheetData);
+  const headers = extractHeaders(sheetInfo.sheets[0], columnTypeByName);
+  // TODO: I'm not sure why I was trimming this. It is actually not correct
+  // to do so, because when we have 3 columns, but first entry has only
+  // two columns used - any subsequent addition will never show third column
+  // I'm keeping this code commented out in case if I learn why. But if
+  // it stays here for too long - I'll drop it.
+  // headers = trimHeadersToContent(headers, sheetData);
   augmentSingleLineHeadersWithAutosuggestions(headers, sheetData);
   if (owners.length > 1) {
     console.log('This file has multiple owners. Expected?', sheetInfo.spreadsheetId);
@@ -100,19 +105,19 @@ function augmentSingleLineHeadersWithAutosuggestions(headers, sheetData) {
   });
 }
 
-function trimHeadersToContent(headers, sheetData) {
-  // sometimes we receive more header columns than there are in the file.
-  // We figure out the longest row, and assume we have that many headers:
-  if (!sheetData) return headers;
-  let maxColumns = 0;
-
-  for (let i = 0; i < sheetData.length; ++i) {
-    if (sheetData[i].length > maxColumns) maxColumns = sheetData[i].length;
-  }
-
-  // TODO: What if `maxColumns > headers.length?`
-  return headers.slice(0, maxColumns);
-}
+// function trimHeadersToContent(headers, sheetData) {
+//   // sometimes we receive more header columns than there are in the file.
+//   // We figure out the longest row, and assume we have that many headers:
+//   if (!sheetData) return headers;
+//   let maxColumns = 0;
+//
+//   for (let i = 0; i < sheetData.length; ++i) {
+//     if (sheetData[i].length > maxColumns) maxColumns = sheetData[i].length;
+//   }
+//
+//   // TODO: What if `maxColumns > headers.length?`
+//   return headers.slice(0, maxColumns);
+// }
 
 function extractHeaders(mainSheet, columnTypeByName) {
   if (!mainSheet) throw new Error('Sheet with headers is missing');
@@ -122,13 +127,15 @@ function extractHeaders(mainSheet, columnTypeByName) {
   const { rowData } = data[0];
   if (!rowData || rowData.length === 0) return [];
 
-  return rowData[0].values.map((x, columnIndex) => {
+  // First row is always columns. Iterate over it and build types:
+  const columnHeaders = rowData[0].values;
+  return columnHeaders.map((x, columnIndex) => {
     const title = x && x.formattedValue;
     return {
       title,
       valueType: guessType(rowData, columnIndex, title)
     };
-  });
+  }).filter(column => column.title);
 
   function guessType(rowData, columnIndex, columnTitle) {
     if (columnTypeByName.has(columnTitle)) {
