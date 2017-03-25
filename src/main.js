@@ -4,7 +4,7 @@ import 'keen-ui/dist/keen-ui.min.css';
 import moment from 'moment';
 
 import Vue from 'vue';
-import App from './App.vue';
+import Home from './components/Home.vue';
 import router from './router';
 
 window.moment = moment;
@@ -13,6 +13,6 @@ window.moment = moment;
 new Vue({
   el: '#app',
   router,
-  template: '<App/>',
-  components: { App },
+  template: '<Home/>',
+  components: { Home },
 });

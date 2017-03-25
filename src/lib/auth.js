@@ -27,6 +27,7 @@ const DISCOVERY_DOCS = [
 const signInStatus = {
   error: null,
   loading: true,
+  profile: null,
 
   // need to have both, because we can be in the 'error/loading' states.
   // Maybe I should change this to enum
