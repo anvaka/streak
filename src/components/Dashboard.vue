@@ -5,13 +5,18 @@
     </div>
 
     <div class='projects-overview'>
+			<div v-if='!projectId && hasProjects'>
+				<h3 class='welcome-message'>Welcome!</h3>
+				Please select a project to get started.
+			</div>
       <router-view></router-view>
     </div>
 
+
     <div class='projects-list-container' :class='{expanded: projectsListExpanded}'>
       <div v-if='hasProjects'>
-        <div class='projects-header' @click.prevent='toggleProjectLists'>
-          <h2>Your Projects <span class='toggle-list' v-if='canHide'>{{projectsListExpanded ? "hide" : "show"}}</span></h2>
+        <div class='projects-header'>
+          <h2><span>Your Projects </span><router-link :to='{name: "new-project"}' class='start-new-project'>New project</router-link> </h2>
         </div>
         <div class='project-list'>
             <router-link class='project-link'
@@ -19,14 +24,6 @@
               :class='{ current: projectId === project.id }'
               >{{project.name}}</router-link>
         </div>
-        <div>
-          <router-link :to='{name: "new-project"}' class='start-new-project'>Start new project</router-link>
-        </div>
-      </div>
-
-      <div v-if='dashboard.loading'>
-          <ui-icon-button icon="refresh" :loading="dashboard.loading" type='secondary'></ui-icon-button>
-          Loading your projects...
       </div>
     </div>
   </div>
@@ -57,11 +54,6 @@ export default {
     }
   },
   computed: {
-    canHide () {
-      // Only shouw hide button when on project details view
-      return this.$route.name === 'project-details';
-    },
-
     hasProjects() {
       return !dashboard.loading && dashboard.projects.length > 0;
     },
@@ -69,11 +61,7 @@ export default {
       return !dashboard.loading && dashboard.projects.length === 0;
     }
   },
-  methods: {
-    toggleProjectLists() {
-      this.projectsListExpanded = !this.projectsListExpanded;
-    }
-  },
+  methods: {},
   components: {
     UiButton,
     UiIconButton,
@@ -88,11 +76,17 @@ export default {
   flex: 1;
 }
 
+.welcome-message {
+  margin: 7px 0 14px 0;
+}
+
 .projects-overview {
   left: sidebar-width;
+  border-left: 1px solid RGB(209, 213, 218);
   bottom: 0;
   right: 0;
   top: 0;
+  padding: default-padding;
   padding-top: 56px;
   overflow-y: auto;
   position: absolute;
@@ -104,13 +98,17 @@ export default {
   line-height: 24px;
   font-size: 18px;
   display: inline-block;
+  padding: default-padding;
   padding-top: 6px;
   padding-bottom: 7px;
+  &:hover {
+    color: black;
+  }
 }
 
 .project-link.current {
   color: black;
-  font-weight: bold;
+  background: border-color;
 }
 
 .project-list {
@@ -124,8 +122,6 @@ export default {
   .start-new-project {
     font-size: 14px;
     color: action-color;
-    display: inline-block;
-    margin-top: 22px;
   }
 }
 
@@ -133,20 +129,22 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: default-padding;
+  border: 1px solid border-color;
+  height: 37px;
   h2 {
+    flex: 1;
     margin: 0;
+    display: flex;
+    justify-content: space-between;
     font-weight: normal;
     font-size: 14px;
     color: rgba(0, 0, 0, 0.4);
   }
 }
-.toggle-list {
-  display: none;
-}
 
 @media only screen and (max-width: small-screen-size) {
   .projects-list-container {
-    width: 100%;
     height: 100%;
     padding-top: 12px;
     bottom: 0;
@@ -163,7 +161,7 @@ export default {
     left: 0;
     top: 55px;
     bottom: 0;
-    padding: 7px;
+    padding-top: 0;
   }
   .toggle-list {
     display: inline-block;

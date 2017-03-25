@@ -1,12 +1,18 @@
 <template>
   <div class='project-details-container'>
     <div class='loading' v-if='loading'>Loading...</div>
-    <h2>{{title}} </h2>
+    <h2>{{title}}</h2>
     <contributions-wall :project='project' @filter='filterContributions' v-if='!error && !loading'></contributions-wall>
     <div v-if='noRecordsAtAll'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.</div>
     <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='projectId'></selected-filters>
-    <div v-if='noRecordsWithThisFilter'>There is nothing recorded {{getFilterPeriodMessage()}}. <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}'>Add record</router-link>.</div>
-    <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}' v-if='hasSomethingOnTheWall'>Add record</router-link>
+
+    <div v-if='noRecordsWithThisFilter' class='vertical-padding'>
+      There is nothing recorded {{getFilterPeriodMessage()}}.
+      <router-link  v-if='project.canEdit' class='add-record-link action' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}'>
+        Add record
+      </router-link>.
+    </div>
+    <router-link class='add-record-link action vertical-padding' :to='{name: "add-record", params: {projectId}}' v-if='hasSomethingOnTheWall && project.canEdit'>Add record</router-link>
 
     <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
       <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
@@ -159,6 +165,10 @@ export default {
 <style lang='stylus'>
 @import '../styles/variables.styl';
 
+.vertical-padding {
+  padding: 14px 0;
+}
+
 .project-details-container {
   display: flex;
   flex-direction: column;
@@ -177,9 +187,17 @@ export default {
 
   h2 {
     margin: 0;
+    margin-bottom: 14px;
+  }
+
+  .group-record {
+    h4 {
+      margin: 14px 0;
+    }
   }
 
   .project-details {
+    border-top: 1px solid border-color;
     flex: 1;
     max-width: 941px;
     overflow-y: auto;
@@ -214,6 +232,13 @@ export default {
 
 @media only screen and (max-width: small-screen-size) {
   .project-details-container {
+    h2 {
+      margin: 14px 0;
+    }
+
+    .column-title {
+      text-align: left;
+    }
     .cell-record {
       display: flex;
       flex-direction: column;

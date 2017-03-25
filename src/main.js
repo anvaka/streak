@@ -6,6 +6,7 @@ import moment from 'moment';
 import Vue from 'vue';
 import Home from './components/Home.vue';
 import router from './router';
+import './styles/styles.styl';
 
 window.moment = moment;
 

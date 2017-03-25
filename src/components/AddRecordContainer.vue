@@ -96,7 +96,8 @@ function getFieldsFromProject(project, row, date) {
 }
 </script>
 
-<style>
+<style lang='stylus'>
+
 .add-record-container {
   max-width: 600px;
   display: flex;

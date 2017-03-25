@@ -36,5 +36,9 @@ export default {
 <style lang='stylus'>
 .filter-message {
   font-size: 1.5em;
+  margin-top: 7px;
+  a {
+    font-size: 14px;
+  }
 }
 </style>

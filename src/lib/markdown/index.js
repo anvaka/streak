@@ -3,7 +3,10 @@ import marked from 'marked';
 export default renderMarkdown;
 
 const renderer = createCustomRenderer();
-marked.setOptions({ renderer });
+marked.setOptions({
+  renderer,
+  sanitize: true
+});
 
 function renderMarkdown(string) {
   return marked(string);

@@ -12,7 +12,8 @@
         </div>
       </ui-toolbar>
       <div class='loading' v-if='loading'>
-          Checking Google Authentication....
+          <ui-icon-button icon="refresh" :loading="loading" type='secondary'></ui-icon-button>
+          Loading...
       </div>
       <div class='error' v-if='error'>
         <p>Something is wrong. Try refreshing the page. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
@@ -30,7 +31,7 @@
 
 <script>
 import 'flatpickr/dist/flatpickr.css';
-import { UiToolbar } from 'keen-ui';
+import { UiToolbar, UiIconButton } from 'keen-ui';
 import auth from '../lib/auth';
 import UserInfo from './UserInfo.vue';
 import Welcome from './Welcome.vue';
@@ -61,18 +62,15 @@ export default {
   components: {
     UserInfo,
     UiToolbar,
-    Welcome
+    Welcome,
+    UiIconButton
   },
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang=stylus>
+<style lang='stylus' scoped>
 @import './../styles/variables.styl'
 
-a {
-  text-decoration: none;
-}
 
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -82,23 +80,16 @@ a {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  padding: 0 7px;
 }
 .router-container {
   width: 100%;
   height: 100%;
 }
-.secondary {
-  color: secondary-text-color;
-}
-.action {
-  color: action-color;
-}
 .ui-button--type-secondary.ui-button--color-primary {
   color: action-color;
 }
 .ui-toolbar {
-  padding: 0;
+  padding: default-padding;
   .ui-toolbar__brand {
     min-width: initial;
   }
@@ -108,16 +99,11 @@ a {
   }
 }
 
-@media (max-width: small-screen-size) {
-  .list {
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-  }
-}
 .home {
   display: flex;
   flex-direction: column;
 }
+
 .logo-text {
   color: rgba(0, 0, 0, 0.2);
   text-decoration: none;
@@ -141,9 +127,5 @@ ul {
 li {
   display: inline-block;
   margin: 0 10px;
-}
-
-a {
-  color: #42b983;
 }
 </style>
