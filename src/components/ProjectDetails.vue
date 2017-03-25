@@ -56,7 +56,6 @@ export default {
       loading: true,
       isSaveInProgress: false,
       error: null,
-      title: '',
       project: null,
     };
   },
@@ -142,7 +141,6 @@ export default {
       loadProject(this.projectId)
         .then((project) => {
           this.loading = false;
-          this.title = project.title;
           this.project = project;
           project.projectHistory.filter(this.$route.query.from, this.$route.query.to);
 
@@ -154,7 +152,6 @@ export default {
         }).catch(err => {
           this.loading = false;
           this.project = null;
-          this.title = '';
           if (err && err.message) {
             this.error = err.message;
           } else {
@@ -187,11 +184,6 @@ export default {
     }
   }
 
-  h2.project-title {
-    margin: 0;
-    margin-bottom: 14px;
-    font-weight: normal;
-  }
 
   .group-record {
     h4 {
@@ -235,10 +227,6 @@ export default {
 
 @media only screen and (max-width: small-screen-size) {
   .project-details-container {
-    h2.project-title {
-      margin: 14px 0;
-    }
-
     .column-title {
       text-align: left;
     }
