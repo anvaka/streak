@@ -1,7 +1,7 @@
 <template>
   <div class='dashboard'>
     <div v-if='noProjects' class='no-projects-sidebar' :class='{someone: projectId}'>
-      You don't have any projects yet. <router-link to='new-project'>Start a new project</router-link>
+      You don't have any projects yet. <router-link :to='{name: "new-project"}'>Start a new project</router-link>
     </div>
 
     <div class='projects-overview' v-if='projectId || hasProjects'>

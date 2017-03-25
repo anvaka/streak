@@ -39,9 +39,6 @@ export default {
 
   data() {
     return auth.signInStatus;
-    // return {
-    //   profile: auth.signInStatus.profile
-    // };
   },
 
   created() {
@@ -89,9 +86,6 @@ export default {
 
 .ui-toolbar {
   padding: default-padding;
-  .ui-toolbar__brand {
-    min-width: initial;
-  }
 }
 
 .home {
