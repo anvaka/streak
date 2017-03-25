@@ -1,11 +1,11 @@
 <template>
   <div class='dashboard'>
-    <div v-if='noProjects'>
+    <div v-if='noProjects' class='no-projects-sidebar' :class='{someone: projectId}'>
       You don't have any projects yet. <router-link to='new-project'>Start a new project</router-link>
     </div>
 
-    <div class='projects-overview'>
-			<div v-if='!projectId && hasProjects'>
+    <div class='projects-overview' v-if='projectId || hasProjects'>
+			<div v-if='!projectId'>
 				<h3 class='welcome-message'>Welcome!</h3>
 				Please select a project to get started.
 			</div>
@@ -13,17 +13,15 @@
     </div>
 
 
-    <div class='projects-list-container' :class='{expanded: projectsListExpanded}'>
-      <div v-if='hasProjects'>
-        <div class='projects-header'>
-          <h2><span>Your Projects </span><router-link :to='{name: "new-project"}' class='start-new-project'>New project</router-link> </h2>
-        </div>
-        <div class='project-list'>
-            <router-link class='project-link'
-              v-for='project in dashboard.projects' :to='{name: "project-details", params: {projectId: project.id}}'
-              :class='{ current: projectId === project.id }'
-              >{{project.name}}</router-link>
-        </div>
+    <div class='projects-list-container' :class='{expanded: projectsListExpanded}' v-if='hasProjects'>
+      <div class='projects-header'>
+        <h2><span>Your Projects </span><router-link :to='{name: "new-project"}' class='start-new-project'>New project</router-link> </h2>
+      </div>
+      <div class='project-list'>
+          <router-link class='project-link'
+            v-for='project in dashboard.projects' :to='{name: "project-details", params: {projectId: project.id}}'
+            :class='{ current: projectId === project.id }'
+            >{{project.name}}</router-link>
       </div>
     </div>
   </div>
@@ -91,6 +89,15 @@ export default {
   overflow-y: auto;
   position: absolute;
   -webkit-overflow-scrolling: touch;
+}
+
+.no-projects-sidebar {
+  position: absolute;
+  padding: default-padding;
+}
+
+.no-projects-sidebar.someone {
+  width: sidebar-width;
 }
 
 .project-link {
