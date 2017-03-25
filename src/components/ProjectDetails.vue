@@ -1,7 +1,7 @@
 <template>
   <div class='project-details-container'>
     <loading :isLoading='loading'></loading>
-    <h2>{{title}}</h2>
+    <project-title :project='project'></project-title>
     <contributions-wall :project='project' @filter='filterContributions' v-if='!error && !loading'></contributions-wall>
     <div v-if='noRecordsAtAll'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.</div>
     <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='projectId'></selected-filters>
@@ -44,6 +44,7 @@ import loadProject from 'src/lib/loadProject';
 
 import renderMakrdown from '../lib/markdown/index.js';
 import Loading from './Loading.vue';
+import ProjectTitle from './ProjectTitle.vue';
 import ContributionsWall from './ContributionsWall.vue';
 import SelectedFilters from './SelectedFilters.vue';
 
@@ -88,7 +89,8 @@ export default {
   components: {
     ContributionsWall,
     SelectedFilters,
-    Loading
+    Loading,
+    ProjectTitle
   },
 
   methods: {
@@ -185,9 +187,10 @@ export default {
     }
   }
 
-  h2 {
+  h2.project-title {
     margin: 0;
     margin-bottom: 14px;
+    font-weight: normal;
   }
 
   .group-record {
@@ -232,7 +235,7 @@ export default {
 
 @media only screen and (max-width: small-screen-size) {
   .project-details-container {
-    h2 {
+    h2.project-title {
       margin: 14px 0;
     }
 
