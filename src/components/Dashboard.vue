@@ -14,10 +14,10 @@
           <h2>Your Projects <span class='toggle-list' v-if='canHide'>{{projectsListExpanded ? "hide" : "show"}}</span></h2>
         </div>
         <div class='project-list'>
-          <router-link class='project-link'
-            v-for='project in dashboard.projects' :to='{name: "project-details", params: {projectId: project.id}}'
-            :class='{ current: projectId === project.id }'
-            >{{project.name}}</router-link>
+            <router-link class='project-link'
+              v-for='project in dashboard.projects' :to='{name: "project-details", params: {projectId: project.id}}'
+              :class='{ current: projectId === project.id }'
+              >{{project.name}}</router-link>
         </div>
         <div>
           <router-link :to='{name: "new-project"}' class='start-new-project'>Start new project</router-link>
@@ -101,8 +101,11 @@ export default {
 
 .project-link {
   color: secondary-text-color;
-  line-height: 28px;
+  line-height: 24px;
   font-size: 18px;
+  display: inline-block;
+  padding-top: 6px;
+  padding-bottom: 7px;
 }
 
 .project-link.current {
@@ -113,7 +116,6 @@ export default {
 .project-list {
   display: flex;
   flex-direction: column;
-
 }
 
 .projects-list-container {
@@ -134,7 +136,7 @@ export default {
   h2 {
     margin: 0;
     font-weight: normal;
-    font-size: 1.5rem;
+    font-size: 14px;
     color: rgba(0, 0, 0, 0.4);
   }
 }
