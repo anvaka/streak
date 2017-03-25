@@ -30,7 +30,7 @@
       </div>
     </div>
     <div v-if='error'>
-      <h3>Something is wrong...</h3>
+      <h2 class='error-title'>Something is wrong...</h2>
       <pre>{{error}}</pre>
     </div>
   </div>
@@ -223,6 +223,10 @@ export default {
       font-size: 14px;
     }
   }
+}
+
+.error-title {
+  margin: 0;
 }
 
 @media only screen and (max-width: small-screen-size) {

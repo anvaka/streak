@@ -165,7 +165,7 @@ export default {
   color: orangered;
 }
 .new-project {
-  padding: 8px;
+  padding: default-padding;
 }
 .title {
   .secondary {

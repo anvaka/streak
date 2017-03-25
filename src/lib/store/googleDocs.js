@@ -33,7 +33,7 @@ export function getLogFileSpreadsheetId(projectFolderId) {
   }).then(result => {
     const { files } = result;
     if (files.length === 0) {
-      throw new Error('This project does not exist');
+      throw new Error('This project does not exist... or maybe it is private?');
     }
     if (files.length !== 1) {
       // TODO: Implement this. Need to find best candidate.
