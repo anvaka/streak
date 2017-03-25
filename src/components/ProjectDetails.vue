@@ -1,6 +1,6 @@
 <template>
   <div class='project-details-container'>
-    <div class='loading' v-if='loading'>Loading...</div>
+    <loading :isLoading='loading'></loading>
     <h2>{{title}}</h2>
     <contributions-wall :project='project' @filter='filterContributions' v-if='!error && !loading'></contributions-wall>
     <div v-if='noRecordsAtAll'>This project does not have any records yet... Start your journey and <router-link class='add-record-link action' :to='{name: "add-record", params: {projectId}}'>add the first record</router-link>.</div>
@@ -43,6 +43,7 @@ import InputTypes from 'src/types/InputTypes';
 import loadProject from 'src/lib/loadProject';
 
 import renderMakrdown from '../lib/markdown/index.js';
+import Loading from './Loading.vue';
 import ContributionsWall from './ContributionsWall.vue';
 import SelectedFilters from './SelectedFilters.vue';
 
@@ -86,7 +87,8 @@ export default {
 
   components: {
     ContributionsWall,
-    SelectedFilters
+    SelectedFilters,
+    Loading
   },
 
   methods: {
@@ -174,9 +176,7 @@ export default {
   flex-direction: column;
 
   .loading {
-    position: absolute;
-    text-align: left;
-    top: -42px;
+    margin-left: -15px;
   }
 
   .cell-container {
@@ -242,18 +242,6 @@ export default {
     .cell-record {
       display: flex;
       flex-direction: column;
-    }
-    .loading {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.95);
-      left: 0;
-      display: flex;
-      align-items: center;
-      text-align: center;
-      justify-content: center;
     }
   }
 }

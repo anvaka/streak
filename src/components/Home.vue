@@ -11,10 +11,7 @@
           <user-info :profile='profile' @signOut='signOut'></user-info>
         </div>
       </ui-toolbar>
-      <div class='loading' v-if='loading'>
-          <ui-icon-button icon="refresh" :loading="loading" type='secondary'></ui-icon-button>
-          Loading...
-      </div>
+      <loading :isLoading='loading'></loading>
       <div class='error' v-if='error'>
         <p>Something is wrong. Try refreshing the page. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
         <pre>{{error}}</pre>
@@ -31,7 +28,8 @@
 
 <script>
 import 'flatpickr/dist/flatpickr.css';
-import { UiToolbar, UiIconButton } from 'keen-ui';
+import { UiToolbar } from 'keen-ui';
+import Loading from './Loading.vue';
 import auth from '../lib/auth';
 import UserInfo from './UserInfo.vue';
 import Welcome from './Welcome.vue';
@@ -60,10 +58,10 @@ export default {
   },
 
   components: {
+    Loading,
     UserInfo,
     UiToolbar,
     Welcome,
-    UiIconButton
   },
 };
 </script>
