@@ -176,7 +176,7 @@ export default {
   flex-direction: column;
 
   .loading {
-    margin-left: -15px;
+    margin-left: -8px;
   }
 
   .cell-container {

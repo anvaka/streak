@@ -86,9 +86,6 @@ export default {
   width: 100%;
   height: 100%;
 }
-.ui-button--type-secondary.ui-button--color-primary {
-  color: action-color;
-}
 
 .ui-toolbar {
   padding: default-padding;
