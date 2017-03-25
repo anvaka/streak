@@ -69,6 +69,9 @@ export default {
 <style lang='stylus' scoped>
 @import './../styles/variables.styl'
 
+.loading {
+  padding-left: 7px;
+}
 
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
@@ -86,14 +89,11 @@ export default {
 .ui-button--type-secondary.ui-button--color-primary {
   color: action-color;
 }
+
 .ui-toolbar {
   padding: default-padding;
   .ui-toolbar__brand {
     min-width: initial;
-  }
-  .ui-toolbar__nav-icon {
-    margin-left: 0;
-    margin-right: 0;
   }
 }
 

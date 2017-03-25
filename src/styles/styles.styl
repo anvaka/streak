@@ -12,6 +12,13 @@ a {
   color: action-color;
 }
 
+// this is to remove default keen-ui's margin. I think I should just
+// implement my own toolbar - would probably be easier.
+.ui-toolbar__nav-icon {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 @media (max-width: small-screen-size) {
   .list {
     overflow-y: scroll;
