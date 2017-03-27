@@ -15,6 +15,8 @@
 <script>
 import loadProject from 'src/lib/loadProject';
 import InputTypes from 'src/types/InputTypes';
+import { getDateFromFilterString } from 'src/lib/dateUtils';
+
 import AddRecord from './AddRecord.vue';
 
 export default {
@@ -55,7 +57,9 @@ export default {
 
       loadProject(this.projectId)
         .then((project) => {
-          this.fields = getFieldsFromProject(project, this.row, this.$route.query.date);
+          const dateString = this.$route.query.date;
+          const date = dateString ? getDateFromFilterString(dateString) : undefined;
+          this.fields = getFieldsFromProject(project, this.row, date);
           this.loading = false;
           this.title = project.title;
           this.project = project;

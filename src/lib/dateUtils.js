@@ -33,8 +33,17 @@ export function toDateInputStr(date) {
         ':' + pad(date.getSeconds());
 }
 
+export function getDateFromFilterString(filterDateString) {
+  const parts = filterDateString.split('-').map(x => Number.parseInt(x, 10));
+  const month = parts[0] - 1; // JS months are 0 based :-/
+  const day = parts[1];
+  const year = parts[2];
+  return new Date(year, month, day);
+}
+
 export function getDateString(date) {
-  return date.toLocaleDateString('us').replace(/\//g, '-');
+  const dateString = date.toLocaleDateString('us').replace(/\//g, '-');
+  return dateString;
 }
 
 function pad(number) {

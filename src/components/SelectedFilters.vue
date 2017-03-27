@@ -7,6 +7,7 @@
 
 <script>
 import moment from 'moment';
+import { getDateFromFilterString } from 'src/lib/dateUtils';
 
 export default {
   props: ['from', 'to', 'projectId'],
@@ -15,12 +16,12 @@ export default {
       return this.from || this.to;
     },
     filterMessage() {
+      const fromDate = getDateFromFilterString(this.from);
       if (!this.to || this.from === this.to) {
-        return moment(new Date(this.from)).format('LL');
+        return moment(fromDate).format('LL');
       }
 
-      const fromDate = new Date(this.from);
-      const toDate = new Date(this.to);
+      const toDate = getDateFromFilterString(this.to);
       let fromFormatted = moment(fromDate).format('LL');
       let toFormatted = moment(toDate).format('LL');
       if (fromDate > toDate) {
@@ -31,6 +32,7 @@ export default {
     }
   }
 };
+
 </script>
 
 <style lang='stylus'>
