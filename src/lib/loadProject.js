@@ -96,7 +96,8 @@ function augmentSingleLineHeadersWithAutosuggestions(headers, sheetData) {
   sheetData.forEach(row => {
     // remember all unique values that we saw
     headersToUpdate.forEach(header => {
-      header.completions.add(row[header.index]);
+      const completion = (row[header.index] || '').trim();
+      header.completions.add(completion);
     });
   });
 
