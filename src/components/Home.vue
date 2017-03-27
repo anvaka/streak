@@ -1,16 +1,14 @@
 <template>
   <div id='app'>
     <div class='home'>
-      <ui-toolbar type='clear' :raised='false' :removeBrandDivider='true'>
+      <div class='toolbar' >
         <div slot='brand'>
           <router-link to='/' class='logo-text'>Streak</router-link>
         </div>
-        <div slot='icon'>
-        </div>
-        <div slot='actions'>
+        <div>
           <user-info :profile='profile' @signOut='signOut'></user-info>
         </div>
-      </ui-toolbar>
+      </div>
       <loading :isLoading='loading'></loading>
       <div class='error' v-if='error'>
         <p>Something is wrong. Try refreshing the page. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
@@ -28,7 +26,6 @@
 
 <script>
 import 'flatpickr/dist/flatpickr.css';
-import { UiToolbar } from 'keen-ui';
 import Loading from './Loading.vue';
 import auth from '../lib/auth';
 import UserInfo from './UserInfo.vue';
@@ -57,7 +54,6 @@ export default {
   components: {
     Loading,
     UserInfo,
-    UiToolbar,
     Welcome,
   },
 };
@@ -79,18 +75,26 @@ export default {
   height: 100%;
   overflow: hidden;
 }
+
 .router-container {
-  width: 100%;
-  height: 100%;
+  flex: 1;
+  overflow-y: auto;
 }
 
-.ui-toolbar {
+.toolbar {
   padding: default-padding;
+  height: 56px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-shrink: 0;
+  align-items: center;
 }
 
 .home {
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .logo-text {
