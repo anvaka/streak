@@ -32,6 +32,15 @@
       <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
       Committing new record...
     </div>
+
+    <div v-if='error'>
+      <h2 class='error-title'>I am sorry...</h2>
+      <p>
+      An error has happened. Please try saving this record again.
+      </p>
+      <p>If the error happens again, email technical details to me: <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a></p>
+      <pre>{{error}}</pre>
+    </div>
   </form>
 </template>
 <script>
@@ -59,18 +68,24 @@ export default {
   },
   data() {
     return {
-      isSaveInProgress: false
+      isSaveInProgress: false,
+      error: null
     };
   },
   methods: {
     commitChanges() {
+      this.error = null;
       this.isSaveInProgress = true;
+
       const newRowValues = this.fields.map(field => field.value);
 
       updateRow(this.spreadsheetId, newRowValues, this.row).then(() => {
         this.isSaveInProgress = false;
         resetFields(this.fields);
         this.$emit('saved');
+      }).catch(err => {
+        this.isSaveInProgress = false;
+        this.error = err;
       });
     },
     cancel() {
@@ -90,6 +105,7 @@ export default {
 .editor-form {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 .input-fields {
   overflow-y: auto;
