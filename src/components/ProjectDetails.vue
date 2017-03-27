@@ -183,6 +183,9 @@ export default {
 <style lang='stylus'>
 @import '../styles/variables.styl';
 
+project-details-width = 941px;
+column-title-width = 100px;
+
 .vertical-padding {
   padding: 14px 0;
 }
@@ -211,7 +214,7 @@ export default {
   .project-details {
     border-top: 1px solid border-color;
     flex: 1;
-    max-width: 941px;
+    max-width: project-details-width;
     overflow-y: auto;
   }
   .cell-record {
@@ -223,9 +226,13 @@ export default {
     padding-right: 10px;
     display: table-cell;
     font-size: 12px;
+    max-width: column-title-width;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
   .column-value {
     display: table-cell;
+    max-width: project-details-width - column-title-width;
   }
   .subgroup {
     padding-bottom: 10px;
