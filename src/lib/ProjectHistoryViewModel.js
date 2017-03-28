@@ -116,6 +116,9 @@ function groupBy(groupIndex, typedRows) {
         return;
       }
       rowItems.push(otherCellRecord);
+      // TODO: This is ugly. I need a better model to reflect
+      // that individual subgroups can be edited.
+      rowItems.rowIndex = otherCellRecord.rowIndex;
     });
 
     groupRecords.items.push(rowItems);

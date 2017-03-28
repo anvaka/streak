@@ -30,11 +30,10 @@
         <div v-for='row in groupRecord.items' class='subgroup'>
           <div v-for='column in row' v-if='column.value'  class='cell-record'>
             <div class='secondary column-title'>{{column.title}}</div>
-            <div class='column-value cell-container' v-html='getUICellValue(column)'>
-            </div>
+            <div class='column-value cell-container' v-html='getUICellValue(column)'></div>
           </div>
           <div class='actions-row'>
-            <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: groupRecord.group.rowIndex}}' v-if='project.canEdit'>edit</router-link>
+            <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: row.rowIndex}}' v-if='project.canEdit'>edit</router-link>
           </div>
         </div>
       </div>
