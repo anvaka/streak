@@ -42,6 +42,14 @@
       <h2 class='error-title'>Something is wrong...</h2>
       <pre>{{error}}</pre>
     </div>
+    <ui-fab
+        v-if='project && project.canEdit && !error'
+        class='fab-add'
+        color='primary'
+        icon='add'
+        size='small'
+        @click='addRecordClick'
+    ></ui-fab>
   </div>
 </template>
 
@@ -50,6 +58,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import InputTypes from 'src/types/InputTypes';
 import loadProject from 'src/lib/loadProject';
+import { UiFab } from 'keen-ui';
 
 import renderMakrdown from '../lib/markdown/index.js';
 import Loading from './Loading.vue';
@@ -98,10 +107,22 @@ export default {
     ContributionsWall,
     SelectedFilters,
     Loading,
-    ProjectTitle
+    ProjectTitle,
+    UiFab
   },
 
   methods: {
+    addRecordClick() {
+      this.$router.push({
+        name: 'add-record',
+        params: {
+          projectId: this.projectId
+        },
+        query: {
+          date: this.getFromDate()
+        }
+      });
+    },
     getFromDate() {
       return this.$route.query.from;
     },
@@ -188,6 +209,13 @@ column-title-width = 100px;
 
 .vertical-padding {
   padding: 14px 0;
+}
+
+.fab-add {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  background-color: action-color;
 }
 
 .project-details-container {
