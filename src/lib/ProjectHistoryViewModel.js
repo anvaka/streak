@@ -110,7 +110,7 @@ function groupBy(groupIndex, typedRows) {
     }
     const rowItems = [];
 
-    row.cells.forEach((otherCellRecord, otherIndex) => {
+    row.cells.forEach((otherCellRecord) => {
       rowItems.push(otherCellRecord);
       // TODO: This is ugly. I need a better model to reflect
       // that individual subgroups can be edited.
