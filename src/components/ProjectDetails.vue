@@ -26,7 +26,7 @@
 
     <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
       <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
-        <h4>{{getUICellValue(groupRecord.group)}}</h4>
+        <h4>{{getUICellValue(groupRecord.group, /* isHeader =*/ true)}}</h4>
         <div v-for='row in groupRecord.items' class='subgroup'>
           <div v-for='column in row' v-if='column.value'  class='cell-record'>
             <div class='secondary column-title'>{{column.title}}</div>
@@ -130,13 +130,14 @@ export default {
       });
     },
 
-    getUICellValue(cell) {
+    getUICellValue(cell, isHeader) {
       const { value } = cell;
 
       // TODO: This should be more extensible. The `inputs` should
       // be related to the rendrers here.
       if (value instanceof Date) {
-        return moment(value).format('LL');
+        const momentValue = moment(value);
+        return isHeader ? momentValue.format('LL') : momentValue.format('HH:mm');
       }
 
       if (cell.valueType === InputTypes.MULTI_LINE_TEXT) {

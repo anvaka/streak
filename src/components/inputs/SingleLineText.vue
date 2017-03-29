@@ -4,6 +4,7 @@
       :min-chars='1'
       :label='vm.title'
       :suggestions='vm.autocomplete'
+      :filter='filterSuggestions'
       v-model='vm.value'></ui-autocomplete>
 </template>
 <script>
@@ -14,6 +15,13 @@ export default {
   props: ['vm'],
   components: {
     UiAutocomplete
+  },
+  methods: {
+    filterSuggestions(suggestion, query) {
+      if (!query) return true;
+
+      return suggestion.toLowerCase().indexOf(query.toLowerCase()) > -1;
+    }
   }
 };
 </script>

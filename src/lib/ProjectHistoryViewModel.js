@@ -111,10 +111,6 @@ function groupBy(groupIndex, typedRows) {
     const rowItems = [];
 
     row.cells.forEach((otherCellRecord, otherIndex) => {
-      if (otherIndex === groupIndex) {
-        // Don't include group itself into group records.
-        return;
-      }
       rowItems.push(otherCellRecord);
       // TODO: This is ugly. I need a better model to reflect
       // that individual subgroups can be edited.
@@ -124,8 +120,27 @@ function groupBy(groupIndex, typedRows) {
     groupRecords.items.push(rowItems);
   });
 
-  return Array.from(groups.values()).sort((x, y) => {
+  const groupRecords = Array.from(groups.values());
+  removeRedundnantGroupKeys(groupRecords);
+
+  return groupRecords.sort((x, y) => {
     return y.group.value - x.group.value;
+  });
+}
+
+function removeRedundnantGroupKeys(groupRecords) {
+  groupRecords.forEach(groupRecord => {
+    const { items } = groupRecord;
+    if (items.length > 1) {
+      // no need to do anything, as group cell is necessary for UI
+      // TODO: Should probably sort...
+      return;
+    }
+
+    const firstAndOnlyGroup = groupRecord.items[0];
+    // otherwise it's just one record, and group is displayed as a header
+    // so we remove group from items.
+    groupRecord.items[0] = firstAndOnlyGroup.filter(cell => cell !== groupRecord.group);
   });
 }
 

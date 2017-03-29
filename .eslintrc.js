@@ -48,7 +48,8 @@ module.exports = {
     'comma-dangle': 0,
     'import/extensions': 0,
     'import/prefer-default-export': 0,
-    'no-unused-vars': 1
+    'no-unused-vars': 1,
+    'semi': 1
   },
   globals: {
     gapi: true
