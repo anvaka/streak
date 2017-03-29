@@ -141,6 +141,9 @@ function removeRedundnantGroupKeys(groupRecords) {
     // otherwise it's just one record, and group is displayed as a header
     // so we remove group from items.
     groupRecord.items[0] = firstAndOnlyGroup.filter(cell => cell !== groupRecord.group);
+    // TODO This is really bad. See comment above. We need a better model to reflect
+    // individual subgroups
+    groupRecord.items[0].rowIndex = firstAndOnlyGroup.rowIndex;
   });
 }
 
