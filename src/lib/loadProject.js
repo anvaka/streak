@@ -13,6 +13,7 @@ import InputTypes from 'src/types/InputTypes';
 import detectType from './detectType';
 import extractColumnTypesMetadata from './extractColumnTypesMetadata';
 import ProjectHistoryViewModel from './ProjectHistoryViewModel';
+import { setParentFolder } from './store/sheetIdToFolder.js';
 import {
   loadSheetData,
   loadSheetInfo,
@@ -23,7 +24,12 @@ export default loadProject;
 
 function loadProject(projectFolderId) {
   return getLogFileSpreadsheetId(projectFolderId)
-    .then(file => loadSpreadsheet(file));
+    .then(file => {
+      // Remember the mapping to the parent folder so that later we can use it
+      // to `touch` parent folder on each update (see `updateRow.js`)
+      setParentFolder(file.id, projectFolderId);
+      return loadSpreadsheet(file);
+    });
 }
 
 function loadSpreadsheet(spreadsheetFile) {

@@ -2,7 +2,9 @@
  * Appends or updates a new log record to a project log
  */
 import { resetSheetDataCache } from './store/cachingDocs.js';
-import gapiSeets from './gapi/sheets.js';
+import { getParentFolder } from './store/sheetIdToFolder.js';
+import gapiSheets from './gapi/sheets.js';
+import gapiFiles from './gapi/files.js';
 
 const RANGE_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -16,10 +18,34 @@ export default function updateRow(spreadsheetId, record, row) {
 
   const method = row !== undefined ? 'update' : 'append';
 
-  return gapiSeets(`values.${method}`, {
+  return gapiSheets(`values.${method}`, {
     spreadsheetId,
     range,
     valueInputOption: 'USER_ENTERED',
     values: [record],
+  }).then(response => {
+    fireAndForgetParentTouch(spreadsheetId);
+    return response;
+  });
+}
+
+function fireAndForgetParentTouch(spreadsheetId) {
+  // This will update last modified time stamp on the parent folder. That
+  // way we can always list folder in MRU style. According to the book
+  // "The Algorithms to live by", this is one of the best possible ways to organize
+  // stuff. So, let's try it here.
+  const parentFolderId = getParentFolder(spreadsheetId);
+  if (!parentFolderId) {
+    // Though suspicious, not a big deal. We will not get the stamp updated.
+    return;
+  }
+
+  const now = new Date();
+  // this is fire and forget call. We don't care if it fails.
+  gapiFiles('update', {
+    fileId: parentFolderId,
+    resource: {
+      modifiedTime: now.toISOString()
+    }
   });
 }
