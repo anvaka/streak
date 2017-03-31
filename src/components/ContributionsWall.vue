@@ -202,17 +202,21 @@ function getFillForDate(day, project) {
 
   const dayKey = getDateString(day);
   const contributions = project.projectHistory.contributionsByDay[dayKey];
-  if (contributions) {
-    const hsl = colorBag.getColor(contributions.groupKey);
-
-    const h = Math.round(hsl[0] * 360);
-    const s = Math.round(hsl[1] * 100);
-    const l = Math.round((hsl[2] + 0.25 * (1 - contributions.scaledValue)) * 100);
-
-    return `hsl(${h}, ${s}%, ${l}%)`;
+  if (!contributions) {
+    return 'rgb(235, 237, 240)';
   }
 
-  return 'rgb(235, 237, 240)';
+  // When there are multiple records on this day, use the same color.
+  // Otherwise use the default group key as a color.
+  const colorKey = contributions.rows.length > 1 ? 'uniform' : contributions.groupKey;
+
+  const hsl = colorBag.getColor(colorKey);
+
+  const h = Math.round(hsl[0] * 360);
+  const s = Math.round(hsl[1] * 100);
+  const l = Math.round((hsl[2] + 0.25 * (1 - contributions.scaledValue)) * 100);
+
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 

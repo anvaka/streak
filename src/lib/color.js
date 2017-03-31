@@ -11,14 +11,32 @@ export function makeColorBag() {
 
   return {
     getColor(key) {
-      let hslColor = groupKeyToColorHsl.get(key);
+      const hashKey = getHash(key);
+      let hslColor = groupKeyToColorHsl.get(hashKey);
       if (hslColor) return hslColor;
 
       // const hue = random(hashCode(key)).nextDouble();
       // hslColor = [hue, 1, 0.5];
-      hslColor = predefinedGroups[groupKeyToColorHsl.size % predefinedGroups.length];
-      groupKeyToColorHsl.set(key, hslColor);
+      hslColor = predefinedGroups[hashKey % predefinedGroups.length];
+      groupKeyToColorHsl.set(hashKey, hslColor);
       return hslColor;
     }
   };
+}
+
+function getHash(str) {
+  if (!str) return 0; // if it's falsy object return null hash.
+
+  const strType = typeof str;
+  if (strType === 'number') return str;
+  if (strType !== 'string') throw new Error('Only strings or numbers expected here');
+
+  let hash = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+
+  return Math.abs(hash);
 }
