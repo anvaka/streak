@@ -47,7 +47,7 @@
         class='fab-add'
         color='primary'
         icon='add'
-        size='small'
+        size='normal'
         @click='addRecordClick'
     ></ui-fab>
   </div>
@@ -213,8 +213,8 @@ column-title-width = 100px;
 
 .fab-add {
   position: fixed;
-  right: 14px;
-  bottom: 14px;
+  right: 24px;
+  bottom: 24px;
   background-color: action-color;
 }
 
@@ -290,6 +290,13 @@ column-title-width = 100px;
       display: flex;
       flex-direction: column;
     }
+  }
+
+  .fab-add {
+    position: fixed;
+    right: 14px;
+    bottom: 18px;
+    background-color: action-color;
   }
 }
 </style>
