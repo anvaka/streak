@@ -111,5 +111,6 @@ function getFieldsFromProject(project, row, date) {
 
 .add-record-container h2 {
   margin: 0 0 24px 0;
+  font-weight: normal;
 }
 </style>
