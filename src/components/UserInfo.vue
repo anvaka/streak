@@ -1,11 +1,11 @@
 <template>
   <div class='user'>
-      <ui-button color='default' type='secondary' has-dropdown ref='profileButton' v-if='profile'>
+      <ui-button color='default' type='secondary' has-dropdown ref='profileButton' v-if='profile' class='avatar-container' :disableRipple='true'>
           <ui-menu contain-focus has-icons has-secondary-text slot="dropdown" :options="profileOptions"
                   @select='onMenuClick'
                   @close="$refs.profileButton.closeDropdown()">
           </ui-menu>
-        {{profile.name}}
+          <img :src='profile.image' class='avatar'>
       </ui-button>
   </div>
 </template>
@@ -16,19 +16,26 @@ import { UiButton, UiMenu } from 'keen-ui';
 export default {
   name: 'UserInfo',
   props: ['profile'],
-  data() {
-    return {
-      profileOptions: [{
-        id: 'sign-out',
-        label: 'Sign out'
-      }]
-    };
-  },
   methods: {
     onMenuClick(option) {
       if (option.id === 'sign-out') {
         this.$emit('signOut');
       }
+    }
+  },
+  computed: {
+    profileOptions() {
+      if (!this.profile) return [];
+
+      return [{
+        label: 'Signed in as ' + this.profile.name,
+        disabled: true
+      }, {
+        type: 'divider'
+      }, {
+        id: 'sign-out',
+        label: 'Sign out'
+      }];
     }
   },
   components: {
@@ -38,18 +45,19 @@ export default {
 };
 </script>
 
-<style scoped>
-.user1 {
-  -webkit-background-size: 32px 32px;
-  background-size: 32px 32px;
-  -webkit-border-radius: 50%;
-  border-radius: 50%;
-  display: block;
-  margin: -1px;
-  overflow: hidden;
-  position: relative;
-  height: 32px;
-  width: 32px;
-  z-index: 0;
+<style lang='stylus' scoped>
+.avatar-container {
+  padding: 0;
+  min-width: inherit;
+  &:hover {
+    background-color: transparent;
+  }
+}
+.avatar-container.has-dropdown-open {
+    background-color: transparent;
+}
+.avatar {
+  width: 20px;
+  border-radius: 5px;
 }
 </style>
