@@ -16,8 +16,7 @@ export default {
 @import '../styles/variables.styl';
 
 h2.project-title {
-  margin: 0;
-  margin-bottom: 14px;
+  margin: 12px 0;
   font-weight: normal;
 }
 

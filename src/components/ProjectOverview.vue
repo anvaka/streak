@@ -1,8 +1,6 @@
 <template>
-  <div class='project-details-container'>
-    <loading :isLoading='loading'></loading>
-    <project-title :project='project'></project-title>
-    <contributions-wall :project='project' @filter='filterContributions' v-if='!error && !loading'></contributions-wall>
+  <div class='project-details-container' v-if='project'>
+    <contributions-wall :project='project' @filter='filterContributions' v-if='!error && project'></contributions-wall>
 
     <div v-if='noRecordsAtAll'>
       <p>
@@ -24,7 +22,7 @@
 
     <router-link class='add-record-link action vertical-padding' :to='{name: "add-record", params: {projectId}}' v-if='hasSomethingOnTheWall && project.canEdit'>Add record</router-link>
 
-    <div v-if='project && project.projectHistory' class='project-details list' ref='projectList'>
+    <div v-if='project && project.projectHistory' class='project-details list'>
       <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
         <h4>{{getUICellValue(groupRecord.group, /* isHeader =*/ true)}}</h4>
         <div v-for='row in groupRecord.items' class='subgroup'>
@@ -37,10 +35,6 @@
           </div>
         </div>
       </div>
-    </div>
-    <div v-if='error'>
-      <h2 class='error-title'>Something is wrong...</h2>
-      <pre>{{error}}</pre>
     </div>
     <ui-fab
         v-if='project && project.canEdit && !error'
@@ -57,29 +51,19 @@
 import _ from 'lodash';
 import moment from 'moment';
 import InputTypes from 'src/types/InputTypes';
-import loadProject from 'src/lib/loadProject';
 import { UiFab } from 'keen-ui';
 
 import renderMakrdown from '../lib/markdown/index.js';
-import Loading from './Loading.vue';
-import ProjectTitle from './ProjectTitle.vue';
 import ContributionsWall from './ContributionsWall.vue';
 import SelectedFilters from './SelectedFilters.vue';
 
 export default {
-  props: ['projectId'],
-
+  name: 'ProjectOverview',
+  props: ['project', 'error'],
   data() {
     return {
-      loading: true,
       isSaveInProgress: false,
-      error: null,
-      project: null,
     };
-  },
-
-  created() {
-    this.loadCurrentProject();
   },
 
   computed: {
@@ -94,20 +78,15 @@ export default {
       const { projectHistory } = this.project;
 
       return projectHistory.recordsCount > 0 && projectHistory.groups.length === 0;
-    }
-  },
-
-  watch: {
-    $route(/* to, from */) {
-      this.loadCurrentProject();
+    },
+    projectId() {
+      return this.project.id;
     }
   },
 
   components: {
     ContributionsWall,
     SelectedFilters,
-    Loading,
-    ProjectTitle,
     UiFab
   },
 
@@ -115,9 +94,6 @@ export default {
     addRecordClick() {
       this.$router.push({
         name: 'add-record',
-        params: {
-          projectId: this.projectId
-        },
         query: {
           date: this.getFromDate()
         }
@@ -127,7 +103,7 @@ export default {
       return this.$route.query.from;
     },
     hasValidProject() {
-      return !this.loading && !this.error && this.project;
+      return !this.error && this.project;
     },
     getFilterPeriodMessage() {
       const { from, to } = this.$route.query;
@@ -143,9 +119,9 @@ export default {
         query.to = to;
       }
       this.$router.push({
-        name: 'project-details',
+        name: 'project-overview',
         params: {
-          projectId: this.projectId,
+          projectId: this.project.id,
         },
         query
       });
@@ -172,31 +148,6 @@ export default {
       return _.escape(value);
     },
 
-    loadCurrentProject() {
-      this.error = null;
-      this.loading = true;
-
-      loadProject(this.projectId)
-        .then((project) => {
-          this.loading = false;
-          this.project = project;
-          project.projectHistory.filter(this.$route.query.from, this.$route.query.to);
-
-          const { projectList } = this.$refs;
-
-          if (projectList) {
-            projectList.scrollTop = 0;
-          }
-        }).catch(err => {
-          this.loading = false;
-          this.project = null;
-          if (err && err.message) {
-            this.error = err.message;
-          } else {
-            this.error = err;
-          }
-        });
-    }
   }
 };
 </script>
@@ -206,17 +157,17 @@ export default {
 
 project-details-width = 941px;
 column-title-width = 100px;
-
-.vertical-padding {
-  padding: 14px 0;
-}
-
 .fab-add {
   position: fixed;
   right: 24px;
   bottom: 24px;
   background-color: action-color;
 }
+
+.vertical-padding {
+  padding: 14px 0;
+}
+
 
 .project-details-container {
   display: flex;
@@ -277,10 +228,6 @@ column-title-width = 100px;
   }
 }
 
-.error-title {
-  margin: 0;
-}
-
 @media only screen and (max-width: small-screen-size) {
   .project-details-container {
     .column-title {
@@ -299,4 +246,5 @@ column-title-width = 100px;
     background-color: action-color;
   }
 }
+
 </style>

@@ -28,6 +28,11 @@ export default class ProjectHistoryViewModel {
   }
 
   filter(from, to) {
+    if (!from) {
+      // If `from is not set, the filter below will always return true, so
+      // there is no need in iterating this all.
+      return;
+    }
     this.groups = this.groups.filter(group => {
       // TODO: this will not work only for date groups
       if (group.group.valueType !== InputTypes.DATE) {

@@ -139,7 +139,7 @@ export default {
           this.error = null;
 
           this.$router.push({
-            name: 'project-details',
+            name: 'project-overview',
             params: {
               projectId
             }

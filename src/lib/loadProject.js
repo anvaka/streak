@@ -28,11 +28,11 @@ function loadProject(projectFolderId) {
       // Remember the mapping to the parent folder so that later we can use it
       // to `touch` parent folder on each update (see `updateRow.js`)
       setParentFolder(file.id, projectFolderId);
-      return loadSpreadsheet(file);
+      return loadSpreadsheet(file, projectFolderId);
     });
 }
 
-function loadSpreadsheet(spreadsheetFile) {
+function loadSpreadsheet(spreadsheetFile, projectId) {
   const spreadsheetId = spreadsheetFile.id;
   const { canEdit } = spreadsheetFile.capabilities;
   const { owners } = spreadsheetFile;
@@ -47,6 +47,7 @@ function loadSpreadsheet(spreadsheetFile) {
   function convertToViewModel(results) {
     // TODO: use capabilities.canEdit to determine whether current user can edit this project.
     const vm = makeProjectViewModel({
+      id: projectId,
       canEdit,
       owners,
       sheetData: results[0],
@@ -73,6 +74,7 @@ function makeProjectViewModel(project, columnTypeByName) {
   }
 
   return {
+    id: project.id,
     title,
     canEdit,
     owner: owners[0],

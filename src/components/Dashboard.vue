@@ -4,7 +4,7 @@
       You don't have any projects yet. <router-link :to='{name: "new-project"}'>Start a new project</router-link>
     </div>
 
-    <div class='projects-overview' v-if='projectId || hasProjects'>
+    <div class='projects-overview' v-if='projectId || hasProjects' ref='mainContent'>
 			<div v-if='!projectId'>
 				<h3 class='welcome-message'>Welcome!</h3>
 				Please select a project to get started.
@@ -19,7 +19,7 @@
       </div>
       <div class='project-list'>
           <router-link class='project-link'
-            v-for='project in dashboard.projects' :to='{name: "project-details", params: {projectId: project.id}}'
+            v-for='project in dashboard.projects' :to='{name: "project-overview", params: {projectId: project.id}}'
             :class='{ current: projectId === project.id }'
             >{{project.name}}</router-link>
       </div>
@@ -49,6 +49,11 @@ export default {
       // TODO: this doesn't work very well, if you click on the same project.
       // if we clicked on the "Home" folder, the name is not projects anymore
       this.projectsListExpanded = to.name === 'dashboard';
+      const { mainContent } = this.$refs;
+
+      if (mainContent) {
+        mainContent.scrollTop = 0;
+      }
     }
   },
   computed: {
@@ -85,7 +90,6 @@ export default {
   right: 0;
   top: 0;
   padding: default-padding;
-  padding-top: 56px;
   overflow-y: auto;
   position: absolute;
   -webkit-overflow-scrolling: touch;

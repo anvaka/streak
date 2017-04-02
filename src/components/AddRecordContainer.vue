@@ -1,79 +1,47 @@
 <template>
   <div class='add-record-container'>
-    <div class='loading' v-if='loading'>Loading...</div>
-    <h2>{{title}}</h2>
     <add-record :fields='fields' :row='row'
       :spreadsheet-id='project.spreadsheetId'
       v-if='project'
       @saved='goToProjects' @cancel='goToProjects'></add-record>
-    <div v-if='error'>
-      <h3>Something is wrong...</h3>
-      <pre>{{error}}</pre>
-    </div>
   </div>
 </template>
 <script>
-import loadProject from 'src/lib/loadProject';
 import InputTypes from 'src/types/InputTypes';
-import { getDateFromFilterString } from 'src/lib/dateUtils';
+import { getDateFromFilterString, getNow } from 'src/lib/dateUtils';
 
 import AddRecord from './AddRecord.vue';
 
 export default {
   name: 'AddRecordContainer',
-  props: ['projectId', 'row', 'date'],
+  props: ['project', 'row', 'date'],
   components: {
     AddRecord
   },
 
   data() {
     return {
-      loading: true,
-      isSaveInProgress: false,
       fields: [],
-      error: null,
-      title: '',
-      project: null,
     };
   },
-  created() {
-    this.loadCurrentProject();
+
+  watch: {
+    project(newProject, oldProject) {
+      const dateString = this.$route.query.date;
+      const date = dateString ? getDateFromFilterString(dateString) : undefined;
+      this.fields = getFieldsFromProject(newProject, this.row, date);
+    }
   },
 
   methods: {
     goToProjects() {
       this.$router.push({
-        name: 'project-details',
+        name: 'project-overview',
         params: {
-          projectId: this.projectId
+          projectId: this.project.id
         }
       });
     },
-    loadCurrentProject() {
-      // TODO: This is copy-paste from ProjectDetails.vue. If this code
-      // proven to be exactly the same - extract it into common module.
-      this.error = null;
-      this.loading = true;
-
-      loadProject(this.projectId)
-        .then((project) => {
-          const dateString = this.$route.query.date;
-          const date = dateString ? getDateFromFilterString(dateString) : undefined;
-          this.fields = getFieldsFromProject(project, this.row, date);
-          this.loading = false;
-          this.title = project.title;
-          this.project = project;
-        }).catch(err => {
-          this.loading = false;
-          this.project = null;
-          this.title = '';
-          if (err && err.message) {
-            this.error = err.message;
-          } else {
-            this.error = err;
-          }
-        });
-    }
   }
 };
 
@@ -83,8 +51,14 @@ function getFieldsFromProject(project, row, date) {
   return project.headers.map((header, index) => {
     let fieldValue = rowWithData[index] || '';
     const { valueType, title } = header;
-    if (valueType === InputTypes.DATE && !fieldValue && date) {
-      fieldValue = date;
+    if (valueType === InputTypes.DATE) {
+      if (!fieldValue && date) {
+        // date was set via query string, and field didn't have a default date:
+        fieldValue = date;
+      } else if (!fieldValue) {
+        // Set date to now.
+        fieldValue = getNow();
+      }
     }
 
     const field = {
@@ -101,6 +75,7 @@ function getFieldsFromProject(project, row, date) {
 </script>
 
 <style lang='stylus'>
+@import '../styles/variables.styl'
 
 .add-record-container {
   max-width: 600px;
@@ -110,7 +85,7 @@ function getFieldsFromProject(project, row, date) {
 }
 
 .add-record-container h2 {
-  margin: 0 0 24px 0;
+  margin: 12px 0 24px 0;
   font-weight: normal;
 }
 </style>

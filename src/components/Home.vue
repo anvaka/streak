@@ -39,7 +39,6 @@ export default {
   },
 
   created() {
-    console.log('created');
     this.loading = true;
     this.error = null;
     auth.initiateSignInStatus();

@@ -1,7 +1,7 @@
 <template>
   <div v-if='hasFilters' class='filter-message'>
    {{filterMessage}}
-    <router-link class='action' :to='{name: "project-details", params: {projectId}}'>reset</router-link>
+    <router-link class='action' :to='{name: "project-overview", params: {projectId}}'>reset</router-link>
   </div>
 </template>
 
