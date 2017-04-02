@@ -26,7 +26,7 @@ export default {
   },
 
   watch: {
-    project(newProject, oldProject) {
+    project(newProject, /* oldProject */) {
       const dateString = this.$route.query.date;
       const date = dateString ? getDateFromFilterString(dateString) : undefined;
       this.fields = getFieldsFromProject(newProject, this.row, date);
