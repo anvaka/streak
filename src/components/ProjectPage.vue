@@ -1,6 +1,6 @@
 <template>
   <div class='project-page-container'>
-    <!--loading :isLoading='loading'></loading-->
+    <loading :isLoading='loading' class='project-loading'></loading>
     <project-title :project='project'></project-title>
     <router-view :project='project' :error='error'></router-view>
     <div v-if='error'>
@@ -67,4 +67,8 @@ export default {
   margin: 0;
 }
 
+.project-loading {
+  margin-left: -10px;
+  margin-top: 14px;
+}
 </style>

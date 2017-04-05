@@ -9,7 +9,7 @@
           <user-info :profile='profile' @signOut='signOut'></user-info>
         </div>
       </div>
-      <loading :isLoading='loading'></loading>
+      <loading :isLoading='loading' class='page-loading'></loading>
       <div class='error' v-if='error'>
         <p>Something is wrong. Try refreshing the page. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
         <pre>{{error}}</pre>
@@ -61,8 +61,9 @@ export default {
 <style lang='stylus' scoped>
 @import './../styles/variables.styl'
 
-.loading {
-  padding-left: 7px;
+.page-loading {
+  margin-left: 5px;
+  margin-top: 13px;
 }
 
 #app {
