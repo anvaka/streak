@@ -20,7 +20,7 @@ export default {
     filterSuggestions(suggestion, query) {
       if (!query) return true;
 
-      return suggestion.toLowerCase().indexOf(query.toLowerCase()) > -1;
+      return suggestion.toLowerCase().indexOf(query.toLowerCase()) === 0;
     }
   }
 };
