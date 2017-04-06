@@ -210,7 +210,7 @@ function getFillForDate(day, project) {
   // Otherwise use the default group key as a color.
   const colorKey = contributions.rows.length > 1 ? 'uniform' : contributions.groupKey;
 
-  const hsl = colorBag.getColor(colorKey);
+  const hsl = colorBag.getColor('defaultColor');
 
   const h = Math.round(hsl[0] * 360);
   const s = Math.round(hsl[1] * 100);
