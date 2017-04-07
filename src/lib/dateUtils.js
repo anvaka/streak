@@ -42,8 +42,11 @@ export function getDateFromFilterString(filterDateString) {
 }
 
 export function getDateString(date) {
-  const dateString = date.toLocaleDateString('us').replace(/\//g, '-');
-  return dateString;
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 0-based
+  const day = date.getDate();
+
+  return `${month}-${day}-${year}`;
 }
 
 function pad(number) {

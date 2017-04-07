@@ -71,7 +71,7 @@ export default {
   },
   methods: {
     onDayClick(e, day) {
-      let from = getDateString(day.day);
+      let from = day.dayKey;
       let to = from;
       if (e.shiftKey) {
         to = from;
@@ -183,33 +183,31 @@ function buildWeekDays(sunday, project) {
   for (let i = 0; i < 7; ++i) {
     const day = new Date(sunday);
     day.setDate(day.getDate() + i);
+    const dayKey = getDateString(day);
 
     weekDays.push({
       day,
+      dayKey,
       tooltip: moment(day).format('LL'),
       dayNumber: i,
-      fill: getFillForDate(day, project)
+      fill: getFillForDate(dayKey, project)
     });
   }
 
   return weekDays;
 }
 
-function getFillForDate(day, project) {
-  if (!project || !project.projectHistory) {
-    return '#eee';
-  }
+function getFillForDate(dayKey, project) {
+  const history = project && project.projectHistory;
+  if (!history) return '#eee';
 
-  const dayKey = getDateString(day);
-  const contributions = project.projectHistory.contributionsByDay[dayKey];
+  const contributions = history.contributionsByDay[dayKey];
+
   if (!contributions) {
     return 'rgb(235, 237, 240)';
   }
 
-  // When there are multiple records on this day, use the same color.
-  // Otherwise use the default group key as a color.
-  const colorKey = contributions.rows.length > 1 ? 'uniform' : contributions.groupKey;
-
+  // todo: the color should come from the settings
   const hsl = colorBag.getColor('defaultColor');
 
   const h = Math.round(hsl[0] * 360);
