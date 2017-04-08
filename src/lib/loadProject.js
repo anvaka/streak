@@ -35,7 +35,7 @@ function loadProject(projectFolderId) {
 function loadSpreadsheet(spreadsheetFile, projectId) {
   const spreadsheetId = spreadsheetFile.id;
   const { canEdit } = spreadsheetFile.capabilities;
-  const { owners } = spreadsheetFile;
+  const { owners, name, description } = spreadsheetFile;
   const columnTypeByName = extractColumnTypesMetadata(spreadsheetFile.properties);
 
   const sheetDataPromise = loadSheetData(spreadsheetId);
@@ -54,13 +54,16 @@ function loadSpreadsheet(spreadsheetFile, projectId) {
       sheetInfo: results[1]
     }, columnTypeByName);
 
+    vm.title = name;
+    vm.spreadsheetId = spreadsheetId;
+    vm.description = description;
+
     return vm;
   }
 }
 
 function makeProjectViewModel(project, columnTypeByName) {
   const { sheetData, sheetInfo, canEdit, owners } = project;
-  const { title } = sheetInfo.properties;
   const headers = extractHeaders(sheetInfo.sheets[0], columnTypeByName);
   // TODO: I'm not sure why I was trimming this. It is actually not correct
   // to do so, because when we have 3 columns, but first entry has only
@@ -75,7 +78,6 @@ function makeProjectViewModel(project, columnTypeByName) {
 
   return {
     id: project.id,
-    title,
     canEdit,
     owner: owners[0],
     spreadsheetId: sheetInfo.spreadsheetId,

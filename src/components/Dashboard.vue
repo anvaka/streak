@@ -5,10 +5,10 @@
     </div>
 
     <div class='projects-overview' v-if='projectId || hasProjects' ref='mainContent'>
-			<div v-if='!projectId'>
-				<h3 class='welcome-message'>Welcome!</h3>
-				Please select a project to get started.
-			</div>
+      <div v-if='!projectId'>
+         <h3 class='welcome-message'>Welcome!</h3>
+           Please select a project to get started.
+         </div>
       <router-view></router-view>
     </div>
 
@@ -19,7 +19,7 @@
       </div>
       <div class='project-list'>
           <router-link class='project-link'
-            v-for='project in dashboard.projects' :to='{name: "project-overview", params: {projectId: project.id}}'
+            v-for='project in projectList.projects' :to='{name: "project-overview", params: {projectId: project.id}}'
             :class='{ current: projectId === project.id }'
             >{{project.name}}</router-link>
       </div>
@@ -28,20 +28,20 @@
 </template>
 <script>
 import { UiButton, UiIconButton } from 'keen-ui';
-import dashboard from '../lib/dashboard';
+import projectList, { loadProjects } from '../lib/projectList.js';
 
 export default {
   name: 'Dashboard',
   props: ['projectId'],
   data() {
     return {
-      dashboard,
+      projectList,
       // If there is no project ID, we are looking at home page
       projectsListExpanded: this.projectId === undefined
     };
   },
   created () {
-    dashboard.loadDashboard();
+    loadProjects();
   },
 
   watch: {
@@ -58,10 +58,10 @@ export default {
   },
   computed: {
     hasProjects() {
-      return !dashboard.loading && dashboard.projects.length > 0;
+      return !projectList.loading && projectList.projects.length > 0;
     },
     noProjects() {
-      return !dashboard.loading && dashboard.projects.length === 0;
+      return !projectList.loading && projectList.projects.length === 0;
     }
   },
   methods: {},

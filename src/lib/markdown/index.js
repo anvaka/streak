@@ -1,11 +1,28 @@
-// import marked from 'marked';
+/**
+ * Renders a markdown string as html.
+ */
 import Remarkable from 'remarkable';
 
-const md = new Remarkable({
-  linkify: true
-});
+const md = constructRemarkableRenderer();
 
-md.use((md) => {
+export default function renderMarkdown(string) {
+  return md.render(string);
+}
+
+function constructRemarkableRenderer() {
+  const md = new Remarkable({
+    linkify: true
+  });
+
+  md.use(inlineYoutebeVideos);
+
+  return md;
+}
+
+function inlineYoutebeVideos(md) {
+  // I'm not sure if this is the right way to extend Remarkable. I'm just
+  // checking if a link is a youtube link, and if it is, then I return my own
+  // html. Otherwise the original remarkable methods are called.
   const rules = md.renderer.rules;
   const originalLinkOpen = rules.link_open;
   const originalLinkClose = rules.link_close;
@@ -15,6 +32,7 @@ md.use((md) => {
     const youtubeVideoId = isYouTubueLink(href);
     if (youtubeVideoId) {
       tokens.noClose = true;
+      // TODO: this should be flexible width;
       return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${youtubeVideoId}" frameborder="0" allowfullscreen></iframe>`;
     }
     return originalLinkOpen(tokens, idx, options);
@@ -25,14 +43,17 @@ md.use((md) => {
 
     return originalLinkClose(tokens, idx, options);
   };
-});
-
-export default renderMarkdown;
-
-function renderMarkdown(string) {
-  return md.render(string);
 }
 
+function isYouTubueLink(href) {
+  const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  const youtubeMatch = href.match(youtubeRegex);
+  if (youtubeMatch && youtubeMatch[7].length === 11) {
+    return youtubeMatch[7];
+  }
+}
+
+// TODO: This code should probably be gone. I'm keeping it to see if I add width/height for images
 // function createCustomRenderer() {
 //   const renderer = new marked.Renderer();
 //   const originalLink = renderer.link;
@@ -74,10 +95,3 @@ function renderMarkdown(string) {
 //   }
 // }
 
-function isYouTubueLink(href) {
-  const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-  const youtubeMatch = href.match(youtubeRegex);
-  if (youtubeMatch && youtubeMatch[7].length === 11) {
-    return youtubeMatch[7];
-  }
-}

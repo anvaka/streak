@@ -24,6 +24,8 @@ let isRunning = false;
  */
 function getStreaksFolder() {
   if (parentStreakFolder) {
+    // immediately resolve it, since we already have it. Parent streak
+    // folder never changes.
     return new Promise(resolve => resolve(parentStreakFolder));
   }
 
@@ -35,18 +37,19 @@ function getStreaksFolder() {
     q: `trashed = false and properties has { key='${ROOT_FOLDER_MARKER}' and value='true' }`,
     pageSize: 1,
     fields: 'files(id, name)'
-  }).then(processRootFolder);
+  }).then(processParentStreakFolder);
 }
 
-function processRootFolder(result) {
+function processParentStreakFolder(result) {
   const files = result.files;
   if (files.length === 0) {
+    // if parent streak folder is not created it, let's create it:
     return makeNewRootFolder();
   }
 
   isRunning = false;
-  parentStreakFolder = files[0].id;
 
+  cacheParentStreakFolder(files[0].id);
   return parentStreakFolder;
 }
 
@@ -66,7 +69,13 @@ function makeNewRootFolder() {
   }).then(result => {
     isRunning = false;
 
-    parentStreakFolder = result.id;
+    cacheParentStreakFolder(result.id);
     return parentStreakFolder;
   });
+}
+
+function cacheParentStreakFolder(folderId) {
+  // we cache the folder, since it is fairly static. Subsequent
+  // calls to this file will be resolved immediately
+  parentStreakFolder = folderId;
 }

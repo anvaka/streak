@@ -59,6 +59,13 @@ export function getLogFileSpreadsheetId(projectFolderId) {
 }
 
 export function resetSheetDataCache(spreadsheetId) {
-  sheetIdToSheetData.delete(spreadsheetId);
-  // TODO: Should I also clean sheet info?
+  return sheetIdToSheetData.delete(spreadsheetId);
+}
+
+export function resetSheetInfoCache(spreadsheetId) {
+  return sheetIdToSheetInfo.delete(spreadsheetId);
+}
+
+export function resetProjectFileCache(projectId) {
+  return projetIdToProjectFile.delete(projectId);
 }

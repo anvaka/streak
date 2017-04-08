@@ -2,6 +2,7 @@
   <div class='project-page-container'>
     <loading :isLoading='loading' class='project-loading'></loading>
     <project-title :project='project'></project-title>
+    <div class='description' v-if='description' v-html='description'></div>
     <router-view :project='project' :error='error'></router-view>
     <div v-if='error'>
       <h2 class='error-title'>Something is wrong...</h2>
@@ -15,6 +16,7 @@ import loadProject from 'src/lib/loadProject';
 
 import ProjectTitle from './ProjectTitle.vue';
 import Loading from './Loading.vue';
+import renderMakrdown from '../lib/markdown/index.js';
 
 export default {
   name: 'ProjectPage',
@@ -29,6 +31,14 @@ export default {
       error: null,
       project: null,
     };
+  },
+  computed: {
+    description() {
+      const description = this.project && this.project.description;
+      if (description) {
+        return renderMakrdown(description);
+      }
+    }
   },
   watch: {
     $route(/* to, from */) {
