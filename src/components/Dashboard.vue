@@ -20,7 +20,6 @@
       <div class='project-list'>
           <router-link class='project-link'
             v-for='project in projectList.projects' :to='{name: "project-overview", params: {projectId: project.id}}'
-            :class='{ current: projectId === project.id }'
             >{{project.name}}</router-link>
       </div>
     </div>
@@ -85,7 +84,7 @@ export default {
 
 .projects-overview {
   left: sidebar-width;
-  border-left: 1px solid RGB(209, 213, 218);
+  border-left: 1px solid strong-border-color;
   bottom: 0;
   right: 0;
   top: 0;
@@ -117,7 +116,7 @@ export default {
   }
 }
 
-.project-link.current {
+.project-link.router-link-active  {
   color: black;
   background: border-color;
 }
@@ -164,7 +163,7 @@ export default {
     display: none;
   }
   .projects-list-container.expanded {
-    top: 50px;
+    top: 56px;
     display: block;
   }
 

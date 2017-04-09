@@ -1,5 +1,7 @@
 <template>
   <div class='project-details-container' v-if='project'>
+    <div class='description' v-if='description' v-html='description'></div>
+
     <contributions-wall :project='project' @filter='filterContributions' v-if='!error && project'></contributions-wall>
 
     <div v-if='noRecordsAtAll'>
@@ -67,9 +69,17 @@ export default {
   },
 
   computed: {
+    description() {
+      const description = this.project && this.project.description;
+      if (description) {
+        return renderMakrdown(description);
+      }
+    },
+
     hasSomethingOnTheWall() {
       return this.hasValidProject() && this.project.projectHistory.groups.length > 0;
     },
+
     noRecordsAtAll() {
       return this.hasValidProject() && this.project.projectHistory.recordsCount === 0;
     },
@@ -168,6 +178,9 @@ column-title-width = 100px;
   padding: 14px 0;
 }
 
+.description p {
+  margin: 0 0 14px 0;
+}
 
 .project-details-container {
   display: flex;

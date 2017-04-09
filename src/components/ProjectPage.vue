@@ -1,8 +1,10 @@
 <template>
   <div class='project-page-container'>
-    <loading :isLoading='loading' class='project-loading'></loading>
-    <project-title :project='project'></project-title>
-    <div class='description' v-if='description' v-html='description'></div>
+    <div class='project-page-header'>
+      <loading :isLoading='loading' class='project-loading'></loading>
+      <project-title :project='project'></project-title>
+      <project-tabs></project-tabs>
+    </div>
     <router-view :project='project' :error='error'></router-view>
     <div v-if='error'>
       <h2 class='error-title'>Something is wrong...</h2>
@@ -15,6 +17,7 @@
 import loadProject from 'src/lib/loadProject';
 
 import ProjectTitle from './ProjectTitle.vue';
+import ProjectTabs from './ProjectTabs.vue';
 import Loading from './Loading.vue';
 import renderMakrdown from '../lib/markdown/index.js';
 
@@ -23,6 +26,7 @@ export default {
   props: ['projectId'],
   components: {
     ProjectTitle,
+    ProjectTabs,
     Loading
   },
   data() {
@@ -31,14 +35,6 @@ export default {
       error: null,
       project: null,
     };
-  },
-  computed: {
-    description() {
-      const description = this.project && this.project.description;
-      if (description) {
-        return renderMakrdown(description);
-      }
-    }
   },
   watch: {
     $route(/* to, from */) {
@@ -80,5 +76,12 @@ export default {
 .project-loading {
   margin-left: -10px;
   margin-top: 14px;
+}
+.project-page-header {
+  margin: -14px -14px 20px -14px;
+  padding-top: 14px;
+  padding-right: 14px;
+  padding-left: 14px;
+  background-color: RGB(246, 248, 250);
 }
 </style>

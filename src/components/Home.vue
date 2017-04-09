@@ -117,4 +117,10 @@ li {
   display: inline-block;
   margin: 0 10px;
 }
+
+@media only screen and (max-width: small-screen-size) {
+  .toolbar {
+    background-color: header-background;
+  }
+}
 </style>
