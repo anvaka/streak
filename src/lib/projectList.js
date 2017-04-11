@@ -36,6 +36,20 @@ function listFiles(parentId) {
   });
 }
 
+export function deleteProject(fileId) {
+  return gapiFiles('update', {
+    fileId,
+    resource: {
+      // We could use stronger 'delete' method, but for now just trashing
+      trashed: true,
+    }
+  }).then(() => {
+    resetProjectFileCache(fileId);
+    const projectIndex = findeProjectIndex(fileId);
+    projectList.projects.splice(projectIndex, 1);
+  });
+}
+
 /**
  * Updates existing project. Currently only allows to change name/description
  * Can be extended to change columns, etc.
@@ -78,9 +92,15 @@ function updateNameInLocalCache(projectId, name) {
 }
 
 function findPorject(projectId) {
-  const { projects } = projectList;
+  const projectIndex = findeProjectIndex(projectId);
 
+  if (projectIndex !== undefined) return projectList.projects[projectIndex];
+}
+
+function findeProjectIndex(projectId) {
+  // TODO: This will become slow when too many projects are present
+  const { projects } = projectList;
   for (let i = 0; i < projects.length; ++i) {
-    if (projects[i].id === projectId) return projects[i];
+    if (projects[i].id === projectId) return i;
   }
 }

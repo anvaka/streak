@@ -19,7 +19,6 @@ import loadProject from 'src/lib/loadProject';
 import ProjectTitle from './ProjectTitle.vue';
 import ProjectTabs from './ProjectTabs.vue';
 import Loading from './Loading.vue';
-import renderMakrdown from '../lib/markdown/index.js';
 
 export default {
   name: 'ProjectPage',
