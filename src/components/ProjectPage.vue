@@ -3,7 +3,7 @@
     <div class='project-page-header'>
       <loading :isLoading='loading' class='project-loading'></loading>
       <project-title :project='project'></project-title>
-      <project-tabs></project-tabs>
+      <project-tabs :project='project'></project-tabs>
     </div>
     <router-view :project='project' :error='error'></router-view>
     <div v-if='error'>
