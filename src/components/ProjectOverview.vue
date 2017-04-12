@@ -194,6 +194,10 @@ column-title-width = 100px;
     p {
       margin: 0;
     }
+    img {
+      max-width: 300px;
+      max-height: 300px;
+    }
   }
 
 
