@@ -13,11 +13,27 @@
       </div>
     </form>
 
-    <form @submit.prevent='deleteProjectClick' class='settings-group'>
+    <form class='settings-group'>
       <h3 class='danger'>Risky actions</h3>
+      <div class='row'>
+        <div class='col'>
+          <div>Open in Google Sheets</div>
+          <div class='secondary'>
+            You own your data. Feel free to explore it from Google Sheets, but please
+            note that we haven't tested external modifications yet. So you might
+            encounter bugs or even loose your streaks.
+          </div>
+        </div>
+        <ui-button type='secondary' class='danger-trigger-button' color='red' @click.prevent='openSheets'>Open Sheets</ui-button>
+      </div>
       <div class='row' v-if='!deleteConfirm'>
-        <div>Delete this project</div>
-        <ui-button type='secondary' color='red' @click.prevent='deleteConfirm = true'>Delete Project</ui-button>
+        <div class='col'>
+          <div>Delete this project</div>
+          <div class='secondary'>
+            The project will be moved to your <a href='https://drive.google.com/drive/trash'>Trash</a> folder.
+          </div>
+        </div>
+        <ui-button type='secondary' class='danger-trigger-button' color='red' @click.prevent='deleteConfirm = true'>Delete Project</ui-button>
       </div>
       <div v-if='deleteConfirm'>
         <div>Are you sure you want to delete this project?</div>
@@ -72,6 +88,9 @@ export default {
   methods: {
     isProjectNameInvalid() {
       return this.projectName.length === 0;
+    },
+    openSheets() {
+      window.location.href = `https://docs.google.com/spreadsheets/d/${this.project.spreadsheetId}/edit`;
     },
     deleteProjectClick() {
       deleteProject(this.project.id).then(() => {
@@ -128,12 +147,18 @@ export default {
 }
 .row, .row-confirm {
   display: flex;
-  padding: 0 14px;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 28px;
+}
+.danger-trigger-button {
+  min-width: 150px;
 }
 
 @media only screen and (max-width: small-screen-size) {
+  .row {
+    flex-wrap: wrap;
+  }
   .row-confirm {
     flex-direction: column-reverse;
     align-items: initial;
