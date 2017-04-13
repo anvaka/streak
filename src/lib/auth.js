@@ -8,8 +8,9 @@ const SCOPES = [
   // validation of the current user.
   'profile',
 
-  // All streak projects are stored on google drive, thuse we need access here:
-  'https://www.googleapis.com/auth/drive',
+  // All streak projects are stored on google drive, thus we need access here:
+  // Note: we are using `drive.file` this limits scope of our access to files
+  // created by streak only.
   'https://www.googleapis.com/auth/drive.file',
 
   // Project log is stored as a Google Spreadsheet document
