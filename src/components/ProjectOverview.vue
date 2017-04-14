@@ -32,8 +32,15 @@
             <div class='secondary column-title'>{{column.title}}</div>
             <div class='column-value cell-container' v-html='getUICellValue(column)'></div>
           </div>
-          <div class='actions-row'>
-            <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: row.rowIndex}}' v-if='project.canEdit'>edit</router-link>
+          <div class='actions-row' v-if='project.canEdit'>
+            <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: row.rowIndex}}'>edit</router-link>
+            <div class='delete-block'>
+              <a class='secondary' v-if='!showDeleteConfirmation(row.rowIndex)' href='#'
+                @click.prevent='showDeleteConfirmation(row.rowIndex, true)'>delete</a>
+              <span v-if='showDeleteConfirmation(row.rowIndex)'>
+                <span class='accent'>are you sure?</span> <a href='#' @click.prevent='deleteRecordClick(row)'>yes</a> &#47; <a href='#' @click.prevent='showDeleteConfirmation(row.rowIndex, false)'>no</a>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -65,6 +72,7 @@ export default {
   data() {
     return {
       isSaveInProgress: false,
+      lastConfirmationIndex: undefined,
     };
   },
 
@@ -101,6 +109,17 @@ export default {
   },
 
   methods: {
+    deleteRecordClick(row) {
+      // TODO: Implement me
+      this.showDeleteConfirmation(row.rowIndex, false);
+    },
+
+    showDeleteConfirmation(rowIndex, shouldShow) {
+      if (typeof shouldShow === 'undefined') return rowIndex === this.lastConfirmationIndex;
+
+      this.lastConfirmationIndex = shouldShow ? rowIndex : undefined;
+    },
+
     addRecordClick() {
       this.$router.push({
         name: 'add-record',
@@ -242,6 +261,14 @@ column-title-width = 100px;
     .edit-record-link {
       font-size: 14px;
     }
+  }
+}
+
+.delete-block {
+  display: inline-block;
+  margin-left: 28px;
+  a {
+    font-size: 12px;
   }
 }
 
