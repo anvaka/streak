@@ -52,7 +52,7 @@
 // TODO: This page needs to handle errors properly
 import { UiTextbox, UiButton } from 'keen-ui';
 
-import { updateNameAndDescription, deleteProject } from '../lib/projectList.js';
+import { updateNameAndDescription, deleteProject } from '../../lib/projectList.js';
 
 export default {
   name: 'ProjectSettings',
@@ -134,7 +134,7 @@ export default {
 };
 </script>
 <style lang='stylus'>
-@import '../styles/variables.styl';
+@import '../../styles/variables.styl';
 
 .settings-group {
   padding: 14px;

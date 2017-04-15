@@ -5,7 +5,7 @@ import AddRecordContainer from '../components/AddRecordContainer.vue';
 import NewProject from '../components/NewProject.vue';
 import ProjectPage from '../components/ProjectPage.vue';
 import ProjectOverview from '../components/ProjectOverview.vue';
-import ProjectSettings from '../components/ProjectSettings.vue';
+import ProjectSettings from '../components/settings/ProjectSettings.vue';
 
 Vue.use(Router);
 
