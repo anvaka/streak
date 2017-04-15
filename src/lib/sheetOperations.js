@@ -8,7 +8,7 @@ import gapiFiles from './gapi/files.js';
 
 const RANGE_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-export default function updateRow(spreadsheetId, record, row) {
+export function updateRow(spreadsheetId, record, row) {
   if (record.length >= RANGE_NAMES.length) throw new Error('Too many columns');
 
   const prefix = row !== undefined ? 'A' + (row + 2) : 'A2'; // +2 because we are zero based, and skip headers
@@ -25,6 +25,28 @@ export default function updateRow(spreadsheetId, record, row) {
     values: [record],
   }).then(response => {
     fireAndForgetParentTouch(spreadsheetId);
+    return response;
+  });
+}
+
+export function deleteRow(spreadsheetId, rowIndex) {
+  resetSheetDataCache(spreadsheetId);
+
+  return gapiSheets('batchUpdate', {
+    spreadsheetId,
+    requests: [{
+      deleteDimension: {
+        range: {
+          sheetId: 0,
+          dimension: 'ROWS',
+          startIndex: rowIndex + 1, // +1 because we don't want to delete the header
+          endIndex: rowIndex + 2 // just one row.
+        }
+      }
+    }]
+  }).then(response => {
+    fireAndForgetParentTouch(spreadsheetId);
+
     return response;
   });
 }

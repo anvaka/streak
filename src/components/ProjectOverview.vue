@@ -32,16 +32,7 @@
             <div class='secondary column-title'>{{column.title}}</div>
             <div class='column-value cell-container' v-html='getUICellValue(column)'></div>
           </div>
-          <div class='actions-row' v-if='project.canEdit'>
-            <router-link class='edit-record-link action' :to='{name: "edit-record", params: {projectId, row: row.rowIndex}}'>edit</router-link>
-            <div class='delete-block'>
-              <a class='secondary' v-if='!showDeleteConfirmation(row.rowIndex)' href='#'
-                @click.prevent='showDeleteConfirmation(row.rowIndex, true)'>delete</a>
-              <span v-if='showDeleteConfirmation(row.rowIndex)'>
-                <span class='accent'>are you sure?</span> <a href='#' @click.prevent='deleteRecordClick(row)'>yes</a> &#47; <a href='#' @click.prevent='showDeleteConfirmation(row.rowIndex, false)'>no</a>
-              </span>
-            </div>
-          </div>
+          <action-row :row='row' :project='project' v-if='project.canEdit'></action-row>
         </div>
       </div>
     </div>
@@ -62,6 +53,7 @@ import moment from 'moment';
 import InputTypes from 'src/types/InputTypes';
 import { UiFab } from 'keen-ui';
 
+import ActionRow from './ActionRow.vue';
 import renderMakrdown from '../lib/markdown/index.js';
 import ContributionsWall from './ContributionsWall.vue';
 import SelectedFilters from './SelectedFilters.vue';
@@ -72,7 +64,6 @@ export default {
   data() {
     return {
       isSaveInProgress: false,
-      lastConfirmationIndex: undefined,
     };
   },
 
@@ -103,23 +94,13 @@ export default {
   },
 
   components: {
+    ActionRow,
     ContributionsWall,
     SelectedFilters,
     UiFab
   },
 
   methods: {
-    deleteRecordClick(row) {
-      // TODO: Implement me
-      this.showDeleteConfirmation(row.rowIndex, false);
-    },
-
-    showDeleteConfirmation(rowIndex, shouldShow) {
-      if (typeof shouldShow === 'undefined') return rowIndex === this.lastConfirmationIndex;
-
-      this.lastConfirmationIndex = shouldShow ? rowIndex : undefined;
-    },
-
     addRecordClick() {
       this.$router.push({
         name: 'add-record',
@@ -254,21 +235,6 @@ column-title-width = 100px;
   }
   .add-record-link {
     font-size: 24px;
-  }
-  .actions-row {
-    text-align: center;
-    width: 100%;
-    .edit-record-link {
-      font-size: 14px;
-    }
-  }
-}
-
-.delete-block {
-  display: inline-block;
-  margin-left: 28px;
-  a {
-    font-size: 12px;
   }
 }
 

@@ -52,7 +52,7 @@ import SingleLineText from './inputs/SingleLineText';
 import Number from './inputs/Number';
 import ImageInput from './inputs/Image';
 
-import updateRow from '../lib/updateRow';
+import { updateRow } from '../lib/sheetOperations.js';
 
 export default {
   props: ['fields', 'spreadsheetId', 'row'],

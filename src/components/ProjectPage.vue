@@ -19,6 +19,7 @@ import loadProject from 'src/lib/loadProject';
 import ProjectTitle from './ProjectTitle.vue';
 import ProjectTabs from './ProjectTabs.vue';
 import Loading from './Loading.vue';
+import bus from '../lib/bus.js';
 
 export default {
   name: 'ProjectPage',
@@ -42,7 +43,13 @@ export default {
   },
   created() {
     this.loadCurrentProject();
+    bus.on('reload-project', this.loadCurrentProject, this);
   },
+
+  beforeDestroy() {
+    bus.off('reload-project', this.loadCurrentProject);
+  },
+
   methods: {
     loadCurrentProject() {
       this.error = null;
