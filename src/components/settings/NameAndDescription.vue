@@ -30,10 +30,10 @@ export default {
   },
   watch: {
     name(newName) {
-      this.projectName = newName;
+      this.projectName = newName || '';
     },
     description(newDescription) {
-      this.projectDescription = newDescription;
+      this.projectDescription = newDescription || '';
     }
   },
 

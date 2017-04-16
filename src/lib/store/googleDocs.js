@@ -1,8 +1,7 @@
 import gapiSheets from '../gapi/sheets.js';
 import gapiFiles from '../gapi/files.js';
 
-// Note: We are assuming there can be only 25 columns. If we ever need more
-// we can use loadSheetInfo() results here.
+// Note: We are assuming there can be only 25 columns.
 const DATA_RANGE = 'A1:Z';
 
 export function loadSheetData(spreadsheetId) {
@@ -19,21 +18,47 @@ export function loadSheetData(spreadsheetId) {
   });
 }
 
+export function loadSettings(settingsId) {
+  return gapiFiles('get', {
+    fileId: settingsId,
+    alt: 'media'
+  });
+}
+
+// TODO: Rename this it fetches both id of the spreadsheet and the settings file.
 export function getLogFileSpreadsheetId(projectFolderId) {
+  const q = `trashed = false and '${projectFolderId}' in parents and (
+    mimeType='application/vnd.google-apps.spreadsheet' or
+    name='streak-settings.json'
+  )`;
+
   return gapiFiles('list', {
-    q: `trashed = false and '${projectFolderId}' in parents and mimeType='application/vnd.google-apps.spreadsheet'`,
+    q,
     pageSize: 10,
-    fields: 'files(id, name, description, properties, capabilities, owners)'
+    fields: 'files(id, name, description, capabilities, owners)'
   }).then(result => {
     const { files } = result;
     if (files.length === 0) {
       throw new Error('This project does not exist... or maybe it is private?');
     }
-    if (files.length !== 1) {
-      // TODO: Implement this. Need to find best candidate.
-      throw new Error('At the moment, only one log file is supported');
+
+    let spreadsheetFile;
+    let settingsFile;
+
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].name === 'streak-settings.json') {
+        if (settingsFile) throw new Error('Cannot have multiple streak setttings files');
+        settingsFile = files[i];
+      } else {
+        if (spreadsheetFile) throw new Error('At the moment, only one log file is supported');
+        spreadsheetFile = files[i];
+      }
     }
 
-    return files[0];
+
+    return {
+      spreadsheetFile,
+      settingsFileId: settingsFile && settingsFile.id
+    };
   });
 }

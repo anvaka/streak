@@ -10,12 +10,11 @@
  * to upload their images with every "commit".
  */
 import InputTypes from 'src/types/InputTypes';
-import extractColumnTypesMetadata from './extractColumnTypesMetadata';
 import extractHeaderTypesFromData from './extractHeaderTypesFromData';
 import ProjectHistoryViewModel from './ProjectHistoryViewModel';
 import { setParentFolder } from './store/sheetIdToFolder.js';
 import {
-  loadSheetData,
+  loadSheetWithSettings,
   getLogFileSpreadsheetId
 } from './store/cachingDocs.js';
 
@@ -23,30 +22,33 @@ export default loadProject;
 
 function loadProject(projectFolderId) {
   return getLogFileSpreadsheetId(projectFolderId)
-    .then(file => {
+    .then(folderContent => {
       // Remember the mapping to the parent folder so that later we can use it
       // to `touch` parent folder on each update (see `updateRow.js`)
-      setParentFolder(file.id, projectFolderId);
-      return loadSpreadsheet(file, projectFolderId);
+      setParentFolder(folderContent.spreadsheetFile.id, projectFolderId);
+      return loadSpreadsheet(folderContent, projectFolderId);
     });
 }
 
-function loadSpreadsheet(spreadsheetFile, projectId) {
+function loadSpreadsheet(folderContent, projectId) {
+  const { spreadsheetFile, settingsFileId } = folderContent;
+
   const spreadsheetId = spreadsheetFile.id;
   const { canEdit } = spreadsheetFile.capabilities;
   const { owners, name, description } = spreadsheetFile;
-  const columnTypeByName = extractColumnTypesMetadata(spreadsheetFile.properties);
 
-  return loadSheetData(spreadsheetId).then(convertToViewModel);
+  return loadSheetWithSettings(spreadsheetId, settingsFileId)
+    .then(convertToViewModel);
 
-  function convertToViewModel(sheetData) {
+  function convertToViewModel(sheetWithSettings) {
     const vm = makeProjectViewModel({
       id: projectId,
       canEdit,
       owners,
-      sheetData,
+      sheetData: sheetWithSettings.sheet,
+      settings: sheetWithSettings.settings,
       spreadsheetId,
-    }, columnTypeByName);
+    });
 
     vm.title = name;
     vm.description = description;
@@ -74,9 +76,9 @@ function checkHeadersAreValid(headers) {
 }
 
 function makeProjectViewModel(project) {
-  const { sheetData, canEdit, owners, spreadsheetId } = project;
+  const { sheetData, canEdit, owners, spreadsheetId, settings } = project;
   // TODO: Don't extract this, if streak-settings.json is present.
-  const headers = extractHeaderTypesFromData(sheetData);
+  const headers = extractHeaderTypesFromData(sheetData, settings);
 
   if (owners.length > 1) {
     console.log('This file has multiple owners. Expected?', spreadsheetId);
@@ -90,5 +92,6 @@ function makeProjectViewModel(project) {
     spreadsheetId,
     projectHistory: new ProjectHistoryViewModel(sheetData.values, headers),
     headers,
+    settings
   };
 }

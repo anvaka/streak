@@ -3,11 +3,16 @@ import detectType from './detectType';
 
 const DEFAULT_TYPE = InputTypes.SINGLE_LINE_TEXT;
 
-export default function extractHeaderTypesFromData(sheetData) {
+export default function extractHeaderTypesFromData(sheetData, settings) {
   if (!sheetData) throw new Error('Sheet with headers is missing');
 
   const { values, headers } = sheetData;
   const headerCounters = headers.map(h => new HeaderCounter(h));
+
+  if (settings && settings.fields) {
+    // if we have settings, they should override type sepcification.
+    settings.fields.forEach(field => setHeaderType(field.title, field.type));
+  }
 
   // iterate over each row, and remember values.
   // TODO: Should I limit this to top N rows?
@@ -23,6 +28,18 @@ export default function extractHeaderTypesFromData(sheetData) {
   });
 
   return headerCounters.map(h => h.toHeaderDef());
+
+  function setHeaderType(headerName, type) {
+    const header = findHeaderByName(headerName);
+    if (header) header.setType(type);
+  }
+
+  function findHeaderByName(name) {
+    // There are less than 25 headers total, no need to use hash map for this
+    for (let i = 0; i < headerCounters.length; ++i) {
+      if (headerCounters[i].name === name) return headerCounters[i];
+    }
+  }
 }
 
 class HeaderCounter {
@@ -40,13 +57,20 @@ class HeaderCounter {
     if (trimmedValue) this.seenValues.add(trimmedValue);
   }
 
+  setType(newType) {
+    this.valueType = newType;
+  }
+
   toHeaderDef() {
     const title = this.name;
-    // getthe list of all guessed types, and sort it by number of occurrences in descending order
-    const seenTypes = Array.from(this.countsByType).sort((x, y) => y[1] - x[1]);
-    // our best candidate is the one that we saw most often:
-    const topCandidate = seenTypes[0];
-    const valueType = (topCandidate && topCandidate[0]) || DEFAULT_TYPE;
+    let valueType = this.valueType;
+    if (!valueType) {
+      // get the list of all guessed types, and sort it by number of occurrences in descending order
+      const seenTypes = Array.from(this.countsByType).sort((x, y) => y[1] - x[1]);
+      // our best candidate is the one that we saw most often:
+      const topCandidate = seenTypes[0];
+      valueType = (topCandidate && topCandidate[0]) || DEFAULT_TYPE;
+    }
 
     return {
       title,

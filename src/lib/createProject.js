@@ -7,13 +7,19 @@
 import getStreaksFolder from './getStreaksFolder';
 import gapiFiles from './gapi/files.js';
 import gapiSheets from './gapi/sheets.js';
+import uploadJsonFile from './gapi/uploadJsonFile.js';
 
 export default createProject;
 
 function createProject(name, columns) {
   return getStreaksFolder()
     .then(createProjectFolder)
-    .then(createLogFile);
+    .then(parentFolderId => {
+      return Promise.all([
+        createLogFile(parentFolderId),
+        createSettingsFile(parentFolderId)
+      ]).then(() => parentFolderId);
+    });
 
   function createProjectFolder(parent) {
     if (!parent) throw new Error('Parent was not specified');
@@ -33,22 +39,26 @@ function createProject(name, columns) {
     }).then(result => result.id);
   }
 
+  function createSettingsFile(parentFolderId) {
+    const streakSettings = {
+      name,
+      fields: columns.map(c => ({
+        title: c.name,
+        type: c.type.value
+      }))
+    };
+
+    return uploadJsonFile({
+      name: 'streak-settings.json',
+      mimeType: 'application/json',
+      parents: [parentFolderId],
+    }, JSON.stringify(streakSettings, null, 2));
+  }
+
   function createLogFile(parentFolderId) {
     const properties = {
       createdByStreak: 'true',
     };
-
-    // Properties and app properties are limited to 124 bytes in UTF-8 encoding,
-    // counting both the key and the value. So we split each property into multiple
-    // keys:
-    columns.forEach((column, idx) => {
-      const nameKey = `col.${idx}.name`;
-      properties[nameKey] = column.name;
-
-      const typeKey = `col.${idx}.type`;
-      properties[typeKey] = column.type.value;
-      // TODO: probabyl worth to check max length
-    });
 
     const fileMetadata = {
       name,
@@ -61,8 +71,7 @@ function createProject(name, columns) {
       resource: fileMetadata,
       fields: 'id'
     }).then(result => result.id)
-      .then(spreadsheetId => updateSheetTemplate(spreadsheetId, name, columns))
-      .then(() => parentFolderId);
+      .then(spreadsheetId => updateSheetTemplate(spreadsheetId, name, columns));
   }
 }
 
