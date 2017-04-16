@@ -58,8 +58,18 @@ export default {
       loadProject(this.projectId)
         .then((project) => {
           project.projectHistory.filter(this.$route.query.from, this.$route.query.to);
+
           this.loading = false;
           this.project = project;
+
+          // this can happen when user edited settings file or manually removed
+          // headers. Redirect to the settings page to fix the error
+          if (project.shouldRedirectToSettings && this.$route.name !== 'project-settings') {
+            this.$router.replace({
+              name: 'project-settings'
+            });
+          }
+          // TODO: if headers has no date, should also redirect here
         }).catch(err => {
           this.loading = false;
           this.project = null;

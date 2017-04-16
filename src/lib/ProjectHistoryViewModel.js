@@ -10,19 +10,32 @@ import { getDateString, isDayInside } from './dateUtils.js';
 
 export default class ProjectHistoryViewModel {
   constructor(sheetData, headers) {
+    if (headers.length === 0) {
+      this.groups = [];
+      this.contributionsByDay = {};
+      this.recordsCount = 0;
+      return;
+    }
+
     const typedRows = convertToTypedRows(sheetData, headers);
     const dateIndex = getColumnIndex(headers, header => header.valueType === InputTypes.DATE);
-    if (dateIndex < 0) throw new Error('non-date data sets are not supported yet');
+    if (dateIndex >= 0) {
+      this.groups = groupBy(dateIndex, typedRows);
 
-    this.groups = groupBy(dateIndex, typedRows);
-
-    const numericColumn = getColumnIndex(headers, header => header.valueType === InputTypes.NUMBER);
-    const categoricalColumn = getColumnIndex(
-      headers, header => header.valueType === InputTypes.SINGLE_LINE_TEXT
-    );
-    this.contributionsByDay = makeContributionsByDayIndex(
-      dateIndex, typedRows, makeCellGetter(numericColumn), makeCellGetter(categoricalColumn)
-    );
+      const numericColumn = getColumnIndex(
+        headers,
+        header => header.valueType === InputTypes.NUMBER
+      );
+      const categoricalColumn = getColumnIndex(
+        headers, header => header.valueType === InputTypes.SINGLE_LINE_TEXT
+      );
+      this.contributionsByDay = makeContributionsByDayIndex(
+        dateIndex, typedRows, makeCellGetter(numericColumn), makeCellGetter(categoricalColumn)
+      );
+    } else {
+      this.groups = [];
+      this.contributionsByDay = {};
+    }
 
     this.recordsCount = typedRows.length;
   }

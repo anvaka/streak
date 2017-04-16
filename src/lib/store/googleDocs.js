@@ -1,27 +1,21 @@
 import gapiSheets from '../gapi/sheets.js';
 import gapiFiles from '../gapi/files.js';
 
-// We take one row for header, and one more to fetch data types.
-const HEADER_RANGE = 'A1:Z2';
-
 // Note: We are assuming there can be only 25 columns. If we ever need more
 // we can use loadSheetInfo() results here.
-const DATA_RANGE = 'A2:Z';
-// TODO: gapi.auth2.getAuthInstance().currentUser.get().reloadAuthResponse()
+const DATA_RANGE = 'A1:Z';
 
 export function loadSheetData(spreadsheetId) {
   return gapiSheets('values.get', {
     spreadsheetId,
     range: DATA_RANGE,
-  }).then(result => result.values);
-}
-
-// Sheet info contains information about sheet structure (columns, header names, title)
-export function loadSheetInfo(spreadsheetId) {
-  return gapiSheets('get', {
-    spreadsheetId,
-    includeGridData: true,
-    ranges: HEADER_RANGE
+  }).then(result => {
+    const headers = result.values.splice(0, 1);
+    return {
+      values: result.values,
+      // we are insterested in actual cell values, not just an array
+      headers: headers[0]
+    };
   });
 }
 

@@ -12,6 +12,8 @@ export default function detectType(inputString) {
 
   if (parseDate(inputString)) return InputTypes.DATE;
 
+  if (inputString && inputString.indexOf('\n') > -1) return InputTypes.MULTI_LINE_TEXT;
+
   return DEFAULT_TYPE;
 }
 
