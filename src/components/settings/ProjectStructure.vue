@@ -7,14 +7,16 @@
     </div>
     <div>
       <field-pair v-for='field in currentFields' :field='field' @remove='removeField'></field-pair>
-      <div class='add-field' v-if='canAddMore'>
-        <a @click.prevent='addField' class='add-column' href='#'>Add field</a>
-      </div>
+      <a @click.prevent='addField' class='add-field' href='#' v-if='canAddMore'>Add field</a>
     </div>
 
-    <ui-button type='secondary' color='primary' buttonType='submit'>
+    <ui-button type='secondary' color='primary' buttonType='submit' :disabled='hasError'>
       {{formName}}
     </ui-button>
+    <div v-if='hasError'>
+      Cannot update project because:
+      <div v-for='error in errors' class='error'>{{error}}</div>
+    </div>
   </form>
 </template>
 
@@ -22,7 +24,7 @@
 import { UiButton } from 'keen-ui';
 
 import FieldPair from './FieldPair.vue';
-import { MULTI_LINE_TEXT, getFieldByType } from '../../types/FieldTypes.js';
+import { MULTI_LINE_TEXT, DATE, getFieldByType } from '../../types/FieldTypes.js';
 
 // We limit it to 26 because sheetOpartions.js assumes range names can anly be
 // within engilsih alphabet. This is soft limit and can be easily changed.
@@ -44,13 +46,58 @@ export default {
     return {
       // should be props
       formName: 'Update project structure',
-      currentFields: cloneFields(this.fields)
+      currentFields: cloneFields(this.fields),
+      errors: [],
     };
   },
   computed: {
     canAddMore() {
       return this.currentFields.length < MAX_COLUMNS;
-    }
+    },
+
+    hasError() {
+      return this.errors.length > 0;
+    },
+
+    errors() {
+      const foundErrors = [];
+      const nameToField = new Map();
+
+      let hasDate = false;
+      let nameIsRequired = false;
+      let duplicateNames = false;
+
+      this.currentFields.forEach(f => {
+        if (f.type === DATE) hasDate = true;
+        if (!f.title) {
+          f.error = true;
+          nameIsRequired = true;
+        } else {
+          const fieldWithTheSameTitle = nameToField.get(f.title);
+          if (fieldWithTheSameTitle) {
+            duplicateNames = true;
+            fieldWithTheSameTitle.error = true;
+            f.error = true;
+          } else {
+            f.error = false;
+          }
+
+          nameToField.set(f.title, f);
+        }
+      });
+
+      if (!hasDate) {
+        foundErrors.push('At least one date field is required');
+      }
+      if (nameIsRequired) {
+        foundErrors.push('Name is required for all fields');
+      }
+      if (duplicateNames) {
+        foundErrors.push('All fields should have unique name');
+      }
+
+      return foundErrors;
+    },
   },
   methods: {
     updateProjectClick() {
@@ -79,6 +126,7 @@ function cloneFields(fields) {
 
   return fields.map(f => ({
     title: f.title,
+    error: false,
     type: getFieldByType(f.valueType)
   }));
 }
@@ -87,6 +135,9 @@ function cloneFields(fields) {
 <style lang='stylus'>
 @import '../../styles/variables.styl';
 
+.error {
+  color: error-color;
+}
 .add-field {
   height: 82px;
   display: flex;

@@ -1,13 +1,11 @@
 <template>
-  <div class='field'>
+  <div class='field' :class='{error: field.error}'>
       <ui-textbox
             class='field-name'
             label='Field name'
             autocomplete='off'
             placeholder='Give this field a name'
             v-model='field.title'
-            error='name is required'
-            required
       ></ui-textbox>
       <ui-select
             class='field-type'
@@ -73,11 +71,15 @@ export default {
     border-bottom: 1px solid transparent;
   }
 }
+.field.error {
+	border-color: error-color;
+}
 
 @media only screen and (max-width: small-screen-size) {
   .field {
     flex-direction: column;
     align-items: stretch;
+    height: 142px;
   }
 }
 </style>
