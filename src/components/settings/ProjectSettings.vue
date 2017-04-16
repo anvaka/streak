@@ -1,17 +1,10 @@
 <template>
   <div>
-    <form @submit.prevent='updateProjectClick' class='settings-group'>
-      <h3>Name and description</h3>
-      <ui-textbox label="Project name" v-model="projectName" required></ui-textbox>
-      <ui-textbox label="Project description (Optional)" v-model="description"></ui-textbox>
-
-      <div>
-        <ui-button type='secondary' color='primary'
-          buttonType='submit' class='update-project submit-button' :class='{"invalid-project": isProjectNameInvalid()}'>
-          Update Name and Description
-        </ui-button>
-      </div>
-    </form>
+    <name-and-description @updated='onProjectNameUpdated'
+      form-name='Update name and description'
+      :name='name'
+      :description='description'>
+    </name-and-description>
 
     <form class='settings-group'>
       <h3 class='danger'>Risky actions</h3>
@@ -21,7 +14,7 @@
           <div class='secondary'>
             You own your data. Feel free to explore it from Google Sheets, but please
             note that we haven't tested external modifications yet. So you might
-            encounter bugs or even loose your streaks.
+            encounter bugs or even loose your streaks if you edit your data outside.
           </div>
         </div>
         <ui-button type='secondary' class='danger-trigger-button' color='red' @click.prevent='openSheets'>Open Sheets</ui-button>
@@ -50,8 +43,9 @@
 
 <script>
 // TODO: This page needs to handle errors properly
-import { UiTextbox, UiButton } from 'keen-ui';
+import { UiButton } from 'keen-ui';
 
+import NameAndDescription from './NameAndDescription.vue';
 import { updateNameAndDescription, deleteProject } from '../../lib/projectList.js';
 
 export default {
@@ -59,53 +53,30 @@ export default {
   props: ['project'],
 
   components: {
-    UiTextbox,
-    UiButton
+    UiButton,
+    NameAndDescription
+  },
+
+  computed: {
+    name() {
+      return this.project && this.project.title;
+    },
+
+    description() {
+      return this.project && this.project.description;
+    }
   },
 
   data() {
-    if (this.project) {
-      return {
-        projectName: this.project.title || '',
-        description: this.project.description || '',
-        deleteConfirm: false
-      };
-    }
-
     return {
-      projectName: '',
-      description: '',
       deleteConfirm: false
     };
   },
 
-  watch: {
-    'project.title': function onTitleChanged(newTitle) {
-      this.projectName = newTitle;
-    }
-  },
-
   methods: {
-    isProjectNameInvalid() {
-      return this.projectName.length === 0;
-    },
-    openSheets() {
-      window.location.href = `https://docs.google.com/spreadsheets/d/${this.project.spreadsheetId}/edit`;
-    },
-    deleteProjectClick() {
-      deleteProject(this.project.id).then(() => {
-        this.$router.replace({
-          name: 'dashboard'
-        });
-      });
-    },
-    updateProjectClick() {
-      if (this.isProjectNameInvalid()) {
-        return;
-      }
-
+    onProjectNameUpdated(name, description) {
       this.loading = true;
-      updateNameAndDescription(this.project.spreadsheetId, this.projectName, this.description)
+      updateNameAndDescription(this.project.spreadsheetId, name, description)
         .then(() => {
           // eventual consistency :( - this is probably not very reliable.
           // We are waiting to let Google read endpoint catch up
@@ -118,8 +89,16 @@ export default {
         });
     },
 
-    cancel() {
-      this.goToParent();
+    openSheets() {
+      window.location.href = `https://docs.google.com/spreadsheets/d/${this.project.spreadsheetId}/edit`;
+    },
+
+    deleteProjectClick() {
+      deleteProject(this.project.id).then(() => {
+        this.$router.replace({
+          name: 'dashboard'
+        });
+      });
     },
 
     goToParent() {
