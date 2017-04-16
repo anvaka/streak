@@ -54,43 +54,16 @@
 </template>
 <script>
 import { UiTextbox, UiIconButton, UiButton, UiSelect } from 'keen-ui';
-import InputTypes from 'src/types/InputTypes';
 import createProject from '../lib/createProject';
+import { FIELD_TYPES, MULTI_LINE_TEXT, DATE } from '../types/FieldTypes.js';
 
 const MAX_COLUMNS = 26; // TODO: this should come from shared place
-
-const DATE = {
-  label: 'Date',
-  value: InputTypes.DATE
-};
-
-const MULTI_LINE_TEXT = {
-  label: 'Multiline text',
-  value: InputTypes.MULTI_LINE_TEXT,
-};
-
-const SINGLE_LINE_TEXT = {
-  label: 'Single line text',
-  value: InputTypes.SINGLE_LINE_TEXT
-};
-
-const NUMBER = {
-  label: 'Number',
-  value: InputTypes.NUMBER
-};
-
-const IMAGE = {
-  label: 'Image',
-  value: InputTypes.IMAGE
-};
-
-const COLUMN_TYPES = [DATE, MULTI_LINE_TEXT, SINGLE_LINE_TEXT, NUMBER, IMAGE];
 
 export default {
   name: 'NewProject',
   data() {
     return {
-      columnTypes: COLUMN_TYPES,
+      columnTypes: FIELD_TYPES,
       isLoading: false,
       projectName: '',
       nameTouched: false,

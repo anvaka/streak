@@ -6,6 +6,8 @@
       :description='description'>
     </name-and-description>
 
+    <project-structure :fields='fields'></project-structure>
+
     <form class='settings-group'>
       <h3 class='danger'>Risky actions</h3>
       <div class='row'>
@@ -46,6 +48,7 @@
 import { UiButton } from 'keen-ui';
 
 import NameAndDescription from './NameAndDescription.vue';
+import ProjectStructure from './ProjectStructure.vue';
 import { updateNameAndDescription, deleteProject } from '../../lib/projectList.js';
 
 export default {
@@ -54,7 +57,8 @@ export default {
 
   components: {
     UiButton,
-    NameAndDescription
+    NameAndDescription,
+    ProjectStructure
   },
 
   computed: {
@@ -64,6 +68,10 @@ export default {
 
     description() {
       return this.project && this.project.description;
+    },
+    fields() {
+      // TODO: should call this consistently (headers/fields/columns are all the same);
+      return this.project && this.project.headers;
     }
   },
 
