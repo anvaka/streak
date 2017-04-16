@@ -6,7 +6,7 @@
       :description='description'>
     </name-and-description>
 
-    <project-structure :fields='fields'></project-structure>
+    <project-structure :fields='fields' @updated='onProjectStructureUpdated'></project-structure>
 
     <form class='settings-group'>
       <h3 class='danger'>Risky actions</h3>
@@ -49,7 +49,7 @@ import { UiButton } from 'keen-ui';
 
 import NameAndDescription from './NameAndDescription.vue';
 import ProjectStructure from './ProjectStructure.vue';
-import { updateNameAndDescription, deleteProject } from '../../lib/projectList.js';
+import { updateNameAndDescription, deleteProject, updateProjectStructure } from '../../lib/projectList.js';
 
 export default {
   name: 'ProjectSettings',
@@ -95,6 +95,12 @@ export default {
             this.goToParent();
           }, 300);
         });
+    },
+
+    onProjectStructureUpdated(projectStructure) {
+      updateProjectStructure(this.project, projectStructure).then(() => {
+        this.goToParent();
+      });
     },
 
     openSheets() {

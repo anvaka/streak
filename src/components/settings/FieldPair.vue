@@ -6,6 +6,7 @@
             autocomplete='off'
             placeholder='Give this field a name'
             v-model='field.title'
+            :invalid='field.error'
       ></ui-textbox>
       <ui-select
             class='field-type'
@@ -80,6 +81,13 @@ export default {
     flex-direction: column;
     align-items: stretch;
     height: 142px;
+
+    .remove-row {
+      width: 36px;
+      padding-left: 14px;
+      padding-top: 7px;
+      padding-bottom: 5px;
+    }
   }
 }
 </style>

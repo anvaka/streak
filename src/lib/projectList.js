@@ -104,3 +104,8 @@ function findeProjectIndex(projectId) {
     if (projects[i].id === projectId) return i;
   }
 }
+
+export function updateProjectStructure(/* project, newFields */) {
+  console.log('ok');
+  return new Promise(resolve => resolve());
+}

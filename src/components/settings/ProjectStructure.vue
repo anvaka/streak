@@ -14,8 +14,8 @@
       {{formName}}
     </ui-button>
     <div v-if='hasError'>
-      Cannot update project because:
-      <div v-for='error in errors' class='error'>{{error}}</div>
+      <div class='error'>Cannot update project structure because:</div>
+      <div v-for='error in errors' class='error'>&gt; {{error}}</div>
     </div>
   </form>
 </template>
@@ -47,7 +47,6 @@ export default {
       // should be props
       formName: 'Update project structure',
       currentFields: cloneFields(this.fields),
-      errors: [],
     };
   },
   computed: {
@@ -73,7 +72,8 @@ export default {
           f.error = true;
           nameIsRequired = true;
         } else {
-          const fieldWithTheSameTitle = nameToField.get(f.title);
+          const fieldTitle = f.title.toLowerCase();
+          const fieldWithTheSameTitle = nameToField.get(fieldTitle);
           if (fieldWithTheSameTitle) {
             duplicateNames = true;
             fieldWithTheSameTitle.error = true;
@@ -82,7 +82,7 @@ export default {
             f.error = false;
           }
 
-          nameToField.set(f.title, f);
+          nameToField.set(fieldTitle, f);
         }
       });
 
@@ -93,7 +93,7 @@ export default {
         foundErrors.push('Name is required for all fields');
       }
       if (duplicateNames) {
-        foundErrors.push('All fields should have unique name');
+        foundErrors.push('All fields should have a unique name');
       }
 
       return foundErrors;
@@ -101,13 +101,13 @@ export default {
   },
   methods: {
     updateProjectClick() {
-      this.formName = ':) not implemented yet. Check tomorrow';
       this.$emit('updated', this.currentFields);
     },
 
     addField() {
       this.currentFields.push({
         title: '',
+        error: false,
         type: MULTI_LINE_TEXT
       });
     },
@@ -125,8 +125,13 @@ function cloneFields(fields) {
   if (!fields) return [];
 
   return fields.map(f => ({
+    // UI is bound to this title and can modify it
     title: f.title,
+    // To update modified fields, we preserve the original title here:
+    originalTitle: f.title,
+    // If this field has error, we set this to true.
     error: false,
+    // Finally, this is a value for the drop down.
     type: getFieldByType(f.valueType)
   }));
 }
