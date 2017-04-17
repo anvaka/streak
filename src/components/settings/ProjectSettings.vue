@@ -19,7 +19,7 @@
             encounter bugs or even loose your streaks if you edit your data outside.
           </div>
         </div>
-        <ui-button type='secondary' class='danger-trigger-button' color='red' @click.prevent='openSheets'>Open Sheets</ui-button>
+        <a class='danger-trigger-button danger' :href='spreadSheetUrl'>Open Sheets</a>
       </div>
       <div class='row' v-if='!deleteConfirm'>
         <div class='col'>
@@ -72,7 +72,12 @@ export default {
     fields() {
       // TODO: should call this consistently (headers/fields/columns are all the same);
       return this.project && this.project.headers;
-    }
+    },
+    spreadSheetUrl() {
+      if (!this.project) return '';
+
+      return `https://docs.google.com/spreadsheets/d/${this.project.spreadsheetId}/edit`;
+    },
   },
 
   data() {
@@ -101,10 +106,6 @@ export default {
       updateProjectStructure(this.project, projectStructure).then(() => {
         this.goToParent();
       });
-    },
-
-    openSheets() {
-      window.location.href = `https://docs.google.com/spreadsheets/d/${this.project.spreadsheetId}/edit`;
     },
 
     deleteProjectClick() {
@@ -137,6 +138,12 @@ export default {
   h3 {
     margin: 0 0 14px 0;
   }
+}
+a.danger {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 .row, .row-confirm {
   display: flex;
