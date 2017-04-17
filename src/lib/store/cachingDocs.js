@@ -82,6 +82,10 @@ export function resetSheetDataCache(spreadsheetId) {
   return sheetIdToSheetData.delete(spreadsheetId);
 }
 
+export function resetSettings(settingsId) {
+  return settingsIdCache.delete(settingsId);
+}
+
 export function resetProjectFileCache(projectId) {
   return projetIdToProjectFile.delete(projectId);
 }

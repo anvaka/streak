@@ -124,7 +124,7 @@ export default {
 function cloneFields(fields) {
   if (!fields) return [];
 
-  return fields.map(f => ({
+  return fields.map((f, idx) => ({
     // UI is bound to this title and can modify it
     title: f.title,
     // To update modified fields, we preserve the original title here:
@@ -132,7 +132,9 @@ function cloneFields(fields) {
     // If this field has error, we set this to true.
     error: false,
     // Finally, this is a value for the drop down.
-    type: getFieldByType(f.valueType)
+    type: getFieldByType(f.valueType),
+
+    columnIndex: idx
   }));
 }
 </script>

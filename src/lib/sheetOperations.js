@@ -29,6 +29,13 @@ export function updateRow(spreadsheetId, record, row) {
   });
 }
 
+export function batchUpdate(spreadsheetId, requests) {
+  return gapiSheets('batchUpdate', {
+    spreadsheetId,
+    requests
+  });
+}
+
 export function deleteRow(spreadsheetId, rowIndex) {
   resetSheetDataCache(spreadsheetId);
 

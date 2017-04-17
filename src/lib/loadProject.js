@@ -52,6 +52,8 @@ function loadSpreadsheet(folderContent, projectId) {
 
     vm.title = name;
     vm.description = description;
+    vm.settingsFileId = settingsFileId;
+
     const headersAreValid = checkHeadersAreValid(vm.headers);
     // if headers are not valid, let's redirect to the settings page, so that
     // user can fix the structure;
