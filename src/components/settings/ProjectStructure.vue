@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent='updateProjectClick' class='settings-group'>
-    <h3>Project structure</h3>
+    <h3>{{formTitle}}</h3>
     <div class='secondary'>
       Configure what information you want to capture. Each field becomes
       an input box when you add records to your project.
@@ -10,11 +10,12 @@
       <a @click.prevent='addField' class='add-field' href='#' v-if='canAddMore'>Add field</a>
     </div>
 
-    <ui-button type='secondary' color='primary' buttonType='submit' :disabled='hasError'>
-      {{formName}}
-    </ui-button>
+    <slot :hasError='hasError'>
+      <ui-button type='secondary' color='primary' buttonType='submit' :disabled='hasError'>
+        {{formName}}
+      </ui-button>
+    </slot>
     <div v-if='hasError'>
-      <div class='error'>Cannot update project structure because:</div>
       <div v-for='error in errors' class='error'>&gt; {{error}}</div>
     </div>
   </form>
@@ -32,7 +33,13 @@ const MAX_COLUMNS = 26;
 
 export default {
   name: 'ProjectStructure',
-  props: ['fields'],
+  props: {
+    fields: Array,
+    formTitle: {
+      type: String,
+      default: 'Project structure'
+    }
+  },
   components: {
     FieldPair,
     UiButton

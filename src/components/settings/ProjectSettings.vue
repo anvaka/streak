@@ -1,7 +1,7 @@
 <template>
   <div>
     <name-and-description @updated='onProjectNameUpdated'
-      form-name='Update name and description'
+      form-action='Update name and description'
       :name='name'
       :description='description'>
     </name-and-description>

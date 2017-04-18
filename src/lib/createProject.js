@@ -11,7 +11,9 @@ import uploadJsonFile from './gapi/uploadJsonFile.js';
 
 export default createProject;
 
-function createProject(name, columns) {
+// TODO: Some of this code is duplicated by `projectList/sheetOptions' consider
+// refactoring.
+function createProject(name, description, fields) {
   return getStreaksFolder()
     .then(createProjectFolder)
     .then(parentFolderId => {
@@ -26,6 +28,7 @@ function createProject(name, columns) {
 
     const fileMetadata = {
       name,
+      description,
       mimeType: 'application/vnd.google-apps.folder',
       parents: [parent],
       properties: {
@@ -42,8 +45,8 @@ function createProject(name, columns) {
   function createSettingsFile(parentFolderId) {
     const streakSettings = {
       name,
-      fields: columns.map(c => ({
-        title: c.name,
+      fields: fields.map(c => ({
+        title: c.title,
         type: c.type.value
       }))
     };
@@ -62,6 +65,7 @@ function createProject(name, columns) {
 
     const fileMetadata = {
       name,
+      description,
       mimeType: 'application/vnd.google-apps.spreadsheet',
       parents: [parentFolderId],
       properties
@@ -71,11 +75,11 @@ function createProject(name, columns) {
       resource: fileMetadata,
       fields: 'id'
     }).then(result => result.id)
-      .then(spreadsheetId => updateSheetTemplate(spreadsheetId, name, columns));
+      .then(spreadsheetId => updateSheetTemplate(spreadsheetId, name, fields));
   }
 }
 
-function updateSheetTemplate(spreadsheetId, name, columns) {
+function updateSheetTemplate(spreadsheetId, name, fields) {
   // Since we've just created this template, the sheetId should be 0 (if I understand
   // this correctly).
   const sheetId = 0;
@@ -100,7 +104,7 @@ function updateSheetTemplate(spreadsheetId, name, columns) {
         sheetId,
         fields: '*',
         rows: [{
-          values: columns.map(column => header(column.name))
+          values: fields.map(f => header(f.title))
         }]
       }
     }]

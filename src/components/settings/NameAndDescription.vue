@@ -1,14 +1,15 @@
 <template>
   <form @submit.prevent='updateProjectClick' class='settings-group'>
-    <h3>Name and description</h3>
-    <ui-textbox label="Project name" v-model="projectName" required></ui-textbox>
+    <h3>{{formTitle}}</h3>
+    <ui-textbox label="Project name" v-model="projectName" required :autofocus='focus'></ui-textbox>
     <ui-textbox label="Project description (Optional)" v-model="projectDescription"></ui-textbox>
-
     <div>
-      <ui-button type='secondary' color='primary'
-        buttonType='submit' class='update-project submit-button' :class='{"invalid-project": isProjectNameInvalid()}'>
-        {{formName}}
-      </ui-button>
+      <slot>
+        <ui-button type='secondary' color='primary'
+          buttonType='submit' class='update-project-name submit-button' :class='{"invalid-project": isProjectNameInvalid()}'>
+          {{formAction}}
+        </ui-button>
+      </slot>
     </div>
   </form>
 </template>
@@ -17,7 +18,19 @@ import { UiTextbox, UiButton } from 'keen-ui';
 
 export default {
   name: 'NameAndDescription',
-  props: ['name', 'description', 'formName'],
+  props: {
+    name: String,
+    focus: Boolean,
+    description: String,
+    formTitle: {
+      type: String,
+      default: 'Name and description'
+    },
+    formAction: {
+      type: String,
+      default: 'Update name and description'
+    }
+  },
   components: {
     UiButton,
     UiTextbox
@@ -25,7 +38,7 @@ export default {
   data() {
     return {
       projectName: this.name || '',
-      projectDescription: this.description || ''
+      projectDescription: this.description || '',
     };
   },
   watch: {

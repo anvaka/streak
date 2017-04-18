@@ -1,133 +1,115 @@
 <template>
   <div class='new-project'>
-    <form @submit.prevent='createProject' >
-      <h3 class='title'>Step 1: Give your project a name</h3>
-      <ui-textbox
-                autofocus
-                autocomplete='off'
-                error='Project name is required'
-                placeholder='Enter project name here'
-                required
-                :invalid='nameTouched && isProjectNameInvalid()'
-                @touch='nameTouched = true'
-                v-model='projectName'
-            ></ui-textbox>
-      <div class='columns-config' :class='{"invalid-project": isProjectNameInvalid()}'>
-        <h3 class='title' title='Describe which columns to record for each log entry'>Step 2: Configure project columns</h3>
-        <div v-for='column in columns' class='column-pair'>
-          <ui-textbox
-                label='Column name'
-                autocomplete='off'
-                placeholder='Give this column a name'
-                v-model='column.name'
-            ></ui-textbox>
-          <ui-select
-                label='Column type'
-                placeholder='Select a column type'
-                :options='columnTypes'
-                v-model='column.type'
-            ></ui-select>
-          <ui-button type='secondary' class='remove-row' @click.prevent='removeColumn(column)' buttonType='button'>Remove</ui-button>
+    <h2 class='step-header'>New Project</h2>
+    <div v-if='step === 1'>
+      <name-and-description
+        form-title='Step 1: Give your project a name'
+        :description='description'
+        :name='projectName'
+        :focus='true' @updated='saveNameAndDescription'>
+        <div class='step-actions'>
+          <ui-button type='secondary' color='primary' @click.prevent='goBack'>
+            Go Back
+          </ui-button>
+          <ui-button type='secondary' color='primary' buttonType='submit'>
+            Next
+          </ui-button>
         </div>
-        <ui-button type='secondary' @click.prevent='addColumn' class='add-column' buttonType='button'>
-          Add column
-        </ui-button>
-      </div>
-
-      <ui-button type='secondary' v-if='!isLoading' color='primary'
-        buttonType='submit' class='create-project' :class='{"invalid-project": isProjectNameInvalid()}'>
-        Create project
-      </ui-button>
-      <div v-if='isLoading'>
-          <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
+      </name-and-description>
+    </div>
+    <div v-if='step === 2'>
+      <project-structure form-title='Step 2: Project structure' @updated='saveFields' :fields='fields'>
+        <template scope='props'>
+        <div class='step-actions' v-if='!isLoading'>
+          <ui-button type='secondary' color='primary' @click.prevent='step = 1'>
+            Go Back
+          </ui-button>
+          <ui-button type='secondary' color='primary' buttonType='submit' :disabled='props.hasError'>
+            Create Project
+          </ui-button>
+        </div>
+        </template>
+      </project-structure>
+    </div>
+    <div v-if='step === 3'>
+        <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
           Creating new project...
-      </div>
-
-      <div v-if='error' class='error'>
+    </div>
+    <div v-if='error' class='error'>
         <h3>Something is wrong...</h3>
           I couldn't create a new project. Please try again. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
           <h4>Technical details</h4>
           <pre>{{error}}</pre>
       </div>
-    </form>
   </div>
 </template>
 <script>
-import { UiTextbox, UiIconButton, UiButton, UiSelect } from 'keen-ui';
-import createProject from '../lib/createProject';
-import { FIELD_TYPES, MULTI_LINE_TEXT, DATE } from '../types/FieldTypes.js';
+import { UiIconButton, UiButton } from 'keen-ui';
 
-const MAX_COLUMNS = 26; // TODO: this should come from shared place
+import gapiCreateProject from '../lib/createProject';
+import NameAndDescription from './settings/NameAndDescription.vue';
+import ProjectStructure from './settings/ProjectStructure.vue';
+import { MULTI_LINE_TEXT, DATE } from '../types/FieldTypes.js';
 
 export default {
   name: 'NewProject',
   data() {
     return {
-      columnTypes: FIELD_TYPES,
-      isLoading: false,
+      step: 1,
       projectName: '',
-      nameTouched: false,
-      projectStructureStep: false,
+      description: '',
       error: null,
-      columns: [{
-        name: 'Date',
-        type: DATE
+      fields: [{
+        title: 'When',
+        valueType: DATE.value
       }, {
-        name: 'Note',
-        type: MULTI_LINE_TEXT
+        title: 'Note',
+        valueType: MULTI_LINE_TEXT.value
       }]
     };
   },
+
   methods: {
-    isProjectNameInvalid() {
-      return this.projectName.length === 0;
+    saveNameAndDescription(name, description) {
+      this.projectName = name;
+      this.description = description;
+      this.step = 2;
     },
 
-    removeColumn(column) {
-      const idxToRemove = this.columns.indexOf(column);
-      if (idxToRemove < 0) throw new Error('Wrong index to remove');
-
-      this.columns.splice(idxToRemove, 1);
-
-      // TODO: Should I disable removing all columns?
+    saveFields(newFields) {
+      this.createProject(newFields);
     },
 
-    addColumn() {
-      if (this.columns.length > MAX_COLUMNS) {
-        throw new Error('So much columns! Not supported yet');
+    goBack() {
+      this.$router.go(-1);
+    },
+
+    createProject(fields) {
+      if (!this.projectName) {
+        return;
       }
 
-      this.columns.push({
-        name: '',
-        type: MULTI_LINE_TEXT
-      });
-    },
+      this.step = 3;
+      gapiCreateProject(this.projectName, this.description, fields).then((projectId) => {
+        this.error = null;
 
-    createProject() {
-      if (this.projectName) {
-        this.isLoading = true;
-
-        createProject(this.projectName, this.columns).then((projectId) => {
-          this.isLoading = false;
-          this.error = null;
-
-          this.$router.push({
-            name: 'project-overview',
-            params: {
-              projectId
-            }
-          });
-        }, err => {
-          this.isLoading = false;
-          this.error = err;
+        this.$router.push({
+          name: 'project-overview',
+          params: {
+            projectId
+          }
         });
-      }
+      }, err => {
+        // Go to previous wizard page
+        this.step = 2;
+        this.error = err;
+      });
     }
   },
   components: {
-    UiTextbox,
+    NameAndDescription,
+    ProjectStructure,
     UiButton,
-    UiSelect,
     UiIconButton,
   }
 };
@@ -135,6 +117,21 @@ export default {
 
 <style scoped lang='stylus'>
 @import '../styles/variables.styl'
+
+.step-header {
+  margin-bottom: 28px;
+}
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+@media only screen and (max-width: small-screen-size) {
+  .settings-group {
+    border: none;
+    padding: 0;
+  }
+}
 
 .title {
   text-transform: uppercase;
