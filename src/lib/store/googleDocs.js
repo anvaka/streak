@@ -9,9 +9,15 @@ export function loadSheetData(spreadsheetId) {
     spreadsheetId,
     range: DATA_RANGE,
   }).then(result => {
-    const headers = result.values.splice(0, 1);
+    const values = result.values;
+    if (!values) {
+      const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`;
+      throw new Error(`Looks like the spreadsheet ${url} has no data.`);
+    }
+
+    const headers = values.splice(0, 1);
     return {
-      values: result.values,
+      values,
       // we are insterested in actual cell values, not just an array
       headers: headers[0]
     };
