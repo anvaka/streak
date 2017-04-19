@@ -8,7 +8,7 @@
         :name='projectName'
         :focus='true' @updated='saveNameAndDescription'>
         <div class='step-actions'>
-          <ui-button type='secondary' color='primary' @click.prevent='goBack'>
+          <ui-button type='secondary' color='primary' @click.prevent='goBack' buttonType='button'>
             Go Back
           </ui-button>
           <ui-button type='secondary' color='primary' buttonType='submit'>
@@ -20,8 +20,8 @@
     <div v-if='step === 2'>
       <project-structure form-title='Step 2: Project structure' @updated='saveFields' :fields='fields'>
         <template scope='props'>
-        <div class='step-actions' v-if='!isLoading'>
-          <ui-button type='secondary' color='primary' @click.prevent='step = 1'>
+        <div class='step-actions'>
+          <ui-button type='secondary' color='primary' @click.prevent='step = 1' buttonType='button'>
             Go Back
           </ui-button>
           <ui-button type='secondary' color='primary' buttonType='submit' :disabled='props.hasError'>
