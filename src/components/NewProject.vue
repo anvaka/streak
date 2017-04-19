@@ -1,6 +1,6 @@
 <template>
   <div class='new-project'>
-    <h2 class='step-header'>New Project</h2>
+    <h2 class='step-header'>{{pageName}}</h2>
     <div v-if='step === 1'>
       <name-and-description
         form-title='Step 1: Give your project a name'
@@ -69,6 +69,14 @@ export default {
     };
   },
 
+  computed: {
+    pageName() {
+      if (this.projectName) {
+        return 'New Project - ' + this.projectName;
+      }
+      return 'New Project';
+    }
+  },
   methods: {
     saveNameAndDescription(name, description) {
       this.projectName = name;
