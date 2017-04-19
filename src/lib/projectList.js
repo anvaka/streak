@@ -3,7 +3,9 @@ import gapiFiles from './gapi/files.js';
 import { getParentFolder } from './store/sheetIdToFolder.js';
 import { resetProjectFileCache, resetSettings, resetSheetDataCache } from './store/cachingDocs.js';
 import uploadJsonFile from './gapi/uploadJsonFile.js';
+import constructSheetUpdateDiff from './sheets/constructSheetUpdateDiff.js';
 import { batchUpdate } from './sheetOperations.js';
+import { clone } from './utils.js';
 
 const projectList = {
   error: null,
@@ -110,128 +112,34 @@ function findProjectIndex(projectId) {
 export function updateProjectStructure(project, newFields) {
   const pendingRequests = [];
 
+  // Updating project structure is a two-step process. First we need to update
+  // sheet's columns, and then we update the `streak-settings.json` file, which
+  // contains information about field types.
+
+  // To update the sheet's structure we are using batch update Google Sheets API.
+  // Batch update API is executed by a single JSON object. We construct it here:
   const sheetUpdateDiff = constructSheetUpdateDiff(project.headers, newFields);
+
   if (sheetUpdateDiff.length) {
+    // If there was a change in the sheet structure, we invoke `batchUpdate`
+    // and store promise.
     pendingRequests.push(batchUpdate(project.spreadsheetId, sheetUpdateDiff));
   }
 
+  // Finally, we want to update streak-settings.json file as well. We can do
+  // this in parallel:
   pendingRequests.push(updateSettings(project, newFields));
 
+  // And wait until both promises are resolved
   return Promise.all(pendingRequests).then(() => {
+    // when all is done, we must reset our caches, so that we requiry full information
+    // on next page render.
     resetProjectFileCache(project.id);
     resetSettings(project.settingsFileId);
     resetSheetDataCache(project.spreadsheetId);
   });
-}
 
-function constructSheetUpdateDiff(headers, newFields) {
-  const requests = [];
-  let insertedCount = 0;
-  const currentHeadersCount = headers.length;
-
-  newFields.forEach(field => {
-    if (field.originalTitle) {
-      if (field.originalTitle !== field.title) {
-        // this field existed before. If it's new title changed - then it's rename operation
-        requests.push(renameHeader(field.columnIndex, field.title));
-      }
-    } else {
-      // This is a new field. We always append to the end of the sheet, so that
-      // we don't have to tract column index movement during deletion.
-      requests.push({
-        appendDimension: {
-          sheetId: 0,
-          dimension: 'COLUMNS',
-          length: 1
-        }
-      });
-      requests.push(appendHeader(field.title, currentHeadersCount + insertedCount));
-      insertedCount += 1;
-    }
-  });
-
-  const currentFields = indexBy(newFields, 'originalTitle');
-  // now let's traverse backwards, and remove all columns that were deleted
-  for (let i = headers.length - 1; i > -1; i--) {
-    const header = headers[i];
-    if (header.title && !currentFields.has(header.title)) {
-      requests.push(removeColumn(i));
-    }
-  }
-
-  return requests;
-}
-
-function appendHeader(title, columnIndex) {
-  return {
-    updateCells: {
-      fields: 'userEnteredValue, userEnteredFormat',
-      start: {
-        sheetId: 0,
-        rowIndex: 0,
-        columnIndex
-      },
-      rows: [{
-        values: [header(title)]
-      }]
-    }
-  };
-}
-
-function header(text) {
-  return {
-    userEnteredValue: {
-      stringValue: text
-    },
-    userEnteredFormat: {
-      horizontalAlignment: 'CENTER',
-      textFormat: {
-        bold: true,
-      },
-    },
-  };
-}
-
-function removeColumn(columnIndex) {
-  return {
-    deleteDimension: {
-      range: {
-        sheetId: 0,
-        dimension: 'COLUMNS',
-        startIndex: columnIndex,
-        endIndex: columnIndex + 1
-      }
-    }
-  };
-}
-
-function renameHeader(columnIndex, title) {
-  return {
-    updateCells: {
-      fields: 'userEnteredValue',
-      start: {
-        sheetId: 0,
-        rowIndex: 0,
-        columnIndex
-      },
-      rows: [{
-        values: [{
-          userEnteredValue: {
-            stringValue: title
-          }
-        }]
-      }]
-    }
-  };
-}
-
-function indexBy(collection, propName) {
-  const index = new Map();
-  collection.forEach(el => {
-    index.set(el[propName], el);
-  });
-
-  return index;
+  // TODO: What happens in case of an error?
 }
 
 function updateSettings(project, newFields) {
@@ -258,6 +166,3 @@ function updateSettings(project, newFields) {
   );
 }
 
-function clone(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}

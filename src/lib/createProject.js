@@ -8,6 +8,7 @@ import getStreaksFolder from './getStreaksFolder';
 import gapiFiles from './gapi/files.js';
 import gapiSheets from './gapi/sheets.js';
 import uploadJsonFile from './gapi/uploadJsonFile.js';
+import header from './sheets/header.js';
 
 export default createProject;
 
@@ -109,19 +110,4 @@ function updateSheetTemplate(spreadsheetId, name, fields) {
       }
     }]
   }).then(() => spreadsheetId);
-}
-
-
-function header(text) {
-  return {
-    userEnteredValue: {
-      stringValue: text
-    },
-    userEnteredFormat: {
-      horizontalAlignment: 'CENTER',
-      textFormat: {
-        bold: true,
-      },
-    },
-  };
 }
