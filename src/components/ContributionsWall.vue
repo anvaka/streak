@@ -188,7 +188,7 @@ function buildWeekDays(sunday, project) {
     weekDays.push({
       day,
       dayKey,
-      tooltip: moment(day).format('LL'),
+      tooltip: moment(day).format('ddd, LL'),
       dayNumber: i,
       fill: getFillForDate(dayKey, project)
     });
