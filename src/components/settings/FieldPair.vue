@@ -6,6 +6,7 @@
             autocomplete='off'
             placeholder='Give this field a name'
             v-model='field.title'
+            :autofocus='focused'
             :invalid='field.error'
       ></ui-textbox>
       <ui-select
@@ -23,7 +24,13 @@ import { FIELD_TYPES } from '../../types/FieldTypes.js';
 
 export default {
   name: 'FieldPair',
-  props: ['field'],
+  props: {
+    field: Object,
+    focused: {
+      type: Boolean,
+      default: false
+    }
+  },
   components: {
     UiTextbox,
     UiButton,

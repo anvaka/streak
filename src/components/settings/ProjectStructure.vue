@@ -6,7 +6,7 @@
       an input box when you add records to your project.
     </div>
     <div>
-      <field-pair v-for='field in currentFields' :field='field' @remove='removeField'></field-pair>
+      <field-pair v-for='field in currentFields' :field='field' @remove='removeField' :focused='field === focusedField'></field-pair>
       <a @click.prevent='addField' class='add-field' href='#' v-if='canAddMore'>Add field</a>
     </div>
 
@@ -54,6 +54,7 @@ export default {
       // should be props
       formName: 'Update project structure',
       currentFields: cloneFields(this.fields),
+      focusedField: null
     };
   },
   computed: {
@@ -112,11 +113,13 @@ export default {
     },
 
     addField() {
-      this.currentFields.push({
+      const field = {
         title: '',
         error: false,
         type: MULTI_LINE_TEXT
-      });
+      };
+      this.currentFields.push(field);
+      this.focusedField = field;
     },
 
     removeField(field) {
