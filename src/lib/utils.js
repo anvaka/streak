@@ -13,10 +13,12 @@ export function indexBy(collection, propName) {
   const index = new Map();
 
   collection.forEach(el => {
-    const key = el[propName];
-    if (index.has(key)) throw new Error('The name is not unique: ' + key);
+    if (propName in el) {
+      const key = el[propName];
+      if (index.has(key)) throw new Error('The name is not unique: ' + key);
 
-    index.set(key, el);
+      index.set(key, el);
+    }
   });
 
   return index;
