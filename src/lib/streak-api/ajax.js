@@ -25,8 +25,6 @@ export function request(url, params) {
     const method = params.method || 'GET';
     oReq.open(method, queryPart ? (url + suffix + queryPart) : url);
 
-    const headers = params.headers || Object.create(null);
-
     if (method === 'POST') {
       oReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
       oReq.send(stringify(params.body));

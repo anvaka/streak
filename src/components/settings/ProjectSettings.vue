@@ -111,7 +111,7 @@ export default {
     deleteProjectClick() {
       deleteProject(this.project.id).then(() => {
         this.$router.replace({
-          name: 'dashboard'
+          name: 'userPage'
         });
       });
     },

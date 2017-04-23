@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Dashboard from '../components/Dashboard.vue';
+import UserPage from '../components/UserPage.vue';
 import AddRecordContainer from '../components/AddRecordContainer.vue';
 import NewProject from '../components/NewProject.vue';
 import ProjectPage from '../components/ProjectPage.vue';
@@ -12,8 +12,8 @@ Vue.use(Router);
 export default new Router({
   routes: [{
     path: '/',
-    name: 'dashboard',
-    component: Dashboard,
+    name: 'userPage',
+    component: UserPage,
     props: true
   }, {
     path: '/new-project',
@@ -21,7 +21,7 @@ export default new Router({
     component: NewProject
   }, {
     path: '/project/:projectId',
-    component: Dashboard,
+    component: UserPage,
     props: true,
     children: [{
       path: '',

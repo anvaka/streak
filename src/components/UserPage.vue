@@ -1,5 +1,5 @@
 <template>
-  <div class='dashboard'>
+  <div class='user-page'>
     <div v-if='noProjects' class='no-projects-sidebar' :class='{someone: projectId}'>
       You don't have any projects yet. <router-link :to='{name: "new-project"}'>Start a new project</router-link>
     </div>
@@ -19,7 +19,7 @@
       </div>
       <div class='project-list'>
           <router-link class='project-link'
-            v-for='project in projectList.projects' :to='{name: "project-overview", params: {projectId: project.id}}'
+            v-for='project in projectList.projects' :to='{name: "project-overview", params: {projectId: project.id, userId: project.ownerId}}'
             >{{project.name}}</router-link>
       </div>
     </div>
@@ -30,7 +30,7 @@ import { UiButton, UiIconButton } from 'keen-ui';
 import projectList, { loadProjects } from '../lib/projectList.js';
 
 export default {
-  name: 'Dashboard',
+  name: 'UserPage',
   props: ['projectId'],
   data() {
     return {
@@ -47,7 +47,7 @@ export default {
     $route(to) {
       // TODO: this doesn't work very well, if you click on the same project.
       // if we clicked on the "Home" folder, the name is not projects anymore
-      this.projectsListExpanded = to.name === 'dashboard';
+      this.projectsListExpanded = to.name === 'userPage';
       const { mainContent } = this.$refs;
 
       if (mainContent) {
@@ -74,7 +74,7 @@ export default {
 <style scoped lang='stylus'>
 @import '../styles/variables.styl'
 
-.dashboard {
+.user-page {
   flex: 1;
 }
 

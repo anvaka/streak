@@ -36,8 +36,8 @@ function listFiles(parentId) {
 
     // TODO: This should probably be done when user changes project visibility to
     // "public"
-    const publicProjects = files.filter(byPublicPermissions);
-    savePublicProjects(publicProjects);
+    // const publicProjects = files.filter(byPublicPermissions);
+    // savePublicProjects(publicProjects);
 
     projectList.projects = files;
     projectList.loading = false;
