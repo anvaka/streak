@@ -6,6 +6,7 @@ import uploadJsonFile from './gapi/uploadJsonFile.js';
 import constructSheetUpdateDiff from './sheets/constructSheetUpdateDiff.js';
 import { batchUpdate } from './sheetOperations.js';
 import { clone } from './utils.js';
+import { savePublicProjects } from './streak-api/actions.js';
 
 const projectList = {
   error: null,
@@ -26,18 +27,30 @@ export function loadProjects() {
 }
 
 function listFiles(parentId) {
-  return new Promise((resolve, reject) => {
-    gapi.client.drive.files.list({
-      q: `trashed = false and '${parentId}' in parents`,
-      pageSize: 1000,
-      fields: 'nextPageToken, files(id, name)'
-    }).then((response) => {
-      const files = response.result.files;
-      projectList.projects = files;
-      projectList.loading = false;
-      resolve(projectList);
-    }, reject);
+  return gapiFiles('list', {
+    q: `trashed = false and '${parentId}' in parents`,
+    pageSize: 1000,
+    fields: 'nextPageToken, files(id, name, permissions)'
+  }).then((result) => {
+    const { files } = result;
+
+    // TODO: This should probably be done when user changes project visibility to
+    // "public"
+    const publicProjects = files.filter(byPublicPermissions);
+    savePublicProjects(publicProjects);
+
+    projectList.projects = files;
+    projectList.loading = false;
+    return projectList;
   });
+}
+
+function byPublicPermissions(file) {
+  for (let i = 0; i < file.permissions.length; ++i) {
+    if (file.permissions[i].type === 'anyone') return true;
+  }
+
+  return false;
 }
 
 export function deleteProject(fileId) {

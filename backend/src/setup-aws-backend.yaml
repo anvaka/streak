@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Experimental graph storage for streak.
+
+Outputs:
+  ApiEndpoint:
+    Description: "Stage API endpoint"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/streak"
+
+Resources:
+  StreakAPI:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs6.10
+      CodeUri: ./handler/
+      Description: 'Streak API handler'
+      Policies: AmazonDynamoDBFullAccess
+      MemorySize: 128
+      Timeout: 6
+      Events:
+        PostResource:
+          Type: Api
+          Properties:
+            Path: /streak
+            Method: POST
+
+  # We store all our data as a graph.
+  GraphEdges:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Streak_Graph_Edges
+      AttributeDefinitions:
+        - AttributeName: FromId
+          AttributeType: S
+        - AttributeName: ToId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: FromId
+          KeyType: HASH
+        - AttributeName: ToId
+          KeyType: RANGE
+      ProvisionedThroughput:
+          ReadCapacityUnits: '1'
+          WriteCapacityUnits: '1'
+      GlobalSecondaryIndexes:
+        - IndexName: ToId
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+              ReadCapacityUnits: '1'
+              WriteCapacityUnits: '1'
+          KeySchema:
+            - AttributeName: ToId
+              KeyType: HASH
+            - AttributeName: FromId
+              KeyType: RANGE
+
+  GraphNodes:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Streak_Graph_Nodes
+      AttributeDefinitions:
+        - AttributeName: NodeId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: NodeId
+          KeyType: HASH
+      ProvisionedThroughput:
+          ReadCapacityUnits: '1'
+          WriteCapacityUnits: '1'
