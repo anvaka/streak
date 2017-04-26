@@ -1,14 +1,13 @@
 /**
  * Appends or updates a new log record to a project log
  */
-import { resetSheetDataCache } from './store/cachingDocs.js';
-import { getParentFolder } from './store/sheetIdToFolder.js';
-import gapiSheets from './gapi/sheets.js';
-import gapiFiles from './gapi/files.js';
+import { resetSheetDataCache } from './cachingDocs.js';
+import gapiSheets from '../gapi/sheets.js';
+import gapiFiles from '../gapi/files.js';
 
 const RANGE_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-export function updateRow(spreadsheetId, record, row) {
+export function updateRow(projectId, spreadsheetId, record, row) {
   if (record.length >= RANGE_NAMES.length) throw new Error('Too many columns');
 
   const prefix = row !== undefined ? 'A' + (row + 2) : 'A2'; // +2 because we are zero based, and skip headers
@@ -24,19 +23,12 @@ export function updateRow(spreadsheetId, record, row) {
     valueInputOption: 'USER_ENTERED',
     values: [record],
   }).then(response => {
-    fireAndForgetParentTouch(spreadsheetId);
+    fireAndForgetParentTouch(projectId);
     return response;
   });
 }
 
-export function batchUpdate(spreadsheetId, requests) {
-  return gapiSheets('batchUpdate', {
-    spreadsheetId,
-    requests
-  });
-}
-
-export function deleteRow(spreadsheetId, rowIndex) {
+export function deleteRow(projectId, spreadsheetId, rowIndex) {
   resetSheetDataCache(spreadsheetId);
 
   return gapiSheets('batchUpdate', {
@@ -52,27 +44,29 @@ export function deleteRow(spreadsheetId, rowIndex) {
       }
     }]
   }).then(response => {
-    fireAndForgetParentTouch(spreadsheetId);
+    fireAndForgetParentTouch(projectId);
 
     return response;
   });
 }
 
-function fireAndForgetParentTouch(spreadsheetId) {
+export function batchUpdate(spreadsheetId, requests) {
+  return gapiSheets('batchUpdate', {
+    spreadsheetId,
+    requests
+  });
+}
+
+
+function fireAndForgetParentTouch(projectId) {
   // This will update last modified time stamp on the parent folder. That
   // way we can always list folder in MRU style. According to the book
   // "The Algorithms to live by", this is one of the best possible ways to organize
   // stuff. So, let's try it here.
-  const parentFolderId = getParentFolder(spreadsheetId);
-  if (!parentFolderId) {
-    // Though suspicious, not a big deal. We will not get the stamp updated.
-    return;
-  }
-
   const now = new Date();
   // this is fire and forget call. We don't care if it fails.
   gapiFiles('update', {
-    fileId: parentFolderId,
+    fileId: projectId,
     resource: {
       modifiedTime: now.toISOString()
     }

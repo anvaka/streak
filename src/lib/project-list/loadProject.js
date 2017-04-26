@@ -10,22 +10,18 @@
  * to upload their images with every "commit".
  */
 import InputTypes from 'src/types/InputTypes';
-import extractHeaderTypesFromData from './extractHeaderTypesFromData';
+import extractHeaderTypesFromData from './utils/extractHeaderTypesFromData';
 import ProjectHistoryViewModel from './ProjectHistoryViewModel';
-import { setParentFolder } from './store/sheetIdToFolder.js';
 import {
   loadSheetWithSettings,
   getLogFileSpreadsheetId
-} from './store/cachingDocs.js';
+} from '../store/cachingDocs.js';
 
 export default loadProject;
 
 function loadProject(projectFolderId) {
   return getLogFileSpreadsheetId(projectFolderId)
     .then(folderContent => {
-      // Remember the mapping to the parent folder so that later we can use it
-      // to `touch` parent folder on each update (see `updateRow.js`)
-      setParentFolder(folderContent.spreadsheetFile.id, projectFolderId);
       return loadSpreadsheet(folderContent, projectFolderId);
     });
 }
@@ -34,7 +30,6 @@ function loadSpreadsheet(folderContent, projectId) {
   const { spreadsheetFile, settingsFileId } = folderContent;
 
   const spreadsheetId = spreadsheetFile.id;
-  const { canEdit } = spreadsheetFile.capabilities;
   const { owners, name, description } = spreadsheetFile;
 
   return loadSheetWithSettings(spreadsheetId, settingsFileId)
@@ -43,7 +38,6 @@ function loadSpreadsheet(folderContent, projectId) {
   function convertToViewModel(sheetWithSettings) {
     const vm = makeProjectViewModel({
       id: projectId,
-      canEdit,
       owners,
       sheetData: sheetWithSettings.sheet,
       settings: sheetWithSettings.settings,
@@ -78,7 +72,7 @@ function checkHeadersAreValid(headers) {
 }
 
 function makeProjectViewModel(project) {
-  const { sheetData, canEdit, owners, spreadsheetId, settings } = project;
+  const { sheetData, owners, spreadsheetId, settings } = project;
   // TODO: Don't extract this, if streak-settings.json is present.
   const headers = extractHeaderTypesFromData(sheetData, settings);
 
@@ -88,7 +82,6 @@ function makeProjectViewModel(project) {
 
   return {
     id: project.id,
-    canEdit,
     owner: owners[0],
     sheetData: sheetData.values,
     spreadsheetId,

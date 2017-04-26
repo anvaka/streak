@@ -41,12 +41,30 @@ export default {
   created() {
     this.loading = true;
     this.error = null;
-    auth.initiateSignInStatus();
+    auth.initiateSignInStatus().then(() => {
+      this.ensureOnUserPage();
+    });
+  },
+
+  watch: {
+    $route() {
+      this.ensureOnUserPage();
+    }
   },
 
   methods: {
     signOut() {
       auth.signOut();
+    },
+    ensureOnUserPage() {
+      if (this.$route.name === 'redirectToUser') {
+        this.$router.replace({
+          name: 'userPage',
+          params: {
+            userId: this.userId
+          }
+        });
+      }
     }
   },
 

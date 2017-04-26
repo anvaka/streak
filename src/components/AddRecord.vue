@@ -19,43 +19,26 @@
         </div>
       </div>
     </div>
-    <div class='actions' v-if='!isSaveInProgress'>
+    <div class='actions' v-if='showActions'>
       <ui-button type='secondary' class='cancel-btn'  buttonType='button' @click.prevent='cancel'>
         Cancel
       </ui-button>
-      <ui-button type='secondary' class='commit-btn' v-if='!isSaveInProgress' color='primary'  buttonType='submit'>
+      <ui-button type='secondary' class='commit-btn' color='primary'  buttonType='submit'>
         Save record
       </ui-button>
-    </div>
-
-    <div v-if='isSaveInProgress'>
-      <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
-      Committing new record...
-    </div>
-
-    <div v-if='error'>
-      <h2 class='error-title'>I am sorry...</h2>
-      <p>
-      An error has happened. Please try saving this record again.
-      </p>
-      <p>If the error happens again, email technical details to me: <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a></p>
-      <pre>{{error}}</pre>
     </div>
   </form>
 </template>
 <script>
 import { UiTextbox, UiButton, UiIconButton } from 'keen-ui';
-import resetFields from 'src/lib/resetFields';
 import Date from './inputs/Date';
 import MultiLineText from './inputs/MultiLineText';
 import SingleLineText from './inputs/SingleLineText';
 import Number from './inputs/Number';
 import ImageInput from './inputs/Image';
 
-import { updateRow } from '../lib/sheetOperations.js';
-
 export default {
-  props: ['fields', 'spreadsheetId', 'row'],
+  props: ['fields', 'showActions', 'row'],
   components: {
     UiTextbox,
     UiButton,
@@ -67,26 +50,12 @@ export default {
     ImageInput
   },
   data() {
-    return {
-      isSaveInProgress: false,
-      error: null
-    };
+    return {};
   },
   methods: {
     commitChanges() {
-      this.error = null;
-      this.isSaveInProgress = true;
-
       const newRowValues = this.fields.map(field => field.value);
-
-      updateRow(this.spreadsheetId, newRowValues, this.row).then(() => {
-        this.isSaveInProgress = false;
-        resetFields(this.fields);
-        this.$emit('saved');
-      }).catch(err => {
-        this.isSaveInProgress = false;
-        this.error = err;
-      });
+      this.$emit('commit', newRowValues);
     },
     cancel() {
       this.$emit('cancel');

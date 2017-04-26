@@ -4,7 +4,7 @@
  * The project is always stored in its own folder, which is a child of all streaks folder.
  * Each project has at least one spreadsheet file, where project log is saved.
  */
-import getStreaksFolder from './getStreaksFolder';
+import { getStreaksFolder, makeNewStreakFolder } from './store/streaksFolder.js';
 import gapiFiles from './gapi/files.js';
 import gapiSheets from './gapi/sheets.js';
 import uploadJsonFile from './gapi/uploadJsonFile.js';
@@ -16,13 +16,33 @@ export default createProject;
 // refactoring.
 function createProject(name, description, fields) {
   return getStreaksFolder()
+    .then(createStreakFolderIfNeeded)
     .then(createProjectFolder)
     .then(parentFolderId => {
       return Promise.all([
         createLogFile(parentFolderId),
         createSettingsFile(parentFolderId)
-      ]).then(() => parentFolderId);
+      ]).then(() => ({
+        // TODO: This needs to be in sync with loadMyProjects(). Makes code
+        // very brittle. change it
+        id: parentFolderId,
+        name,
+        description,
+        // TODO: Change this to actual value
+        isPublic: false,
+        canEdit: true
+      }));
     });
+
+  function createStreakFolderIfNeeded(parent) {
+    if (parent) {
+      // this means that the parent folder exists, no need to create it again
+      return parent;
+    }
+
+    // If we get here, it means that this is the first project, in the user's account
+    return makeNewStreakFolder();
+  }
 
   function createProjectFolder(parent) {
     if (!parent) throw new Error('Parent was not specified');

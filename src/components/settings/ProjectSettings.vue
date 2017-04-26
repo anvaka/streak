@@ -49,7 +49,6 @@ import { UiButton } from 'keen-ui';
 
 import NameAndDescription from './NameAndDescription.vue';
 import ProjectStructure from './ProjectStructure.vue';
-import { updateNameAndDescription, deleteProject, updateProjectStructure } from '../../lib/projectList.js';
 
 export default {
   name: 'ProjectSettings',
@@ -89,7 +88,7 @@ export default {
   methods: {
     onProjectNameUpdated(name, description) {
       this.loading = true;
-      updateNameAndDescription(this.project.spreadsheetId, name, description)
+      this.project.updateNameAndDescription(name, description)
         .then(() => {
           // eventual consistency :( - this is probably not very reliable.
           // We are waiting to let Google read endpoint catch up
@@ -103,13 +102,13 @@ export default {
     },
 
     onProjectStructureUpdated(projectStructure) {
-      updateProjectStructure(this.project, projectStructure).then(() => {
+      this.project.updateStructure(projectStructure).then(() => {
         this.goToParent();
       });
     },
 
     deleteProjectClick() {
-      deleteProject(this.project.id).then(() => {
+      this.project.moveToTrash().then(() => {
         this.$router.replace({
           name: 'userPage'
         });
@@ -119,9 +118,6 @@ export default {
     goToParent() {
       this.$router.push({
         name: 'project-overview',
-        params: {
-          projectId: this.project.id
-        }
       });
     }
   }

@@ -12,15 +12,18 @@ Vue.use(Router);
 export default new Router({
   routes: [{
     path: '/',
-    name: 'userPage',
-    component: UserPage,
-    props: true
+    name: 'redirectToUser',
   }, {
     path: '/new-project',
     name: 'new-project',
     component: NewProject
   }, {
-    path: '/project/:projectId',
+    path: '/:userId',
+    name: 'userPage',
+    component: UserPage,
+    props: true
+  }, {
+    path: '/:userId/project/:projectId',
     component: UserPage,
     props: true,
     children: [{

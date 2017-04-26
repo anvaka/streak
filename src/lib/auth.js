@@ -29,7 +29,7 @@ const signInStatus = {
   error: null,
   loading: true,
   profile: null,
-  userId: 'hello',
+  userId: null,
 
   // need to have both, because we can be in the 'error/loading' states.
   // Maybe I should change this to enum
@@ -52,7 +52,15 @@ export default {
    * gets current sign in status
    */
   signInStatus,
+
 };
+
+/**
+ * gets current user id
+ */
+export function getCurrentUserId() {
+  return signInStatus && signInStatus.userId;
+}
 
 function signOut() {
   gapi.auth2.getAuthInstance().signOut();
@@ -93,8 +101,10 @@ function updateSignInStatus(isSignedIn) {
     signInStatus.profile = extractProfile();
     signInStatus.signedIn = true;
     signInStatus.signedOut = false;
+    signInStatus.userId = signInStatus.profile.id;
   } else {
     signInStatus.profile = null;
+    signInStatus.userId = null;
     signInStatus.signedIn = false;
     signInStatus.signedOut = true;
   }
@@ -110,6 +120,7 @@ function extractProfile() {
   const basicProfile = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile();
 
   return {
+    id: basicProfile.getId(),
     image: basicProfile.getImageUrl(),
     name: basicProfile.getName(),
     email: basicProfile.getEmail()

@@ -6,7 +6,7 @@
  * Additionally, project contributions can be filtered to be only within specific range.
  */
 import InputTypes from 'src/types/InputTypes';
-import { getDateString, isDayInside } from './dateUtils.js';
+import { getDateString, isDayInside } from '../dateUtils.js';
 
 export default class ProjectHistoryViewModel {
   constructor(sheetData, headers) {

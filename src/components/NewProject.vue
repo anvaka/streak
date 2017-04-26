@@ -46,7 +46,9 @@
 <script>
 import { UiIconButton, UiButton } from 'keen-ui';
 
-import gapiCreateProject from '../lib/createProject';
+import { getCurrentUserId } from '../lib/auth.js';
+import getProjectList from '../lib/getProjectList.js';
+
 import NameAndDescription from './settings/NameAndDescription.vue';
 import ProjectStructure from './settings/ProjectStructure.vue';
 import { MULTI_LINE_TEXT, DATE } from '../types/FieldTypes.js';
@@ -98,14 +100,15 @@ export default {
       }
 
       this.step = 3;
-      gapiCreateProject(this.projectName, this.description, fields).then((projectId) => {
+
+      const userId = getCurrentUserId();
+      const projectList = getProjectList(userId);
+      projectList.createNewProject(this.projectName, this.description, fields).then((projectId) => {
         this.error = null;
 
         this.$router.push({
           name: 'project-overview',
-          params: {
-            projectId
-          }
+          params: { projectId, userId }
         });
       }, err => {
         // Go to previous wizard page

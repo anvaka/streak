@@ -20,7 +20,6 @@
 
 <script>
 import { UiIconButton } from 'keen-ui';
-import { deleteRow } from '../lib/sheetOperations.js';
 import bus from '../lib/bus.js';
 
 export default {
@@ -38,17 +37,16 @@ export default {
     deleteRecordClick(row) {
       this.deleteInProgress = true;
       this.error = false;
-      deleteRow(this.project.spreadsheetId, row.rowIndex)
-        .then(() => {
-          bus.fire('reload-project');
-          this.showDeleteConfirmation = false;
-          this.deleteInProgress = false;
-        })
-        .catch((e) => {
-          console.log('Failed to delete row', e);
-          this.error = true;
-          this.deleteInProgress = false;
-        });
+      this.project.deleteRow(row.rowIndex).then(() => {
+        bus.fire('reload-project');
+        this.showDeleteConfirmation = false;
+        this.deleteInProgress = false;
+      })
+      .catch((e) => {
+        console.log('Failed to delete row', e);
+        this.error = true;
+        this.deleteInProgress = false;
+      });
     },
   },
   components: {

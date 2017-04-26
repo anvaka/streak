@@ -1,6 +1,6 @@
 <template>
   <h2 class='project-title' v-if='project'>
-    <span>{{project.title}}</span> <span v-if='!project.owner.me' class='by-line'>by {{project.owner.displayName}}</span>
+    <span>{{project.title}}</span> <span v-if='!project.canEdit' class='by-line'>by {{project.owner.displayName}}</span>
   </h2>
 </template>
 

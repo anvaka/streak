@@ -9,7 +9,7 @@
          <h3 class='welcome-message'>Welcome!</h3>
            Please select a project to get started.
          </div>
-      <router-view></router-view>
+      <router-view :project='currentProject'></router-view>
     </div>
 
 
@@ -20,29 +20,25 @@
       <div class='project-list'>
           <router-link class='project-link'
             v-for='project in projectList.projects' :to='{name: "project-overview", params: {projectId: project.id, userId: project.ownerId}}'
-            >{{project.name}}</router-link>
+            >{{project.title}}</router-link>
       </div>
     </div>
   </div>
 </template>
 <script>
 import { UiButton, UiIconButton } from 'keen-ui';
-import projectList, { loadProjects } from '../lib/projectList.js';
+import getProjectList from '../lib/getProjectList.js';
 
 export default {
   name: 'UserPage',
-  props: ['projectId'],
+  props: ['projectId', 'userId'],
   data() {
     return {
-      projectList,
+      projectList: getProjectList(this.userId),
       // If there is no project ID, we are looking at home page
       projectsListExpanded: this.projectId === undefined
     };
   },
-  created () {
-    loadProjects();
-  },
-
   watch: {
     $route(to) {
       // TODO: this doesn't work very well, if you click on the same project.
@@ -57,10 +53,15 @@ export default {
   },
   computed: {
     hasProjects() {
-      return !projectList.loading && projectList.projects.length > 0;
+      return !this.projectList.loading && this.projectList.projects.length > 0;
     },
     noProjects() {
-      return !projectList.loading && projectList.projects.length === 0;
+      return !this.projectList.loading && this.projectList.projects.length === 0;
+    },
+    currentProject() {
+      if (this.projectList.loading) return null;
+
+      return this.projectList.get(this.projectId);
     }
   },
   methods: {},

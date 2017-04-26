@@ -1,12 +1,27 @@
 <template>
   <div class='add-record-container'>
-    <add-record :fields='fields' :row='row'
-      :spreadsheet-id='project.spreadsheetId'
-      v-if='project'
-      @saved='goToProjects' @cancel='goToProjects'></add-record>
+      <add-record v-if='project && !project.loading'
+        :show-actions='!isSaveInProgress'
+        :fields='fields' :row='row'
+        @commit='commitChanges' @cancel='goToProjects'></add-record>
+
+    <div v-if='isSaveInProgress'>
+      <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
+      Saving record...
+    </div>
+    <div v-if='error'>
+      <h2 class='error-title'>I am sorry...</h2>
+      <p>
+      An error has happened. Please try saving this record again.
+      </p>
+      <p>If the error happens again, email technical details to me: <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a></p>
+      <pre>{{error}}</pre>
+    </div>
   </div>
 </template>
 <script>
+import { UiIconButton } from 'keen-ui';
+
 import InputTypes from 'src/types/InputTypes';
 import { getDateFromFilterString, getNow } from 'src/lib/dateUtils';
 
@@ -16,31 +31,50 @@ export default {
   name: 'AddRecordContainer',
   props: ['project', 'row', 'date'],
   components: {
-    AddRecord
+    AddRecord,
+    UiIconButton
   },
-
-  data() {
-    return {
-      fields: [],
-    };
+  created() {
+    this.ensureFieldsLoaded();
   },
-
   watch: {
-    project(newProject, /* oldProject */) {
-      const dateString = this.$route.query.date;
-      const date = dateString ? getDateFromFilterString(dateString) : undefined;
-      this.fields = getFieldsFromProject(newProject, this.row, date);
+    'project.loading': function projectLoadingChanged() {
+      // TODO: this seem to be very complex. I cannot use
+      // computed properties because keen ui/vue do not save updated values.
+      // need to figure out what is wrong.
+      this.ensureFieldsLoaded();
     }
   },
-
+  data() {
+    return {
+      error: null,
+      isSaveInProgress: false,
+      fields: []
+    };
+  },
   methods: {
-    goToProjects() {
-      this.$router.push({
-        name: 'project-overview',
-        params: {
-          projectId: this.project.id
-        }
+    ensureFieldsLoaded() {
+      if (!this.project || this.project.loading) return;
+
+      const dateString = this.$route.query.date;
+      const date = dateString ? getDateFromFilterString(dateString) : undefined;
+
+      this.fields = getFieldsFromProject(this.project, this.row, date);
+    },
+    commitChanges(newRowValues) {
+      this.error = null;
+      this.isSaveInProgress = true;
+
+      this.project.updateRow(newRowValues, this.row).then(() => {
+        this.isSaveInProgress = false;
+        this.goToProjects();
+      }).catch(err => {
+        this.isSaveInProgress = false;
+        this.error = err;
       });
+    },
+    goToProjects() {
+      this.$router.push({ name: 'project-overview' });
     },
   }
 };

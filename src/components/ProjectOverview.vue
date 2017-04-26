@@ -1,5 +1,5 @@
 <template>
-  <div class='project-details-container' v-if='project'>
+  <div class='project-details-container' v-if='project && !project.loading'>
     <div class='description' v-if='description' v-html='description'></div>
 
     <contributions-wall :project='project' @filter='filterContributions' v-if='!error && project'></contributions-wall>
