@@ -6,6 +6,7 @@
         form-title='Step 1: Give your project a name'
         :description='description'
         :name='projectName'
+        :isPublic='isPublic'
         :focus='true' @updated='saveNameAndDescription'>
         <div class='step-actions'>
           <ui-button type='secondary' color='primary' @click.prevent='goBack' buttonType='button'>
@@ -61,6 +62,7 @@ export default {
       projectName: '',
       description: '',
       error: null,
+      isPublic: true,
       fields: [{
         title: 'When',
         valueType: DATE.value
@@ -74,15 +76,16 @@ export default {
   computed: {
     pageName() {
       if (this.projectName) {
-        return 'New Project - ' + this.projectName;
+        return 'New project - ' + this.projectName;
       }
-      return 'New Project';
+      return 'New project';
     }
   },
   methods: {
-    saveNameAndDescription(name, description) {
+    saveNameAndDescription(name, description, isPublic) {
       this.projectName = name;
       this.description = description;
+      this.isPublic = isPublic;
       this.step = 2;
     },
 
@@ -103,7 +106,13 @@ export default {
 
       const userId = getCurrentUserId();
       const projectList = getProjectList(userId);
-      projectList.createNewProject(this.projectName, this.description, fields).then((projectId) => {
+
+      projectList.createNewProject(
+        this.projectName,
+        this.description,
+        this.isPublic,
+        fields
+      ).then((projectId) => {
         this.error = null;
 
         this.$router.push({

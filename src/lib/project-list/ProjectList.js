@@ -34,8 +34,8 @@ export default class ProjectList {
     }
   }
 
-  createNewProject(projectName, description, fields) {
-    return gapiCreateProject(projectName, description, fields)
+  createNewProject(projectName, description, isPublic, fields) {
+    return gapiCreateProject(projectName, description, isPublic, fields)
     .then(file => {
       const project = new Project(file, this);
       this.projectLookup.set(project.id, project);

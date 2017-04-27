@@ -3,6 +3,25 @@
     <h3>{{formTitle}}</h3>
     <ui-textbox label="Project name" v-model="projectName" required :autofocus='focus'></ui-textbox>
     <ui-textbox label="Project description (Optional)" v-model="projectDescription"></ui-textbox>
+    <div class='visibility-settings-container'>
+      <div class='secondary'>Project visibility</div>
+      <div class='visibility-settings-content'>
+        <ui-radio v-model='projectVisibility' true-value='public' class='visibility-radio'>
+          <div>
+            <div class='visibility-header'>Public</div>
+            <div class='visibility-help'>
+              Public projects are visible to everyone.
+            </div>
+          </div>
+        </ui-radio>
+        <ui-radio v-model='projectVisibility' true-value='private' class='visibility-radio'>
+          <div>
+            <div class='visibility-header'>Private</div>
+            <div class='visibility-help'>Only you can see this project.</div>
+          </div>
+        </ui-radio>
+      </div>
+    </div>
     <div>
       <slot>
         <ui-button type='secondary' color='primary'
@@ -14,7 +33,7 @@
   </form>
 </template>
 <script>
-import { UiTextbox, UiButton } from 'keen-ui';
+import { UiTextbox, UiButton, UiRadio } from 'keen-ui';
 
 export default {
   name: 'NameAndDescription',
@@ -22,23 +41,29 @@ export default {
     name: String,
     focus: Boolean,
     description: String,
+    isPublic: {
+      type: Boolean,
+      default: true
+    },
     formTitle: {
       type: String,
-      default: 'Name and description'
+      default: 'Basics'
     },
     formAction: {
       type: String,
-      default: 'Update name and description'
+      default: 'Save'
     }
   },
   components: {
     UiButton,
-    UiTextbox
+    UiTextbox,
+    UiRadio
   },
   data() {
     return {
       projectName: this.name || '',
       projectDescription: this.description || '',
+      projectVisibility: this.isPublic ? 'public' : 'private'
     };
   },
   watch: {
@@ -59,9 +84,27 @@ export default {
       if (this.isProjectNameInvalid()) {
         return;
       }
-      this.$emit('updated', this.projectName, this.projectDescription);
+      this.$emit('updated', this.projectName, this.projectDescription, this.projectVisibility === 'public');
     }
   }
 
 };
 </script>
+<style lang='stylus'>
+@import '../../styles/variables.styl';
+
+.visibility-settings-container {
+  margin-top: 24px;
+}
+
+.visibility-settings-content {
+  margin: 14px;
+}
+.visibility-radio {
+  height: auto;
+  margin-bottom: 14px;
+  .visibility-help {
+    color: secondary-text-color;
+  }
+}
+</style>

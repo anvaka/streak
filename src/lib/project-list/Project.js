@@ -1,5 +1,5 @@
 import loadProject from './loadProject.js';
-import updateNameAndDescription from '../store/updateNameAndDescription.js';
+import updateProjectInfo from '../store/updateProjectInfo.js';
 import updateProjectStructure from '../store/updateProjectStructure.js';
 import moveProjectToTrash from '../store/moveProjectToTrash.js';
 import { updateRow, deleteRow } from '../store/sheetOperations.js';
@@ -56,11 +56,12 @@ export default class Project {
     return deleteRow(this.id, this.spreadsheetId, rowIndex);
   }
 
-  updateNameAndDescription(name, description) {
-    return updateNameAndDescription(this.id, this.spreadsheetId, name, description)
+  updateProjectInfo(name, description, isPublic) {
+    return updateProjectInfo(this.id, this.spreadsheetId, name, description, isPublic)
     .then(all => {
       this.title = name;
       this.description = description;
+      this.isPublic = isPublic;
       return all;
     });
   }

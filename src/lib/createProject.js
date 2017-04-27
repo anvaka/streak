@@ -9,12 +9,13 @@ import gapiFiles from './gapi/files.js';
 import gapiSheets from './gapi/sheets.js';
 import uploadJsonFile from './gapi/uploadJsonFile.js';
 import header from './sheets/header.js';
+import changePermissions from './store/changePermissions.js';
 
 export default createProject;
 
 // TODO: Some of this code is duplicated by `projectList/sheetOptions' consider
 // refactoring.
-function createProject(name, description, fields) {
+function createProject(name, description, isPublic, fields) {
   return getStreaksFolder()
     .then(createStreakFolderIfNeeded)
     .then(createProjectFolder)
@@ -28,8 +29,7 @@ function createProject(name, description, fields) {
         id: parentFolderId,
         name,
         description,
-        // TODO: Change this to actual value
-        isPublic: false,
+        isPublic,
         canEdit: true
       }));
     });
@@ -60,7 +60,16 @@ function createProject(name, description, fields) {
     return gapiFiles('create', {
       resource: fileMetadata,
       fields: 'id'
-    }).then(result => result.id);
+    }).then(result => result.id).then(projectId => {
+      if (isPublic) {
+        // if user wants to make this file public we need to issue special
+        // update request to the gapi
+        return changePermissions(projectId, isPublic).then(() => projectId);
+      }
+
+      // otherwise no need to change anything
+      return projectId;
+    });
   }
 
   function createSettingsFile(parentFolderId) {

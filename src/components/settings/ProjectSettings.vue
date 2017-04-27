@@ -1,9 +1,10 @@
 <template>
   <div>
     <name-and-description @updated='onProjectNameUpdated'
-      form-action='Update name and description'
+      form-action='Update'
       :name='name'
-      :description='description'>
+      :description='description'
+      :isPublic='isPublic'>
     </name-and-description>
 
     <project-structure :fields='fields' @updated='onProjectStructureUpdated'></project-structure>
@@ -68,6 +69,9 @@ export default {
     description() {
       return this.project && this.project.description;
     },
+    isPublic() {
+      return this.project && this.project.isPublic;
+    },
     fields() {
       // TODO: should call this consistently (headers/fields/columns are all the same);
       return this.project && this.project.headers;
@@ -86,9 +90,9 @@ export default {
   },
 
   methods: {
-    onProjectNameUpdated(name, description) {
+    onProjectNameUpdated(name, description, isPublic) {
       this.loading = true;
-      this.project.updateNameAndDescription(name, description)
+      this.project.updateProjectInfo(name, description, isPublic)
         .then(() => {
           // eventual consistency :( - this is probably not very reliable.
           // We are waiting to let Google read endpoint catch up
