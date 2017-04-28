@@ -1,19 +1,16 @@
-const saveProjects = require('./operations/saveProjects.js');
+const saveProjectPublic = require('./operations/saveProjectPublic.js');
 
 module.exports = route;
 
 function route(req) {
   if (!req.body) return;
+  console.log('routing ', req.body.operation);
 
   switch (req.body.operation) {
-    case 'save-projects':
-      return saveProjectsRoute(req);
+    case 'set-project-public':
+      return saveProjectPublic(req);
     default:
       throw new Error('Not implemented');
   }
 }
 
-function saveProjectsRoute({ body, user }) {
-  const projects = JSON.parse(body.projects);
-  return saveProjects(projects, user);
-}

@@ -12,23 +12,34 @@ class DyGraph {
     });
   }
 
+  removeEdge(fromId, toId) {
+    this._pendingEdges.push({
+      operation: 'remove',
+      fromId,
+      toId
+    });
+  }
+
   addEdge(fromId, toId, data) {
     this._pendingEdges.push({
-      fromId, toId, data
-    })
+      operation: 'update',
+      fromId,
+      toId,
+      data
+    });
   }
 
   getOutEdges(fromId, beginsWith) {
-    var params = {
+    const params = {
       TableName: this.options.edgesTable,
       KeyConditionExpression: 'FromId = :fromId',
       ExpressionAttributeValues: {
-        ':fromId':fromId,
+        ':fromId': fromId,
       }
     };
 
     if (beginsWith) {
-      params.KeyConditionExpression += ' and begins_with(ToId, :beginsWith)'
+      params.KeyConditionExpression += ' and begins_with(ToId, :beginsWith)';
       params.ExpressionAttributeValues[':beginsWith'] = beginsWith;
     }
 
@@ -38,7 +49,7 @@ class DyGraph {
   }
 
   getInEdges(toId) {
-    var params = {
+    const params = {
       TableName: this.options.edgesTable,
       IndexName: 'ToId',
       KeyConditionExpression: 'ToId = :toId',
@@ -53,10 +64,12 @@ class DyGraph {
   }
 
   save() {
-    var updates = this._pendingNodes.map(node => {
+    const updates = this._pendingNodes.map(node => {
       return updateNode(this.options.dynamo, this.options.nodesTable, node);
     }).concat(this._pendingEdges.map(edge => {
-      return updateEdge(this.options.dynamo, this.options.edgesTable, edge);
+      return edge.operation === 'update' ?
+        updateEdge(this.options.dynamo, this.options.edgesTable, edge) :
+        removeEdge(this.options.dynamo, this.options.edgesTable, edge);
     }));
 
     return Promise.all(updates);
@@ -67,7 +80,7 @@ module.exports = DyGraph;
 
 function updateNode(dynamo, table, node) {
   return new Promise((resolve, reject) => {
-    var params = {
+    const params = {
       TableName: table,
       Key: { NodeId: node.id, },
       UpdateExpression: 'SET  createdTime = if_not_exists(createdTime, :createdTime)',
@@ -78,7 +91,7 @@ function updateNode(dynamo, table, node) {
 
     if (node.data) {
       params.UpdateExpression += ', #data = :nodeData';
-      params.ExpressionAttributeNames = {'#data': 'data'};
+      params.ExpressionAttributeNames = { '#data': 'data' };
       params.ExpressionAttributeValues[':nodeData'] = node.data;
     }
 
@@ -88,7 +101,7 @@ function updateNode(dynamo, table, node) {
 
 function updateEdge(dynamo, table, edge) {
   return new Promise((resolve, reject) => {
-    var params = {
+    const params = {
       TableName: table,
       Key: {
         FromId: edge.fromId,
@@ -102,10 +115,24 @@ function updateEdge(dynamo, table, edge) {
 
     if (edge.data) {
       params.UpdateExpression += ', #data = :edgeData';
-      params.ExpressionAttributeNames = {'#data': 'data'};
+      params.ExpressionAttributeNames = { '#data': 'data' };
       params.ExpressionAttributeValues[':edgeData'] = edge.data;
     }
 
     dynamo.update(params).promise().then(resolve, reject);
+  });
+}
+
+function removeEdge(dynamo, table, edge) {
+  return new Promise((resolve, reject) => {
+    const params = {
+      TableName: table,
+      Key: {
+        FromId: edge.fromId,
+        ToId: edge.toId
+      },
+    };
+
+    dynamo.delete(params).promise().then(resolve, reject);
   });
 }
