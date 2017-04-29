@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import _ from 'lodash';
+import escape from 'lodash.escape';
 import InputTypes from 'src/types/InputTypes';
 import { UiFab } from 'keen-ui';
 import { formatDateOnly, formatHoursOnly } from '../lib/dateUtils.js';
@@ -154,7 +154,7 @@ export default {
         return `<img src='${value}'>`;
       }
 
-      return _.escape(value);
+      return escape(value);
     },
 
   }
