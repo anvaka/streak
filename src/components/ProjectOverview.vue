@@ -49,9 +49,9 @@
 
 <script>
 import _ from 'lodash';
-import moment from 'moment';
 import InputTypes from 'src/types/InputTypes';
 import { UiFab } from 'keen-ui';
+import { formatDateOnly, formatHoursOnly } from '../lib/dateUtils.js';
 
 import ActionRow from './ActionRow.vue';
 import renderMakrdown from '../lib/markdown/index.js';
@@ -143,8 +143,7 @@ export default {
       // TODO: This should be more extensible. The `inputs` should
       // be related to the rendrers here.
       if (value instanceof Date) {
-        const momentValue = moment(value);
-        return isHeader ? momentValue.format('LL') : momentValue.format('HH:mm');
+        return isHeader ? formatDateOnly(value) : formatHoursOnly(value);
       }
 
       if (cell.valueType === InputTypes.MULTI_LINE_TEXT) {

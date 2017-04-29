@@ -6,8 +6,7 @@
 </template>
 
 <script>
-import moment from 'moment';
-import { getDateFromFilterString } from 'src/lib/dateUtils';
+import { getDateFromFilterString, formatDateOnly } from 'src/lib/dateUtils';
 
 export default {
   props: ['from', 'to', 'projectId'],
@@ -18,12 +17,12 @@ export default {
     filterMessage() {
       const fromDate = getDateFromFilterString(this.from);
       if (!this.to || this.from === this.to) {
-        return moment(fromDate).format('LL');
+        return formatDateOnly(fromDate);
       }
 
       const toDate = getDateFromFilterString(this.to);
-      let fromFormatted = moment(fromDate).format('LL');
-      let toFormatted = moment(toDate).format('LL');
+      let fromFormatted = formatDateOnly(fromDate);
+      let toFormatted = formatDateOnly(toDate);
       if (fromDate > toDate) {
         [fromFormatted, toFormatted] = [toFormatted, fromFormatted];
       }

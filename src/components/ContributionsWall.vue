@@ -17,8 +17,7 @@
 </template>
 
 <script>
-import moment from 'moment';
-import { getDateString } from 'src/lib/dateUtils.js';
+import { getDateString, formatDowDate } from 'src/lib/dateUtils.js';
 import { makeColorBag } from 'src/lib/color';
 import Tooltip from 'tether-tooltip';
 
@@ -188,7 +187,7 @@ function buildWeekDays(sunday, project) {
     weekDays.push({
       day,
       dayKey,
-      tooltip: moment(day).format('ddd, LL'),
+      tooltip: formatDowDate(day),
       dayNumber: i,
       fill: getFillForDate(dayKey, project)
     });

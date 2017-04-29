@@ -13,6 +13,34 @@ export function convertDateToSheetsDateString(str) {
     .replace(/-/g, '/');
 }
 
+export const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; // eslint-disable-line
+
+export function formatDowDate(d) {
+  // return day, month date, year
+  const day = DAY_NAMES[d.getDay()];
+  const month = MONTH_NAMES[d.getMonth()];
+  const date = d.getDate();
+  const year = d.getFullYear();
+  return `${day}, ${month} ${date}, ${year}`;
+}
+
+export function formatDateOnly(d) {
+  const month = MONTH_NAMES[d.getMonth()];
+  const date = d.getDate();
+  const year = d.getFullYear();
+  return `${month} ${date}, ${year}`;
+}
+
+export function formatHoursOnly(d) {
+  let hh = d.getHours();
+  if (hh < 10) hh = '0' + hh;
+
+  let mm = d.getMinutes();
+  if (mm < 10) mm = '0' + mm;
+  return `${hh}:${mm}`;
+}
+
 /**
  * returns current time as an <input type='datetime-local'/> value.
  */
