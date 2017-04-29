@@ -24,7 +24,9 @@ shell.config.silent = false
 
 webpack(webpackConfig, function (err, stats) {
   spinner.stop()
+
   fs.writeFileSync('stats.json',JSON.stringify(stats.toJson()));
+
   if (err) throw err
   process.stdout.write(stats.toString({
     colors: true,
