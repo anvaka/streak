@@ -1,7 +1,7 @@
 <template>
   <div class='loading' v-if='isLoading'>
       <ui-icon-button icon="refresh" :loading="isLoading" type='secondary'></ui-icon-button>
-      Loading...
+      <slot>Loading...</slot>
   </div>
 </template>
 

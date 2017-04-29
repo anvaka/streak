@@ -9,7 +9,7 @@
           <user-info :profile='profile' @signOut='signOut'></user-info>
         </div>
       </div>
-      <loading :isLoading='loading' class='page-loading'></loading>
+      <loading :isLoading='loading' class='page-loading'>Signing in...</loading>
       <div class='error' v-if='error'>
         <p>Something is wrong. Try refreshing the page. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
         <pre>{{error}}</pre>
@@ -39,8 +39,6 @@ export default {
   },
 
   created() {
-    this.loading = true;
-    this.error = null;
     auth.initiateSignInStatus().then(() => {
       this.ensureOnUserPage();
     });

@@ -67,6 +67,7 @@ function signOut() {
 }
 
 function initiateSignInStatus() {
+  signInStatus.error = null;
   signInStatus.loading = true;
 
   return new Promise((resolve, reject) => {

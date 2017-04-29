@@ -2,10 +2,10 @@
   <div class='project-page-container'>
     <div class='project-page-header'>
       <project-title :project='project'></project-title>
-      <loading :isLoading='loading' class='project-loading'></loading>
+      <loading :isLoading='loading' class='project-loading'>Loading project...</loading>
       <project-tabs :project='project'></project-tabs>
     </div>
-    <router-view :project='project'></router-view>
+    <router-view :project='project' v-if='!loading'></router-view>
     <div v-if='error'>
       <h2 class='error-title'>Something is wrong...</h2>
       <pre>{{error}}</pre>
@@ -69,34 +69,6 @@ export default {
           }
         });
       }
-
-      // this.error = null;
-      // this.loading = true;
-      //
-      // loadProject(this.projectId)
-      //   .then((project) => {
-      //     project.projectHistory.filter(this.$route.query.from, this.$route.query.to);
-      //
-      //     this.loading = false;
-      //     this.project = project;
-      //
-      //     // this can happen when user edited settings file or manually removed
-      //     // headers. Redirect to the settings page to fix the error
-      //     if (project.shouldRedirectToSettings && this.$route.name !== 'project-settings') {
-      //       this.$router.replace({
-      //         name: 'project-settings'
-      //       });
-      //     }
-      //     // TODO: if headers has no date, should also redirect here
-      //   }).catch(err => {
-      //     this.loading = false;
-      //     this.project = null;
-      //     if (err && err.message) {
-      //       this.error = err.message;
-      //     } else {
-      //       this.error = err;
-      //     }
-      //   });
     }
   }
 };

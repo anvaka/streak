@@ -1,5 +1,7 @@
 <template>
   <div class='user-page'>
+
+    <loading :isLoading='projectList.loading' class='project-list-loading'>Loading project list...</loading>
     <div v-if='noProjects' class='no-projects-sidebar' :class='{someone: projectId}'>
       You don't have any projects yet. <router-link :to='{name: "new-project"}'>Start a new project</router-link>
     </div>
@@ -8,8 +10,16 @@
       <div v-if='!projectId'>
          <h3 class='welcome-message'>Welcome!</h3>
            Please select a project to get started.
-         </div>
-      <router-view :project='currentProject'></router-view>
+      </div>
+      <router-view :project='currentProject' v-if='currentProject'></router-view>
+
+      <div v-if='!currentProject && !projectList.loading && projectId'>
+        <!-- This can happen when someone edited the url -->
+        <h3> ¯\_(ツ)_/¯</h3>
+        <p>
+          Hmm, I can't find this project. Are you sure the website address is correct?
+        </p>
+      </div>
     </div>
 
 
@@ -28,6 +38,7 @@
 <script>
 import { UiButton, UiIconButton } from 'keen-ui';
 import getProjectList from '../lib/getProjectList.js';
+import Loading from './Loading.vue';
 
 export default {
   name: 'UserPage',
@@ -60,7 +71,6 @@ export default {
     },
     currentProject() {
       if (this.projectList.loading) return null;
-
       return this.projectList.get(this.projectId);
     }
   },
@@ -68,6 +78,7 @@ export default {
   components: {
     UiButton,
     UiIconButton,
+    Loading,
   },
 };
 </script>
@@ -77,6 +88,11 @@ export default {
 
 .user-page {
   flex: 1;
+}
+
+.project-list-loading {
+  margin-left: 5px;
+  margin-top: 13px;
 }
 
 .welcome-message {
