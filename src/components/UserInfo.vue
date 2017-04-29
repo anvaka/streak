@@ -46,12 +46,14 @@ export default {
 };
 </script>
 
-<style lang='stylus' scoped>
-.avatar-container {
-  padding: 0;
-  min-width: inherit;
-  &:hover {
-    background-color: transparent;
+<style lang='stylus'>
+.user {
+  .avatar-container {
+    padding: 0;
+    min-width: inherit;
+    &:hover {
+      background-color: transparent;
+    }
   }
 }
 .avatar-container.has-dropdown-open {
