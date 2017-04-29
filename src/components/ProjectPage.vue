@@ -18,6 +18,7 @@ import ProjectTitle from './ProjectTitle.vue';
 import ProjectTabs from './ProjectTabs.vue';
 import Loading from './Loading.vue';
 import bus from '../lib/bus.js';
+import setPageTitle from '../lib/setPageTitle.js';
 
 export default {
   name: 'ProjectPage',
@@ -56,6 +57,9 @@ export default {
 
       if (this.project) {
         this.loading = true;
+
+        setPageTitle(this.project.title);
+
         const from = this.$route.query.from;
         const to = this.$route.query.to;
         this.project.load(from, to).then(() => {

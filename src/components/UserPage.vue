@@ -40,6 +40,7 @@ import UiButton from 'keen-ui/src/UiButton';
 import UiIconButton from 'keen-ui/src/UiIconButton';
 
 import getProjectList from '../lib/getProjectList.js';
+import setPageTitle from '../lib/setPageTitle.js';
 import Loading from './Loading.vue';
 
 export default {
@@ -52,6 +53,9 @@ export default {
       projectsListExpanded: this.projectId === undefined
     };
   },
+  created() {
+    setPageTitle();
+  },
   watch: {
     $route(to) {
       // TODO: this doesn't work very well, if you click on the same project.
@@ -61,6 +65,11 @@ export default {
 
       if (mainContent) {
         mainContent.scrollTop = 0;
+      }
+
+      const isProjectPage = to.params && to.params.projectId;
+      if (!isProjectPage) {
+        setPageTitle();
       }
     }
   },

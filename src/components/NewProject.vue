@@ -50,6 +50,7 @@ import UiButton from 'keen-ui/src/UiButton';
 
 import { getCurrentUserId } from '../lib/auth.js';
 import getProjectList from '../lib/getProjectList.js';
+import setPageTitle from '../lib/setPageTitle.js';
 
 import NameAndDescription from './settings/NameAndDescription.vue';
 import ProjectStructure from './settings/ProjectStructure.vue';
@@ -73,6 +74,9 @@ export default {
       }]
     };
   },
+  mounted() {
+    setPageTitle('New project');
+  },
 
   computed: {
     pageName() {
@@ -82,6 +86,7 @@ export default {
       return 'New project';
     }
   },
+
   methods: {
     saveNameAndDescription(name, description, isPublic) {
       this.projectName = name;
