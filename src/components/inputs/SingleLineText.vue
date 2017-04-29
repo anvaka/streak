@@ -8,7 +8,7 @@
       v-model='vm.value'></ui-autocomplete>
 </template>
 <script>
-import { UiAutocomplete } from 'keen-ui';
+import UiAutocomplete from 'keen-ui/src/UiAutocomplete';
 
 export default {
   name: 'SingleLineText',

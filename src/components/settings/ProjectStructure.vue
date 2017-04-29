@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { UiButton } from 'keen-ui';
+import UiButton from 'keen-ui/src/UiButton';
 
 import FieldPair from './FieldPair.vue';
 import { MULTI_LINE_TEXT, DATE, getFieldByType } from '../../types/FieldTypes.js';

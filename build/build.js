@@ -28,6 +28,8 @@ webpack(webpackConfig, function (err, stats) {
   fs.writeFileSync('stats.json',JSON.stringify(stats.toJson()));
 
   if (err) throw err
+
+  fs.writeFileSync('./stats.json', JSON.stringify(stats.toJson()));
   process.stdout.write(stats.toString({
     colors: true,
     modules: false,

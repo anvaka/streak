@@ -11,7 +11,8 @@
 </template>
 
 <script>
-import { UiButton, UiMenu } from 'keen-ui';
+import UiButton from 'keen-ui/src/UiButton';
+import UiMenu from 'keen-ui/src/UiMenu';
 
 export default {
   name: 'UserInfo',

@@ -19,7 +19,10 @@
   </div>
 </template>
 <script>
-import { UiTextbox, UiButton, UiSelect } from 'keen-ui';
+import UiTextbox from 'keen-ui/src/UiTextbox';
+import UiButton from 'keen-ui/src/UiButton';
+import UiSelect from 'keen-ui/src/UiSelect';
+
 import { FIELD_TYPES } from '../../types/FieldTypes.js';
 
 export default {

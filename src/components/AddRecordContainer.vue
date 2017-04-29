@@ -20,7 +20,7 @@
   </div>
 </template>
 <script>
-import { UiIconButton } from 'keen-ui';
+import UiIconButton from 'keen-ui/src/UiIconButton';
 
 import InputTypes from 'src/types/InputTypes';
 import { getDateFromFilterString, getNow } from 'src/lib/dateUtils';

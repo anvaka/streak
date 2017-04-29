@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { UiIconButton } from 'keen-ui';
+import UiIconButton from 'keen-ui/src/UiIconButton';
 import bus from '../lib/bus.js';
 
 export default {

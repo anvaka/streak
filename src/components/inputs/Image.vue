@@ -5,7 +5,7 @@
       v-model='vm.value'></ui-textbox>
 </template>
 <script>
-import { UiTextbox } from 'keen-ui';
+import UiTextbox from 'keen-ui/src/UiTextbox';
 
 export default {
   name: 'Image',

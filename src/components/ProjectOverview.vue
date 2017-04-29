@@ -50,7 +50,7 @@
 <script>
 import escape from 'lodash.escape';
 import InputTypes from 'src/types/InputTypes';
-import { UiFab } from 'keen-ui';
+import UiFab from 'keen-ui/src/UiFab';
 import { formatDateOnly, formatHoursOnly } from '../lib/dateUtils.js';
 
 import ActionRow from './ActionRow.vue';
@@ -166,12 +166,6 @@ export default {
 
 project-details-width = 941px;
 column-title-width = 100px;
-.fab-add {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  background-color: action-color;
-}
 
 .vertical-padding {
   padding: 14px 0;
@@ -184,6 +178,13 @@ column-title-width = 100px;
 .project-details-container {
   display: flex;
   flex-direction: column;
+
+  .fab-add {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    background-color: action-color;
+  }
 
   .loading {
     margin-left: -8px;

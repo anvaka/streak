@@ -33,7 +33,9 @@
   </form>
 </template>
 <script>
-import { UiTextbox, UiButton, UiRadio } from 'keen-ui';
+import UiTextbox from 'keen-ui/src/UiTextbox';
+import UiButton from 'keen-ui/src/UiButton';
+import UiRadio from 'keen-ui/src/UiRadio';
 
 export default {
   name: 'NameAndDescription',
@@ -100,11 +102,13 @@ export default {
 .visibility-settings-content {
   margin: 14px;
 }
-.visibility-radio {
-  height: auto;
-  margin-bottom: 14px;
-  .visibility-help {
-    color: secondary-text-color;
+.settings-group {
+  .visibility-radio {
+    height: auto;
+    margin-bottom: 14px;
+    .visibility-help {
+      color: secondary-text-color;
+    }
   }
 }
 </style>

@@ -30,7 +30,9 @@
   </form>
 </template>
 <script>
-import { UiTextbox, UiButton, UiIconButton } from 'keen-ui';
+import UiTextbox from 'keen-ui/src/UiTextbox';
+import UiButton from 'keen-ui/src/UiButton';
+import UiIconButton from 'keen-ui/src/UiIconButton';
 import Date from './inputs/Date';
 import MultiLineText from './inputs/MultiLineText';
 import SingleLineText from './inputs/SingleLineText';

@@ -45,7 +45,8 @@
   </div>
 </template>
 <script>
-import { UiIconButton, UiButton } from 'keen-ui';
+import UiIconButton from 'keen-ui/src/UiIconButton';
+import UiButton from 'keen-ui/src/UiButton';
 
 import { getCurrentUserId } from '../lib/auth.js';
 import getProjectList from '../lib/getProjectList.js';

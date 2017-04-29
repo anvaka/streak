@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { UiIconButton } from 'keen-ui';
+import UiIconButton from 'keen-ui/src/UiIconButton';
 
 export default {
   name: 'Loading',

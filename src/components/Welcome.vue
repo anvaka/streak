@@ -7,7 +7,7 @@
   </div>
 </template>
 <script>
-import { UiButton } from 'keen-ui';
+import UiButton from 'keen-ui/src/UiButton';
 
 export default {
   name: 'Welcome',

@@ -36,7 +36,9 @@
   </div>
 </template>
 <script>
-import { UiButton, UiIconButton } from 'keen-ui';
+import UiButton from 'keen-ui/src/UiButton';
+import UiIconButton from 'keen-ui/src/UiIconButton';
+
 import getProjectList from '../lib/getProjectList.js';
 import Loading from './Loading.vue';
 

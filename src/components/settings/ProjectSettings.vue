@@ -46,7 +46,7 @@
 
 <script>
 // TODO: This page needs to handle errors properly
-import { UiButton } from 'keen-ui';
+import UiButton from 'keen-ui/src/UiButton';
 
 import NameAndDescription from './NameAndDescription.vue';
 import ProjectStructure from './ProjectStructure.vue';
