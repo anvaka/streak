@@ -1,13 +1,16 @@
 /**
  * Super simple ajax client
  */
-export function get(url, qs) {
-  return request(url, {
+export function get(qs, url) {
+  return request({
     qs
-  });
+  }, url);
 }
 
-export function request(url, params) {
+// TODO: This should be configurable
+const API_ENDPOINT = 'https://gnnpgomweb.execute-api.us-west-2.amazonaws.com/Stage/streak';
+
+export function request(params, url) {
   params = params || Object.create(null);
 
   if (params.method && params.method !== 'GET' && params.method !== 'POST') {
@@ -15,7 +18,20 @@ export function request(url, params) {
   }
 
   return new Promise((resolve, reject) => {
+    if (!params.qs) params.qs = {};
+
+    let id_token = params.qs && params.qs.id_token;
+    if (!id_token) {
+      id_token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().id_token;
+      if (method === 'POST') {
+        params.body.id_token = id_token;
+      } else {
+        params.qs.id_token = id_token;
+      }
+    }
+
     const queryPart = stringify(params.qs);
+    url = url || API_ENDPOINT;
     const suffix = (url.indexOf('?') > -1) ? '&' : '?';
 
     const oReq = new XMLHttpRequest();

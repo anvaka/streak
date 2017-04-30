@@ -8,13 +8,13 @@ Outputs:
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/streak"
 
 Resources:
-  StreakAPI:
+  PostStreakAPI:
     Type: 'AWS::Serverless::Function'
     Properties:
       Handler: index.handler
       Runtime: nodejs6.10
       CodeUri: ./handler/
-      Description: 'Streak API handler'
+      Description: 'Streak API POST handler'
       Policies: AmazonDynamoDBFullAccess
       MemorySize: 128
       Timeout: 6
@@ -24,6 +24,24 @@ Resources:
           Properties:
             Path: /streak
             Method: POST
+
+  GetStreakAPI:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs6.10
+      CodeUri: ./handler/
+      Description: 'Streak API handler'
+      # TODO: Should this be read only?
+      Policies: AmazonDynamoDBFullAccess
+      MemorySize: 128
+      Timeout: 6
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /streak
+            Method: GET
 
   # We store all our data as a graph.
   GraphEdges:

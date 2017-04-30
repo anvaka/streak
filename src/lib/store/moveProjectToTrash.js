@@ -1,5 +1,6 @@
 import gapiFiles from '../gapi/files.js';
 import { resetProjectFileCache } from './cachingDocs.js';
+import { setProjectPublic } from '../streak-api/actions.js';
 
 export default function deleteProject(fileId) {
   return gapiFiles('update', {
@@ -10,5 +11,6 @@ export default function deleteProject(fileId) {
     }
   }).then(() => {
     resetProjectFileCache(fileId);
+    return setProjectPublic(fileId, false);
   });
 }

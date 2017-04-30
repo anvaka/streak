@@ -57,11 +57,10 @@ function getCorsDomain(reqHeaders) {
   return reqHeaders.origin.indexOf('http://localhost:8100') === 0 ? 'http://localhost:8100' : defaultFomain;
 }
 
-function isDebug(/* event */) {
-  return true;
-  // const qs = event && event.queryStringParameters;
-  //
-  // if (!qs) return false;
-  //
-  // return (isDebug in qs);
+function isDebug(event) {
+  const qs = event && event.queryStringParameters;
+
+  if (!qs) return false;
+
+  return (isDebug in qs);
 }
