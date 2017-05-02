@@ -17,7 +17,10 @@ function setProjectPublic({ body, user }) {
   // TODO: Do I need to update user data every time?
   if (isPublic) {
     g.addNode(userId, user.data);
-    g.addNode(projectId);
+    g.addNode(projectId, {
+      name: body.name,
+      description: body.description,
+    });
     g.addEdge(userId, edgeId);
   } else {
     // TODO: Remove node?

@@ -29,7 +29,7 @@ class DyGraph {
     });
   }
 
-  getOutEdges(fromId, beginsWith) {
+  getOutEdges(fromId, beginsWith, onlyEdges) {
     const params = {
       TableName: this.options.edgesTable,
       KeyConditionExpression: 'FromId = :fromId',
@@ -42,11 +42,43 @@ class DyGraph {
       params.KeyConditionExpression += ' and begins_with(ToId, :beginsWith)';
       params.ExpressionAttributeValues[':beginsWith'] = beginsWith;
     }
+    const { dynamo, nodesTable } = this.options;
 
     return new Promise((resolve, reject) => {
-      this.options.dynamo.query(params).promise().then(resolve, reject);
-    });
+      dynamo.query(params).promise().then(resolve, reject);
+    }).then(fetchOtherEnd);
+
+    function fetchOtherEnd(response) {
+      const edges = (response ? response.Items : []).map(edge => edge.ToId);
+      if (onlyEdges) {
+        return edges;
+      }
+
+      const nodesToFetch = edges.map(edgeId => ({
+        // this will remove edge type prefix from the edge definition.
+        // e.g.
+        // "owns.project.0B8W6vQAc4byGT2t3dmRDYjNEdTQ"
+        //   .split('.') // -> ["owns", "project", "0B8W6vQAc4byGT2t3dmRDYjNEdTQ"]
+        //   .slice(1)  //  -> ["project", "0B8W6vQAc4byGT2t3dmRDYjNEdTQ"]
+        //   .join('.')  // ->  "project.0B8W6vQAc4byGT2t3dmRDYjNEdTQ"
+        NodeId: edgeId.split('.').slice(1).join('.')
+      }));
+
+      const request = {
+        RequestItems: {
+          [nodesTable]: { Keys: nodesToFetch },
+        }
+      };
+      console.log('Fetching edges', JSON.stringify(request));
+
+      return new Promise((resolve, reject) => {
+        dynamo.batchGet(request).promise().then(resolve, reject);
+      }).then(batchResult => {
+        return batchResult.Responses[nodesTable] || [];
+      });
+    }
   }
+
 
   getInEdges(toId) {
     const params = {
@@ -89,14 +121,30 @@ function updateNode(dynamo, table, node) {
       }
     };
 
-    if (node.data) {
+    const cleanData = removeEmptyAttributes(node.data);
+    if (cleanData) {
       params.UpdateExpression += ', #data = :nodeData';
       params.ExpressionAttributeNames = { '#data': 'data' };
-      params.ExpressionAttributeValues[':nodeData'] = node.data;
+      params.ExpressionAttributeValues[':nodeData'] = cleanData;
     }
 
     dynamo.update(params).promise().then(resolve, reject);
   });
+}
+
+function removeEmptyAttributes(obj) {
+  if (!obj) return;
+
+  const result = {};
+  let hasAttributes = false;
+  Object.keys(obj).forEach(key => {
+    if (obj[key]) {
+      result[key] = obj[key];
+      hasAttributes = true;
+    }
+  });
+
+  return hasAttributes && result;
 }
 
 function updateEdge(dynamo, table, edge) {

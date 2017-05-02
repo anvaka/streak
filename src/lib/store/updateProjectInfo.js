@@ -13,7 +13,11 @@ export default function updateProjectInfo(projectId, sheetId, name, description,
   return Promise.all([
     rename(sheetId, name, description),
     rename(projectId, name, description),
-    changePermissions(projectId, isPublic)
+    changePermissions({
+      projectId,
+      name,
+      description
+    }, isPublic)
   ]).then(all => {
     // TODO: Get rid of this.
     resetProjectFileCache(projectId);

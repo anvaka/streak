@@ -64,7 +64,11 @@ function createProject(name, description, isPublic, fields) {
       if (isPublic) {
         // if user wants to make this file public we need to issue special
         // update request to the gapi
-        return changePermissions(projectId, isPublic).then(() => projectId);
+        return changePermissions({
+          projectId,
+          name,
+          description
+        }, isPublic).then(() => projectId);
       }
 
       // otherwise no need to change anything

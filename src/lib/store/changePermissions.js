@@ -1,22 +1,23 @@
 import gapiPermissions from '../gapi/permissions.js';
 import { setProjectPublic } from '../streak-api/actions.js';
 
-export default function changePermissions(fileId, isPublic) {
+export default function changePermissions(projectInfo, isPublic) {
+  if (!projectInfo.projectId) throw new Error('Project id is required');
   if (isPublic) {
     return gapiPermissions('create', {
-      fileId,
+      fileId: projectInfo.projectId,
       resource: {
         role: 'reader',
         type: 'anyone'
       }
     }).then(() => {
-      return setProjectPublic(fileId, isPublic);
+      return setProjectPublic(projectInfo, isPublic);
     });
   }
 
-  return setProjectPublic(fileId, isPublic).then(() => {
+  return setProjectPublic(projectInfo, isPublic).then(() => {
     gapiPermissions('delete', {
-      fileId,
+      fileId: projectInfo.projectId,
       permissionId: 'anyoneWithLink'
     }).catch(err => {
       if (err && err.status === 404) {
