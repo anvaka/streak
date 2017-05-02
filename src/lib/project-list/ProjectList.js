@@ -13,6 +13,7 @@ export default class ProjectList {
     this.projects = [];
     // maps projectId to Project.
     this.projectLookup = new Map();
+    this.owner = null;
   }
 
   get(projectId) {
@@ -31,6 +32,7 @@ export default class ProjectList {
       loadProjectsForUser(this.ownerId).then((projectList) => {
         this.loading = false;
         this.setProjectsInternal(projectList);
+        this.owner = projectList.owner;
       });
     }
   }

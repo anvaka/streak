@@ -29,7 +29,7 @@ class DyGraph {
     });
   }
 
-  getOutEdges(fromId, beginsWith, onlyEdges) {
+  getOutEdges(fromId, beginsWith) {
     const params = {
       TableName: this.options.edgesTable,
       KeyConditionExpression: 'FromId = :fromId',
@@ -42,7 +42,8 @@ class DyGraph {
       params.KeyConditionExpression += ' and begins_with(ToId, :beginsWith)';
       params.ExpressionAttributeValues[':beginsWith'] = beginsWith;
     }
-    const { dynamo, nodesTable } = this.options;
+
+    const { dynamo } = this.options;
 
     return new Promise((resolve, reject) => {
       dynamo.query(params).promise().then(resolve, reject);
@@ -50,35 +51,25 @@ class DyGraph {
 
     function fetchOtherEnd(response) {
       const edges = (response ? response.Items : []).map(edge => edge.ToId);
-      if (onlyEdges) {
-        return edges;
-      }
-
-      const nodesToFetch = edges.map(edgeId => ({
-        // this will remove edge type prefix from the edge definition.
-        // e.g.
-        // "owns.project.0B8W6vQAc4byGT2t3dmRDYjNEdTQ"
-        //   .split('.') // -> ["owns", "project", "0B8W6vQAc4byGT2t3dmRDYjNEdTQ"]
-        //   .slice(1)  //  -> ["project", "0B8W6vQAc4byGT2t3dmRDYjNEdTQ"]
-        //   .join('.')  // ->  "project.0B8W6vQAc4byGT2t3dmRDYjNEdTQ"
-        NodeId: edgeId.split('.').slice(1).join('.')
-      }));
-
-      const request = {
-        RequestItems: {
-          [nodesTable]: { Keys: nodesToFetch },
-        }
-      };
-      console.log('Fetching edges', JSON.stringify(request));
-
-      return new Promise((resolve, reject) => {
-        dynamo.batchGet(request).promise().then(resolve, reject);
-      }).then(batchResult => {
-        return batchResult.Responses[nodesTable] || [];
-      });
+      return edges;
     }
   }
 
+  getNodes(nodesToFetch) {
+    const { dynamo, nodesTable } = this.options;
+    const request = {
+      RequestItems: {
+        [nodesTable]: { Keys: nodesToFetch.map(x => ({ NodeId: x })) },
+      }
+    };
+    console.log('Fetching edges', JSON.stringify(request));
+
+    return new Promise((resolve, reject) => {
+      dynamo.batchGet(request).promise().then(resolve, reject);
+    }).then(batchResult => {
+      return batchResult.Responses[nodesTable] || [];
+    });
+  }
 
   getInEdges(toId) {
     const params = {
