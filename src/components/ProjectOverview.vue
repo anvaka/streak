@@ -212,6 +212,7 @@ column-title-width = 100px;
     flex: 1;
     max-width: project-details-width;
     overflow-y: auto;
+    overflow-x: hidden;
   }
   .cell-record {
     display: table-row;

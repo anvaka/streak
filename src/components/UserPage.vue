@@ -22,49 +22,46 @@
       </div>
     </div>
 
-
-    <div class='projects-list-container' :class='{expanded: projectsListExpanded}' v-if='hasProjects'>
-      <div class='projects-header'>
-        <h2><span>Your Projects </span><router-link :to='{name: "new-project"}' class='start-new-project'>New project</router-link> </h2>
-      </div>
-      <div class='project-list'>
-          <router-link class='project-link'
-            v-for='project in projectList.projects' :to='{name: "project-overview", params: {projectId: project.id, userId: project.ownerId}}'
-            >{{project.title}}</router-link>
-      </div>
-    </div>
+    <project-list :project-list='projectList' v-if='hasProjects'></project-list>
   </div>
 </template>
 <script>
 import UiButton from 'keen-ui/src/UiButton';
 import UiIconButton from 'keen-ui/src/UiIconButton';
 
+import ProjectList from './ProjectList.vue';
+import Loading from './Loading.vue';
+
 import getProjectList from '../lib/getProjectList.js';
 import setPageTitle from '../lib/setPageTitle.js';
-import Loading from './Loading.vue';
 
 export default {
   name: 'UserPage',
   props: ['projectId', 'userId'],
+  components: {
+    ProjectList,
+    UiButton,
+    UiIconButton,
+    Loading,
+  },
   data() {
     return {
       projectList: getProjectList(this.userId),
-      // If there is no project ID, we are looking at home page
-      projectsListExpanded: this.projectId === undefined
     };
   },
   created() {
     setPageTitle();
   },
   watch: {
-    $route(to) {
-      // TODO: this doesn't work very well, if you click on the same project.
-      // if we clicked on the "Home" folder, the name is not projects anymore
-      this.projectsListExpanded = to.name === 'userPage';
+    $route(to, from) {
       const { mainContent } = this.$refs;
 
       if (mainContent) {
         mainContent.scrollTop = 0;
+      }
+
+      if (to.params.userId !== from.params.userId) {
+        this.projectList = getProjectList(to.params.userId);
       }
 
       const isProjectPage = to.params && to.params.projectId;
@@ -84,12 +81,6 @@ export default {
       if (this.projectList.loading) return null;
       return this.projectList.get(this.projectId);
     }
-  },
-  methods: {},
-  components: {
-    UiButton,
-    UiIconButton,
-    Loading,
   },
 };
 </script>
@@ -129,83 +120,6 @@ export default {
 
 .no-projects-sidebar.someone {
   width: sidebar-width;
-}
-
-.project-link {
-  color: secondary-text-color;
-  line-height: 24px;
-  font-size: 18px;
-  display: inline-block;
-  padding: default-padding;
-  padding-top: 6px;
-  padding-bottom: 7px;
-  &:hover {
-    color: black;
-  }
-}
-
-.project-link.router-link-active  {
-  color: black;
-  background: border-color;
-}
-
-.project-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.projects-list-container {
-  position: absolute;
-  width: sidebar-width;
-  .start-new-project {
-    font-size: 14px;
-    color: action-color;
-  }
-}
-
-.projects-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: default-padding;
-  border: 1px solid border-color;
-  height: 37px;
-  h2 {
-    flex: 1;
-    margin: 0;
-    display: flex;
-    justify-content: space-between;
-    font-weight: normal;
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.4);
-  }
-}
-
-@media only screen and (max-width: small-screen-size) {
-  .projects-list-container {
-    height: 100%;
-    padding-top: 12px;
-    bottom: 0;
-    overflow-y: auto;
-    background: screen-background;
-    display: none;
-  }
-  .projects-list-container.expanded {
-    top: 56px;
-    display: block;
-  }
-
-  .projects-overview {
-    left: 0;
-    top: 55px;
-    bottom: 0;
-    padding-top: 0;
-  }
-  .toggle-list {
-    display: inline-block;
-    font-size: 14px;
-    color: action-color;
-  }
 }
 
 </style>
