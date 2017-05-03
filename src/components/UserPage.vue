@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <project-list :project-list='projectList' v-if='hasProjects'></project-list>
+    <project-list :project-list='projectList' v-if='hasProjects' :project-id='projectId' ></project-list>
   </div>
 </template>
 <script>
@@ -47,6 +47,7 @@ export default {
   data() {
     return {
       projectList: getProjectList(this.userId),
+      projectsListExpanded: this.projectId === undefined
     };
   },
   created() {
@@ -122,4 +123,12 @@ export default {
   width: sidebar-width;
 }
 
+@media only screen and (max-width: small-screen-size) {
+  .projects-overview {
+    left: 0;
+    top: 55px;
+    bottom: 0;
+    padding-top: 0;
+  }
+}
 </style>

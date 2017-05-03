@@ -1,5 +1,5 @@
 <template>
-  <div class='projects-list-container'>
+  <div class='projects-list-container' :class='{expanded: !projectId}'>
     <div class='projects-header' v-if='!projectList.owner'>
       <h2><span>Your Projects </span><router-link :to='{name: "new-project"}' class='start-new-project'>New project</router-link> </h2>
     </div>
@@ -25,12 +25,12 @@ import { getCurrentUserId } from '../lib/auth.js';
 
 export default {
   name: 'ProjectList',
-  props: ['projectList'],
+  props: ['projectList', 'projectId'],
   data() {
     return {
-      myId: getCurrentUserId()
+      myId: getCurrentUserId(),
     }
-  }
+  },
 };
 </script>
 
