@@ -3,7 +3,7 @@
     <div class='home'>
       <div class='toolbar' >
         <div slot='brand'>
-          <router-link to='/' class='logo-text'>Streak</router-link>
+          <router-link to='/' class='logo-text'>Streak <small title='Alpha version means that bugs are expected! Please do not use for anything critical.'>αλφα</small></router-link>
         </div>
         <div>
           <user-info :profile='profile' @signOut='signOut'></user-info>
@@ -113,6 +113,9 @@ export default {
   color: rgba(0, 0, 0, 0.2);
   text-decoration: none;
   font-size: 24px;
+  small {
+    font-size: 14px;
+  }
 }
 
 h1, h2 {
