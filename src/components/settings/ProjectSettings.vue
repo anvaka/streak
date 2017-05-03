@@ -4,6 +4,7 @@
       form-action='Update project info'
       :name='name'
       :description='description'
+      :loading='updateInProgress'
       :isPublic='isPublic'>
     </name-and-description>
 
@@ -85,13 +86,14 @@ export default {
 
   data() {
     return {
+      updateInProgress: false,
       deleteConfirm: false
     };
   },
 
   methods: {
     onProjectNameUpdated(name, description, isPublic) {
-      this.loading = true;
+      this.updateInProgress = true;
       this.project.updateProjectInfo(name, description, isPublic)
         .then(() => {
           // eventual consistency :( - this is probably not very reliable.
@@ -99,7 +101,7 @@ export default {
           // with our latest changes.
           // TODO: Should probably update local copy in memory...
           setTimeout(() => {
-            this.loading = false;
+            this.updateInProgress = false;
             this.goToParent();
           }, 300);
         });

@@ -24,10 +24,16 @@
     </div>
     <div>
       <slot>
-        <ui-button type='secondary' color='primary'
-          buttonType='submit' class='update-project-name submit-button' :class='{"invalid-project": isProjectNameInvalid()}'>
-          {{formAction}}
-        </ui-button>
+        <div>
+          <ui-button type='secondary' color='primary'
+                    v-if='!loading'
+                    buttonType='submit' class='update-project-name submit-button' :class='{"invalid-project": isProjectNameInvalid()}'>
+            {{formAction}}
+          </ui-button>
+          <div v-if='loading'>
+            <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button> Updating...
+          </div>
+        </div>
       </slot>
     </div>
   </form>
@@ -36,6 +42,7 @@
 import UiTextbox from 'keen-ui/src/UiTextbox';
 import UiButton from 'keen-ui/src/UiButton';
 import UiRadio from 'keen-ui/src/UiRadio';
+import UiIconButton from 'keen-ui/src/UiIconButton';
 
 export default {
   name: 'NameAndDescription',
@@ -43,6 +50,10 @@ export default {
     name: String,
     focus: Boolean,
     description: String,
+    loading: {
+      type: Boolean,
+      default: false
+    },
     isPublic: {
       type: Boolean,
       default: true
@@ -59,7 +70,8 @@ export default {
   components: {
     UiButton,
     UiTextbox,
-    UiRadio
+    UiRadio,
+    UiIconButton
   },
   data() {
     return {
