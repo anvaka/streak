@@ -126,8 +126,6 @@ export default {
 @media only screen and (max-width: small-screen-size) {
   .projects-overview {
     left: 0;
-    top: 55px;
-    bottom: 0;
     padding-top: 0;
   }
 }

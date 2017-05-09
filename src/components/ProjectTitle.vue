@@ -1,7 +1,8 @@
 <template>
-  <h2 class='project-title' v-if='project'>
-    <span>{{project.title}}</span> <span v-if='!project.canEdit' class='by-line'>by {{project.owner.displayName}}</span>
-  </h2>
+  <div>
+    <router-link :to='{name: "userPage", params: {userId: project.ownerId}}' class='by-line' v-if='project.owner'>{{project.owner.displayName}}</router-link>
+    <h2 class='project-title' v-if='project'>{{project.title}}</h2>
+  </div>
 </template>
 
 <script>
@@ -27,12 +28,19 @@ h2.project-title {
 }
 
 .by-line {
-  font-size: 14px;
+  display: none;
 }
+
 
 @media only screen and (max-width: small-screen-size) {
   h2.project-title {
-    margin: 14px 0;
+    margin-top: 7px;
+    margin-bottom: 14px;
+  }
+  .by-line {
+    font-size: 14px;
+    display: block;
+    margin-top: 14px;
   }
 }
 </style>

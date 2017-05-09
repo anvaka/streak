@@ -1,14 +1,7 @@
 <template>
   <div id='app'>
     <div class='home'>
-      <div class='toolbar' >
-        <div slot='brand'>
-          <router-link to='/' class='logo-text'>Streak <small title='Alpha version means that bugs are expected! Please do not use for anything critical.'>αλφα</small></router-link>
-        </div>
-        <div>
-          <user-info :profile='profile' @signOut='signOut'></user-info>
-        </div>
-      </div>
+      <user-info :profile='profile' @signOut='signOut' class='user-info'></user-info>
       <loading :isLoading='loading' class='page-loading'>Signing in...</loading>
       <div class='error' v-if='error'>
         <p>Something is wrong. Try refreshing the page. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
@@ -102,6 +95,11 @@ export default {
   flex-shrink: 0;
   align-items: center;
 }
+.user-info {
+  position: absolute;
+  right: 14px;
+  top: 10px
+}
 
 .home {
   display: flex;
@@ -109,14 +107,6 @@ export default {
   height: 100%;
 }
 
-.logo-text {
-  color: rgba(0, 0, 0, 0.2);
-  text-decoration: none;
-  font-size: 24px;
-  small {
-    font-size: 14px;
-  }
-}
 
 h1, h2 {
   font-weight: normal;
@@ -135,11 +125,5 @@ ul {
 li {
   display: inline-block;
   margin: 0 10px;
-}
-
-@media only screen and (max-width: small-screen-size) {
-  .toolbar {
-    background-color: header-background;
-  }
 }
 </style>

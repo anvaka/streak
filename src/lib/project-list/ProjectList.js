@@ -26,6 +26,7 @@ export default class ProjectList {
       loadMyProjects().then((projectList) => {
         this.loading = false;
         this.setProjectsInternal(projectList);
+        this.owner = projectList.owner;
       });
     } else {
       this.loading = true;

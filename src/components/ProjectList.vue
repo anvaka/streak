@@ -1,22 +1,27 @@
 <template>
-  <div class='projects-list-container' :class='{expanded: !projectId}'>
-    <div class='projects-header' v-if='!projectList.owner'>
-      <h2><span>Your Projects </span><router-link :to='{name: "new-project"}' class='start-new-project'>New project</router-link> </h2>
-    </div>
-    <div v-if='projectList.owner' >
-      <router-link :to='{name: "userPage", params: { userId: myId }}' class='back-to-your-home'>↰ back to your projects</router-link>
+  <div class='sidebar-container' :class='{expanded: !projectId}'>
     <div class='owner-header'>
       <img :src='projectList.owner.picture' class='avatar'>
       <div class='owner-name'>
-        <div class='secondary byline'>Projects by</div>
         <div>{{projectList.owner.name}}</div>
+        <div class='secondary byline'>Projects</div>
       </div>
     </div>
-    </div>
-    <div class='project-list'>
+    <router-link
+      v-if='myProjectList'
+      :to='{name: "new-project"}' class='start-new-project'>Start new project</router-link>
+    <div class='project-list' :class='{mine: myProjectList}'>
         <router-link class='project-link'
           v-for='project in projectList.projects' :to='{name: "project-overview", params: {projectId: project.id, userId: project.ownerId}}'
           >{{project.title}}</router-link>
+    </div>
+    <router-link
+      :to='{name: "userPage", params: { userId: myId }}' class='back-to-your-home'
+      v-if='!myProjectList'>↰ back to your projects</router-link>
+    <div class='about'>
+      <div slot='brand'>
+        <router-link to='/' class='logo-text'><span class='heart'>❤</span> Streak <small title='Alpha version means that bugs are expected! Please do not use for anything critical.'>αλφα</small></router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -29,8 +34,13 @@ export default {
   data() {
     return {
       myId: getCurrentUserId(),
-    }
+    };
   },
+  computed: {
+    myProjectList() {
+      return this.myId === this.projectList.ownerId;
+    }
+  }
 };
 </script>
 
@@ -40,7 +50,14 @@ export default {
 .project-list {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  flex-shrink: 0;
+  overflow-y: auto;
 }
+.project-list.mine {
+  padding-top: 14px;
+}
+
 .project-link {
   color: secondary-text-color;
   line-height: 24px;
@@ -58,12 +75,21 @@ export default {
   color: black;
   background: border-color;
 }
-.projects-list-container {
+.sidebar-container {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+  bottom: 0;
   width: sidebar-width;
   .start-new-project {
     font-size: 14px;
     color: action-color;
+    width: 100%;
+    display: block;
+    padding: 14px;
+    border-top: 1px solid border-color;
+    border-bottom: 1px solid border-color;
   }
 }
 
@@ -78,29 +104,16 @@ export default {
   border-top: 1px solid;
   border-color: border-color;
 }
-h2 {
+.new-project {
   font-weight: normal;
   font-size: 14px;
+  margin: 0;
 }
-.projects-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: default-padding;
-  border: 1px solid border-color;
-  height: 37px;
-  h2 {
-    flex: 1;
-    margin: 0;
-    display: flex;
-    justify-content: space-between;
-    color: rgba(0, 0, 0, 0.4);
-  }
-}
+
 .owner-header {
   padding: 14px;
   display: flex;
-  align-items: center;
+  flex-shrink: 0;
   font-size: 18px;
   img {
     width: 64px;
@@ -109,23 +122,39 @@ h2 {
   }
 }
 
+.logo-text {
+  color: rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+  font-size: 24px;
+  small {
+    font-size: 14px;
+  }
+}
+.about {
+  width: 100%;
+  text-align: center;
+  padding-bottom: 7px;
+  background: white;
+}
+.heart {
+  color: rgba(255, 0, 43, 0.24)
+}
+
 @media only screen and (max-width: small-screen-size) {
-  .projects-list-container {
+  .sidebar-container {
     height: 100%;
-    padding-top: 12px;
+    width: 100%;
     bottom: 0;
     overflow-y: auto;
     background: screen-background;
     display: none;
   }
-  .projects-list-container.expanded {
-    top: 56px;
-    display: block;
+  .sidebar-container.expanded {
+    display: flex;
   }
 
   .projects-overview {
     left: 0;
-    top: 55px;
     bottom: 0;
     padding-top: 0;
   }

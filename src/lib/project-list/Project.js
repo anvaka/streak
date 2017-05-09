@@ -22,7 +22,7 @@ export default class Project {
     this.settingsFileId = null;
     this.settings = null;
     this.headers = [];
-    this.owner = [];
+    this.owner = null;
     this.sheetData = [];
   }
 
