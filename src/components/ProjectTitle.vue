@@ -1,6 +1,6 @@
 <template>
   <div>
-    <router-link :to='{name: "userPage", params: {userId: project.ownerId}}' class='by-line' v-if='project.owner'>{{project.owner.displayName}}</router-link>
+    <router-link :to='{name: "userPage", params: {userId: project.ownerId}}' class='by-line' v-if='project.owner'>{{project.owner.name}}</router-link>
     <h2 class='project-title' v-if='project'>{{project.title}}</h2>
   </div>
 </template>
@@ -30,7 +30,6 @@ h2.project-title {
 .by-line {
   display: none;
 }
-
 
 @media only screen and (max-width: small-screen-size) {
   h2.project-title {

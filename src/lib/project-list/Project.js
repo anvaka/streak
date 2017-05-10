@@ -22,7 +22,7 @@ export default class Project {
     this.settingsFileId = null;
     this.settings = null;
     this.headers = [];
-    this.owner = null;
+    this.owner = parentList.owner;
     this.sheetData = [];
   }
 
@@ -37,7 +37,6 @@ export default class Project {
       this.settings = vm.settings;
       this.settingsFileId = vm.settingsFileId;
       this.headers = vm.headers;
-      this.owner = vm.owner;
       this.sheetData = vm.sheetData;
 
       vm.projectHistory.filter(from, to);

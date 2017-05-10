@@ -79,6 +79,7 @@ export default {
 </script>
 
 <style lang='stylus'>
+@import '../styles/variables.styl';
 .error-title {
   margin: 0;
 }
@@ -94,5 +95,11 @@ export default {
   padding-right: 14px;
   padding-left: 14px;
   background-color: RGB(246, 248, 250);
+}
+
+@media only screen and (max-width: small-screen-size) {
+  .project-loading {
+    top: 130px;
+  }
 }
 </style>

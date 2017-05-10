@@ -19,6 +19,9 @@
         <p>
           Hmm, I can't find this project. Are you sure the website address is correct?
         </p>
+        <div class='go-to-user' v-if='projectList.owner'>
+          <router-link :to='{name: "userPage", params: {userId: projectList.ownerId}}' class='by-line'>Open projects list</router-link>
+        </div>
       </div>
     </div>
 
@@ -122,11 +125,17 @@ export default {
 .no-projects-sidebar.someone {
   width: sidebar-width;
 }
+.go-to-user {
+  display: none;
+}
 
 @media only screen and (max-width: small-screen-size) {
   .projects-overview {
     left: 0;
     padding-top: 0;
   }
+.go-to-user {
+  display: block;
+}
 }
 </style>

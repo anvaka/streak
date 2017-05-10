@@ -24,22 +24,20 @@ export default class ProjectList {
     if (this.ownerId === getCurrentUserId()) {
       this.loading = true;
       loadMyProjects().then((projectList) => {
-        this.loading = false;
         this.setProjectsInternal(projectList);
-        this.owner = projectList.owner;
       });
     } else {
       this.loading = true;
       loadProjectsForUser(this.ownerId).then((projectList) => {
-        this.loading = false;
         this.setProjectsInternal(projectList);
-        this.owner = projectList.owner;
       });
     }
   }
 
   setProjectsInternal(projectList) {
     // TODO: This should private
+    this.loading = false;
+    this.owner = projectList.owner;
     this.projects = projectList.projects.map(file => {
       const project = new Project(file, this);
       this.projectLookup.set(project.id, project);
