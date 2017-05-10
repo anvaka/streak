@@ -22,7 +22,7 @@
       </router-link>.
     </div>
 
-    <router-link class='add-record-link action vertical-padding' :to='{name: "add-record", params: {projectId}}' v-if='hasSomethingOnTheWall && project.canEdit'>Add record</router-link>
+    <router-link class='add-record-link action vertical-padding' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}' v-if='hasSomethingOnTheWall && project.canEdit'>Add record</router-link>
 
     <div v-if='project && project.projectHistory' class='project-details list'>
       <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
