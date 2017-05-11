@@ -2,11 +2,8 @@
   <div class='user-page'>
 
     <loading :isLoading='projectList.loading' class='project-list-loading'>Loading project list...</loading>
-    <div v-if='noProjects' class='no-projects-sidebar' :class='{someone: projectId}'>
-      You don't have any projects yet. <router-link :to='{name: "new-project"}'>Start a new project</router-link>
-    </div>
 
-    <div class='projects-overview' v-if='projectId || hasProjects' ref='mainContent'>
+    <div class='projects-overview' v-if='projectId' ref='mainContent'>
       <div v-if='!projectId'>
          <h3 class='welcome-message'>Welcome!</h3>
            Please select a project to get started.
@@ -25,7 +22,7 @@
       </div>
     </div>
 
-    <project-list :project-list='projectList' v-if='hasProjects' :project-id='projectId' ></project-list>
+    <project-list :project-list='projectList' :project-id='projectId' ></project-list>
   </div>
 </template>
 <script>
@@ -75,12 +72,6 @@ export default {
     }
   },
   computed: {
-    hasProjects() {
-      return !this.projectList.loading && this.projectList.projects.length > 0;
-    },
-    noProjects() {
-      return !this.projectList.loading && this.projectList.projects.length === 0;
-    },
     currentProject() {
       if (this.projectList.loading) return null;
       return this.projectList.get(this.projectId);
@@ -117,14 +108,6 @@ export default {
   -webkit-overflow-scrolling: touch;
 }
 
-.no-projects-sidebar {
-  position: absolute;
-  padding: default-padding;
-}
-
-.no-projects-sidebar.someone {
-  width: sidebar-width;
-}
 .go-to-user {
   display: none;
 }

@@ -1,15 +1,19 @@
 <template>
-  <div class='sidebar-container' :class='{expanded: !projectId}'>
-    <div class='owner-header'>
+  <div class='sidebar-container' :class='{expanded: !projectId}' >
+    <div class='owner-header' v-if='projectList.owner'>
       <img :src='projectList.owner.picture' class='avatar'>
       <div class='owner-name'>
         <div>{{projectList.owner.name}}</div>
         <div class='secondary byline'>Projects</div>
       </div>
     </div>
+
+    <div v-if='noProjects' class='no-projects-sidebar' :class='{"has-no-avatar": !projectList.owner}'>
+      There are no public projects here yet.
+    </div>
     <router-link
-      v-if='myProjectList'
-      :to='{name: "new-project"}' class='start-new-project'>Start new project</router-link>
+      v-if='projectList.owner && myProjectList'
+      :to='{name: "new-project"}' class='start-new-project'>Start a new project</router-link>
     <div class='project-list' :class='{mine: myProjectList}'>
         <router-link class='project-link'
           v-for='project in projectList.projects' :to='{name: "project-overview", params: {projectId: project.id, userId: project.ownerId}}'
@@ -39,7 +43,11 @@ export default {
   computed: {
     myProjectList() {
       return this.myId === this.projectList.ownerId;
-    }
+    },
+
+    noProjects() {
+      return !this.projectList.loading && this.projectList.projects.length === 0;
+    },
   }
 };
 </script>
@@ -69,6 +77,14 @@ export default {
   &:hover {
     color: black;
   }
+}
+.no-projects-sidebar {
+  padding: default-padding;
+  margin: 14px 0;
+}
+
+.no-projects-sidebar.has-no-avatar {
+  margin-top: 50px;
 }
 
 .project-link.router-link-active  {
@@ -148,6 +164,10 @@ export default {
     overflow-y: auto;
     background: screen-background;
     display: none;
+  }
+
+  .no-projects-sidebar.has-no-avatar {
+    margin-top: 45vh;
   }
   .sidebar-container.expanded {
     display: flex;
