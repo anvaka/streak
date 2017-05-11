@@ -40,6 +40,9 @@ export default {
   watch: {
     $route() {
       this.ensureOnUserPage();
+    },
+    signedIn() {
+      this.ensureOnUserPage();
     }
   },
 
@@ -48,12 +51,11 @@ export default {
       auth.signOut();
     },
     ensureOnUserPage() {
-      if (this.$route.name === 'redirectToUser') {
+      const userId = auth.signInStatus && auth.signInStatus.userId;
+      if (this.$route.name === 'redirectToUser' && userId) {
         this.$router.replace({
           name: 'userPage',
-          params: {
-            userId: this.userId
-          }
+          params: { userId }
         });
       }
     }
