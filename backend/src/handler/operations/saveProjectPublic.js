@@ -23,8 +23,8 @@ function setProjectPublic({ body, user }) {
     });
     g.addEdge(userId, edgeId);
   } else {
-    // TODO: Remove node?
     g.removeEdge(userId, edgeId);
+    g.removeNode(projectId);
   }
 
   return g.save();

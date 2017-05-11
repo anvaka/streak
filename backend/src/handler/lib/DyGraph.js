@@ -7,6 +7,7 @@ class DyGraph {
 
   addNode(nodeId, data) {
     this._pendingNodes.push({
+      operation: 'update',
       id: nodeId,
       data
     });
@@ -17,6 +18,13 @@ class DyGraph {
       operation: 'remove',
       fromId,
       toId
+    });
+  }
+
+  removeNode(nodeId) {
+    this._pendingNodes.push({
+      operation: 'remove',
+      id: nodeId
     });
   }
 
@@ -88,11 +96,13 @@ class DyGraph {
 
   save() {
     const updates = this._pendingNodes.map(node => {
-      return updateNode(this.options.dynamo, this.options.nodesTable, node);
+      return node.operation === 'remove' ?
+        removeNode(this.options.dynamo, this.options.nodesTable, node) :
+        updateNode(this.options.dynamo, this.options.nodesTable, node);
     }).concat(this._pendingEdges.map(edge => {
-      return edge.operation === 'update' ?
-        updateEdge(this.options.dynamo, this.options.edgesTable, edge) :
-        removeEdge(this.options.dynamo, this.options.edgesTable, edge);
+      return edge.operation === 'remove' ?
+        removeEdge(this.options.dynamo, this.options.edgesTable, edge) :
+        updateEdge(this.options.dynamo, this.options.edgesTable, edge);
     }));
 
     return Promise.all(updates);
@@ -100,6 +110,20 @@ class DyGraph {
 }
 
 module.exports = DyGraph;
+
+function removeNode(dynamo, nodeTable, node) {
+  // TODO: This should also remove all edges?
+  return new Promise((resolve, reject) => {
+    const params = {
+      TableName: nodeTable,
+      Key: {
+        NodeId: node.id,
+      },
+    };
+
+    dynamo.delete(params).promise().then(resolve, reject);
+  });
+}
 
 function updateNode(dynamo, table, node) {
   return new Promise((resolve, reject) => {
