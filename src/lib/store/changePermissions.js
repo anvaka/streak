@@ -8,7 +8,8 @@ export default function changePermissions(projectInfo, isPublic) {
       fileId: projectInfo.projectId,
       resource: {
         role: 'reader',
-        type: 'anyone'
+        type: 'anyone',
+        allowFileDiscovery: true
       }
     }).then(() => {
       return setProjectPublic(projectInfo, isPublic);
@@ -18,7 +19,7 @@ export default function changePermissions(projectInfo, isPublic) {
   return setProjectPublic(projectInfo, isPublic).then(() => {
     gapiPermissions('delete', {
       fileId: projectInfo.projectId,
-      permissionId: 'anyoneWithLink'
+      permissionId: 'anyone'
     }).catch(err => {
       if (err && err.status === 404) {
         return; // This is okay, we are removing removed permissions

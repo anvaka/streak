@@ -13,6 +13,9 @@ const SCOPES = [
   // created by streak only.
   'https://www.googleapis.com/auth/drive.file',
 
+  // This is necessary to get public folders shared by other users.
+  'https://www.googleapis.com/auth/drive.metadata',
+
   // Project log is stored as a Google Spreadsheet document
   'https://www.googleapis.com/auth/spreadsheets'
 ].join(' ');
