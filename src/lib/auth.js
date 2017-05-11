@@ -15,6 +15,10 @@ const SCOPES = [
 
   // This is necessary to get public folders shared by other users.
   'https://www.googleapis.com/auth/drive.metadata',
+  // Okay, this needs to be here again, because google changed their permissions
+  // model. Without this line, the app does not let you browse someone's publicly
+  // shared files
+  'https://www.googleapis.com/auth/drive',
 
   // Project log is stored as a Google Spreadsheet document
   'https://www.googleapis.com/auth/spreadsheets'
