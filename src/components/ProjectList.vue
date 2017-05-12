@@ -24,7 +24,7 @@
       v-if='!myProjectList'>↰ back to your projects</router-link>
     <div class='about'>
       <div slot='brand'>
-        <router-link to='/' class='logo-text'><span class='heart'>❤</span> Streak <small title='Alpha version means that bugs are expected! Please do not use for anything critical.'>αλφα</small></router-link>
+        <router-link to='/' class='logo-text'> Streak <small title='Alpha version means that bugs are expected! Please do not use for anything critical.'>αλφα</small></router-link>
       </div>
     </div>
   </div>
