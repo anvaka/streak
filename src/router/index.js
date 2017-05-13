@@ -4,6 +4,7 @@ import UserPage from '../components/UserPage.vue';
 import AddRecordContainer from '../components/AddRecordContainer.vue';
 import NewProject from '../components/NewProject.vue';
 import ProjectPage from '../components/ProjectPage.vue';
+import AboutPage from '../components/AboutPage.vue';
 import ProjectOverview from '../components/ProjectOverview.vue';
 import ProjectSettings from '../components/settings/ProjectSettings.vue';
 
@@ -13,6 +14,10 @@ export default new Router({
   routes: [{
     path: '/',
     name: 'redirectToUser',
+  }, {
+    path: '/about',
+    name: 'about',
+    component: AboutPage,
   }, {
     path: '/new-project',
     name: 'new-project',
