@@ -1,5 +1,9 @@
 import handleAuthError from './handleAuthError.js';
 
+/**
+ * This is a base Google API call method. It is need to handle rejections
+ * uniformly with appropriate retries.
+ */
 export default function baseCall(baseFunction, methodName, methodArguments) {
   return new Promise((resolve, reject) => {
     const parts = methodName.split('.');
