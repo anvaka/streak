@@ -12,6 +12,8 @@ Vue.use(Router);
 
 export default new Router({
   routes: [{
+    // By default I want people to go to the user page. This might be changed
+    // in future
     path: '/',
     name: 'redirectToUser',
   }, {

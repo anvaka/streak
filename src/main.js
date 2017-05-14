@@ -1,5 +1,4 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+// Welcome to the streak app. THis is the entry point.
 
 import Vue from 'vue';
 import Home from './components/Home.vue';
