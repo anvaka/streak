@@ -8,7 +8,7 @@ export function get(qs, url) {
 }
 
 // TODO: This should be configurable
-const API_ENDPOINT = 'https://gnnpgomweb.execute-api.us-west-2.amazonaws.com/Stage/streak';
+const API_ENDPOINT = 'https://13bqs50skh.execute-api.us-west-2.amazonaws.com/Stage/streak';
 
 export function request(params, url) {
   params = params || Object.create(null);

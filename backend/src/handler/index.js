@@ -50,11 +50,11 @@ function createResponse(statusCode, body, event) {
 }
 
 function getCorsDomain(reqHeaders) {
-  const defaultFomain = 'https://streak.anvaka.com';
+  const defaultDomain = 'https://streak.anvaka.com';
 
-  if (!reqHeaders || !reqHeaders.origin) return defaultFomain;
+  if (!reqHeaders || !reqHeaders.origin) return defaultDomain;
 
-  return reqHeaders.origin.indexOf('http://localhost:8100') === 0 ? 'http://localhost:8100' : defaultFomain;
+  return reqHeaders.origin.indexOf('http://localhost:8100') === 0 ? 'http://localhost:8100' : defaultDomain;
 }
 
 function isDebug(event) {
