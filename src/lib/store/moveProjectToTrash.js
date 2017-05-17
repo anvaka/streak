@@ -2,7 +2,10 @@ import gapiFiles from '../gapi/files.js';
 import { resetProjectFileCache } from './cachingDocs.js';
 import { setProjectPublic } from '../streak-api/actions.js';
 
-export default function deleteProject(fileId) {
+/**
+ * Moves given file into Trash folder (https://drive.google.com/drive/trash)
+ */
+export default function moveProjectToTrash(fileId) {
   return gapiFiles('update', {
     fileId,
     resource: {

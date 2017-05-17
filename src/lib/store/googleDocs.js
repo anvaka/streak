@@ -18,7 +18,7 @@ export function loadSheetData(spreadsheetId) {
     const headers = values.splice(0, 1);
     return {
       values,
-      // we are insterested in actual cell values, not just an array
+      // we are interested in actual cell values, not just an array
       headers: headers[0]
     };
   });

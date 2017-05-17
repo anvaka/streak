@@ -25,7 +25,7 @@ function createProject(name, description, isPublic, fields) {
         createSettingsFile(parentFolderId)
       ]).then(() => ({
         // TODO: This needs to be in sync with loadMyProjects(). Makes code
-        // very brittle. change it
+        // very brittle. Change it
         id: parentFolderId,
         name,
         description,
