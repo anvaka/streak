@@ -1,3 +1,6 @@
+/**
+ * This file contains all routes inside streak application.
+ */
 import Vue from 'vue';
 import Router from 'vue-router';
 import UserPage from '../components/UserPage.vue';

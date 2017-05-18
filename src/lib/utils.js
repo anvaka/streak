@@ -1,5 +1,5 @@
 /**
- * Clones an object
+ * Clones an object. Does not work on objects with cycles.
  */
 export function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
