@@ -1,4 +1,10 @@
 {
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines" : {
+    "node" : "~6.10.3"
+  },
   "dependencies": {
     "@google-cloud/datastore": "1.0.0",
     "body-parser": "^1.17.2",

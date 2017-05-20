@@ -12,9 +12,8 @@ enableCors();
 
 // app.use(morgan('combined'));
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(extractUser);
 
-app.post('/update-project', (req, res) => {
+app.post('/update-project', extractUser, (req, res) => {
   updateProject(req.body, req.user).then((results) => {
     console.log('project updated', results);
 
@@ -22,11 +21,19 @@ app.post('/update-project', (req, res) => {
   });
 });
 
-app.get('/list-projects', (req, res) => {
+app.get('/list-projects', extractUser, (req, res) => {
   listProjects(req.query).then(results => {
     res.status(200).send(JSON.stringify(results));
   });
 });
+
+// health check
+app.get('/_ah/health', ok);
+app.get('/', ok);
+
+function ok(req, res) {
+  res.status(200).send('ok');
+}
 
 // Start the server
 const PORT = process.env.PORT || 8080;
@@ -40,10 +47,11 @@ function enableCors() {
 
   const corsOptions = {
     origin(origin, callback) {
+      console.log(origin);
       if (whitelist.has(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false);
       }
     }
   };
