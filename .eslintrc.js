@@ -15,18 +15,18 @@ module.exports = {
   ],
 
   // check if imports actually resolve
-  'settings': {
+  settings: {
     'import/resolver': {
-      'webpack': {
-        'config': 'build/webpack.base.conf.js'
+      webpack: {
+        config: 'build/webpack.base.conf.js'
       }
     }
   },
   // add your custom rules here
-  'rules': {
+  rules: {
     // allow paren-less arrow functions
     'arrow-parens': 0,
-    'camelcase': 0,
+    camelcase: 0,
     // allow async-await
     'generator-star-spacing': 0,
     // allow debugger during development
@@ -34,6 +34,7 @@ module.exports = {
     'no-use-before-define': 0,
     'no-underscore-dangle': 0,
     'no-console': 0,
+    'no-continue': 0,
     'no-bitwise': 0,
     'no-shadow': 0,
     'no-multi-assign': 0,
@@ -52,9 +53,9 @@ module.exports = {
     'prefer-rest-params': 0,
     'import/prefer-default-export': 0,
     'no-unused-vars': 1,
-    'semi': 1
+    semi: 1
   },
   globals: {
     gapi: true
   }
-}
+};
