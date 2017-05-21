@@ -1,4 +1,4 @@
-import { listProjects } from '../streak-api/actions.js';
+import listProjects from '../streak-api/listProjects.js';
 
 /**
  * Given a user id, tries to load publicly shared projects for this user
