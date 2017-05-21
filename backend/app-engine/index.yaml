@@ -1,9 +1,0 @@
-indexes:
-
-- kind: "edges"
-  properties:
-  - name: "fromId"
-  - name: "verb"
-  - name: "created"
-    direction: desc
-
