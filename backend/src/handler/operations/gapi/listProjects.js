@@ -6,29 +6,21 @@ function listProjects({ userId }) {
   const fromId = `user.${userId}`;
   const verb = 'share';
 
-  return streakGraph.getEdgesFrom(fromId, verb).then(requestNodes).then(result => {
-    return result;
-  });
+  return streakGraph.getEdgesFrom(fromId, verb).then(edges => requestNodes(edges, userId));
 }
 
-function requestNodes(edges) {
+function requestNodes(edges, userId) {
   const seen = new Set();
-  let userRequest;
+  const userRequest = makeUserRequest(userId);
   const projectRequests = [];
 
   edges.forEach(edge => {
-    if (!seen.has(edge.fromId)) {
-      seen.add(edge.fromId);
-      userRequest = makeUserRequest(edge.fromId);
-    }
     if (seen.has(edge.toId)) {
       throw new Error(`Duplicate edge ${edge.fromId} -> ${edge.toId}`);
     }
     seen.add(edge.toId);
     projectRequests.push(makeProjectRequest(edge.toId));
   });
-
-  if (!userRequest) return {};
 
   return streakGraph.getNode(projectRequests.concat(userRequest))
     .then(extractProjectList);
@@ -70,14 +62,10 @@ function extractProjectList(nodes) {
   return result;
 }
 
-function makeUserRequest(edge) {
-  const parts = edge.split('.');
-  if (parts[0] !== 'user') throw new Error('from id is expected to have user.[] pattern');
-  if (parts.length !== 2) throw new Error(`Too many dots in edge name ${edge}`);
-
+function makeUserRequest(userId) {
   return {
     kind: 'user',
-    id: parts[1]
+    id: userId
   };
 }
 
