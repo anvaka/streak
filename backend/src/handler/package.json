@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "aws-sdk": "^2.45.0"
+    "aws-sdk": "^2.45.0",
+    "@google-cloud/datastore": "^1.0.2"
   }
 }

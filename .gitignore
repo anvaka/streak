@@ -7,3 +7,4 @@ test/e2e/reports
 selenium-debug.log
 
 stats.json
+streak-service-account.json

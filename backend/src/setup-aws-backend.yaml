@@ -18,6 +18,10 @@ Resources:
       Policies: AmazonDynamoDBFullAccess
       MemorySize: 128
       Timeout: 6
+      Environment:
+        Variables:
+          GOOGLE_APPLICATION_CREDENTIALS: "streak-service-account.json"
+          DATASTORE_PROJECT_ID: "streak-146302"
       Events:
         PostResource:
           Type: Api
@@ -32,6 +36,10 @@ Resources:
       Runtime: nodejs6.10
       CodeUri: ./handler/
       Description: 'Streak API handler'
+      Environment:
+        Variables:
+          GOOGLE_APPLICATION_CREDENTIALS: "streak-service-account.json"
+          DATASTORE_PROJECT_ID: "streak-146302"
       # TODO: Should this be read only?
       Policies: AmazonDynamoDBFullAccess
       MemorySize: 128
