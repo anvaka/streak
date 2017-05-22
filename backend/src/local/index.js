@@ -23,9 +23,11 @@ function handleRequest(req, res) {
     headers: req.headers
   }, {}, (err, responseObject) => {
     const { headers } = responseObject;
-    Object.keys(headers).forEach(header => {
-      res.append(header, headers[header]);
-    });
+    if (headers) {
+      Object.keys(headers).forEach(header => {
+        res.append(header, headers[header]);
+      });
+    }
 
     res.status(responseObject.statusCode).send(responseObject.body);
   });

@@ -1,3 +1,5 @@
+import renewAuth from '../gapi/renewAuth.js';
+
 /**
  * Super simple ajax client
  */
@@ -11,7 +13,7 @@ export function get(qs, url) {
 const API_ENDPOINT = 'https://13bqs50skh.execute-api.us-west-2.amazonaws.com/Stage/streak';
 // const API_ENDPOINT = 'http://localhost:8083';
 
-export function request(params, url) {
+export function request(params, url, isRetry) {
   params = params || Object.create(null);
 
   if (params.method && params.method !== 'GET' && params.method !== 'POST') {
@@ -50,9 +52,27 @@ export function request(params, url) {
     }
 
     function resolveBound() {
+      if (this.status === 401 && tokenExpired(this.responseText)) {
+        if (isRetry) {
+          // we already tried to renew the token.
+          return reject('AUTH');
+        }
+
+        return renewAuth().then(() => request(params, url, /* isRetry = */ true));
+      }
+
       resolve(this.responseText);
     }
   });
+}
+
+function tokenExpired(errorText) {
+  try {
+    const r = JSON.parse(errorText);
+    return r.error === 'ID_TOKEN';
+  } catch (e) {
+    return false;
+  }
 }
 
 function stringify(object) {

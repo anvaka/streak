@@ -1,3 +1,5 @@
+import renewAuth from './renewAuth.js';
+
 export default handleAuthError;
 
 function handleAuthError(retryCallback, rejectCallback) {
@@ -12,12 +14,7 @@ function handleAuthError(retryCallback, rejectCallback) {
       );
 
     if (isInvalidCredentials) {
-      return (
-        new Promise((resolve) => {
-          gapi.auth2.getAuthInstance().currentUser.get().reloadAuthResponse()
-            .then(resolve, rejectCallback);
-        })
-      ).then(retryCallback);
+      return renewAuth().then(retryCallback).catch(rejectCallback);
     }
 
     rejectCallback(err);

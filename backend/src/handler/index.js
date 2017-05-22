@@ -14,11 +14,13 @@ function handler(event, context, callback) {
     if (user) {
       route({ body, user, event }).then(sendResponse);
     } else {
-      sendResponse(403, 'id_token is required');
+      callback(null, createResponse(401, JSON.stringify({
+        error: 'ID_TOKEN'
+      }), event));
     }
   }).catch(e => {
     console.log('Failed to decode token', e);
-    callback(null, createResponse(500, 'Something is wrong'));
+    callback(null, createResponse(500, 'Something is wrong', event));
   });
 
   function sendResponse(response) {
