@@ -1,3 +1,5 @@
+import updateUserInfo from './streak-api/updateUserInfo.js';
+
 /**
  * Provides helper authentication functions with
  */
@@ -110,6 +112,8 @@ function updateSignInStatus(isSignedIn) {
     signInStatus.signedIn = true;
     signInStatus.signedOut = false;
     signInStatus.userId = signInStatus.profile.id;
+    // fire and forget call to keep users list up to date.
+    updateUserInfo();
   } else {
     signInStatus.profile = null;
     signInStatus.userId = null;

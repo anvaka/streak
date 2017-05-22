@@ -11,8 +11,39 @@ module.exports = {
   removeNode,
   removeEdge,
   getEdgesFrom,
-  getNode
+  getNode,
+  queryNode
 };
+
+function queryNode(kind, pageCursor) {
+  const query = datastore.createQuery(kind)
+      .order('created', { descending: true })
+      .limit(20);
+
+  if (pageCursor) {
+    query.start(pageCursor);
+  }
+
+  return datastore.runQuery(query)
+    .then((results) => {
+      const entities = results[0];
+      const info = results[1];
+      let nextPage = null;
+      if (info.moreResults !== Datastore.NO_MORE_RESULTS) {
+        nextPage = info.endCursor;
+      }
+
+      return {
+        users: entities.map(toUserWithId),
+        pageCursor: nextPage
+      };
+    });
+}
+
+function toUserWithId(entity) {
+  entity.id = entity[datastore.KEY].name;
+  return entity;
+}
 
 function addNode(node) {
   const transaction = datastore.transaction();

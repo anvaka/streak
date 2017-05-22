@@ -20,7 +20,7 @@
       Streak was created by <a href='https://streak.anvaka.com/#/114708134049085210473'>Andrei Kashcha</a>.
       The source code of this website is fully available on our <a href='https://github.com/anvaka/streak'>GitHub page</a>
     </p>
-    <router-link :to='{name: "redirectToUser"}'>Back to home</router-link>
+    <router-link :to='{name: "redirectToUser"}'>↰ back to your projects</router-link>
   </div>
 </template>
 <script>

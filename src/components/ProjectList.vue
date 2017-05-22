@@ -23,8 +23,11 @@
       :to='{name: "userPage", params: { userId: myId }}' class='back-to-your-home'
       v-if='!myProjectList'>↰ back to your projects</router-link>
     <div class='about'>
+      <div class='go-outside'>
+        <router-link to='/explore'>explore</router-link>
+        <router-link to='/about' >about</router-link>
+      </div>
       <div slot='brand'>
-        <router-link to='/about' class='small'>about</router-link>
         <router-link to='/' class='logo-text'> Streak <small title='Alpha version means that bugs are expected! Please do not use for anything critical.'>αλφα</small></router-link>
       </div>
     </div>
@@ -55,6 +58,14 @@ export default {
 
 <style scoped lang='stylus'>
 @import '../styles/variables.styl'
+
+.go-outside {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px;
+  border-top: 1px solid border-color;
+  border-bottom: 1px solid border-color;
+}
 
 .project-list {
   display: flex;

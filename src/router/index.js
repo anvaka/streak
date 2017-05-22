@@ -10,6 +10,7 @@ import ProjectPage from '../components/ProjectPage.vue';
 import AboutPage from '../components/AboutPage.vue';
 import ProjectOverview from '../components/ProjectOverview.vue';
 import ProjectSettings from '../components/settings/ProjectSettings.vue';
+import ExplorerPage from '../components/ExplorerPage.vue';
 
 Vue.use(Router);
 
@@ -27,6 +28,10 @@ export default new Router({
     path: '/new-project',
     name: 'new-project',
     component: NewProject
+  }, {
+    path: '/explore',
+    name: 'explore',
+    component: ExplorerPage
   }, {
     path: '/:userId',
     name: 'userPage',
