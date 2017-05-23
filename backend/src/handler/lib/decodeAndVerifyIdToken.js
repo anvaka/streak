@@ -1,10 +1,16 @@
 const https = require('https');
 
+const isIntegration = !!process.env.INTEGRATION_TEST_RUN;
+
 const streakAppAud = '808734092016-u5ss25nmh0j9o5ponusu5l3tnqb7vl9g.apps.googleusercontent.com';
 
 module.exports = decodeAndVerifyIdToken;
 
 function decodeAndVerifyIdToken(idToken) {
+  if (isIntegration) {
+    return integrationUser(idToken);
+  }
+
   return new Promise((resolve, reject) => {
     https.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${idToken}`, (res) => {
       res.on('data', (d) => {
@@ -25,6 +31,19 @@ function decodeAndVerifyIdToken(idToken) {
   });
 }
 
+function integrationUser(idToken) {
+  return new Promise((resolve, reject) => {
+    try {
+      console.log('Integration run. Decoding ' + idToken);
+      const user = JSON.parse(decodeURIComponent(idToken));
+      console.log('Decoded as', user);
+      resolve(user);
+    } catch (e) {
+      console.log('Failed to decode integration token');
+      reject(e);
+    }
+  });
+}
 
 /**
  * Implements checks from https://developers.google.com/identity/sign-in/web/backend-auth#verify-the-integrity-of-the-id-token

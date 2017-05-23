@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "test": "./run_tests.sh"
+  },
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3"
+  },
+  "devDependencies": {
+    "request": "^2.81.0",
+    "tap": "^10.3.2"
+  }
+}

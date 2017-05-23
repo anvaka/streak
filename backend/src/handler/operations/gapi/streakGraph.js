@@ -47,15 +47,18 @@ function toUserWithId(entity) {
 
 function addNode(node) {
   const transaction = datastore.transaction();
+  const nodeKey = [node.kind, node.id];
   const key = datastore.key([node.kind, node.id]);
+  console.log(nodeKey, 'addNode ', JSON.stringify(node));
 
   return transaction.run().then(() => {
     return transaction.get(key);
   }).then((results) => {
     // we set timestamp only it is not created yet.
     const previousNode = results && results[0];
+    console.log(nodeKey, 'addNode -> previousNode', JSON.stringify(results));
     if (sameNodes(previousNode, node.data)) {
-      console.log('node ' + node.id + ' has not changed. Ignoring');
+      console.log(nodeKey, 'node ' + node.id + ' has not changed. Ignoring');
 
       return transaction.rollback();
     }
@@ -64,7 +67,7 @@ function addNode(node) {
 
     if (!nodeToSave.created) nodeToSave.created = new Date();
 
-    console.log('Saving', JSON.stringify(nodeToSave), key);
+    console.log(nodeKey, 'Saving', JSON.stringify(nodeToSave), JSON.stringify(key));
     transaction.save({
       key,
       data: nodeToSave
@@ -122,6 +125,7 @@ function removeEdge(fromId, verb, toId) {
 
   return datastore.runQuery(query)
     .then((results) => {
+      console.log('remove edge results', JSON.stringify(results));
       const edges = results && results[0];
       if (!edges) return;
 
@@ -179,8 +183,11 @@ function getEdgesFrom(fromId, verb) {
 function getNode(nodeIds) {
   if (!Array.isArray(nodeIds)) nodeIds = [nodeIds];
 
+  console.log('Get node', nodeIds);
+
   return datastore.get(nodeIds.map(node => datastore.key([node.kind, node.id])))
     .then(result => {
+      console.log('Get node results ', JSON.stringify(result));
       return result[0].map(x => ({
         data: x,
         key: x[datastore.KEY]

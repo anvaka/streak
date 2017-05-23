@@ -28,6 +28,8 @@ function updateProject(project, user) {
     return Promise.all([addUser, addProject, addEdge]);
   }
 
+  console.log('Removing a project', projectId);
+
   // If we get here, we are removing public information about this project.
   return Promise.all([
     streakGraph.removeEdge(fromId, 'share', toId),
