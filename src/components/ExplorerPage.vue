@@ -25,12 +25,11 @@
 <script>
 import Loading from './Loading.vue';
 import listUsers from '../lib/streak-api/listUsers.js';
+import setPageTitle from '../lib/setPageTitle.js';
 
 export default {
   name: 'Explorer',
-  components: {
-    Loading
-  },
+  components: { Loading },
   data() {
     return {
       isLoading: true,
@@ -45,6 +44,7 @@ export default {
   },
   created() {
     this.updateUsers();
+    setPageTitle('Explore Streak');
   },
   watch: {
     $route(/* to */) {
@@ -73,6 +73,7 @@ export default {
 a.user-container {
   display: inline-block;
   padding: 14px;
+  text-align: center;
 }
 .pager {
   display: flex;

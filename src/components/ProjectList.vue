@@ -62,9 +62,11 @@ export default {
 .go-outside {
   display: flex;
   justify-content: space-between;
-  padding: 14px;
   border-top: 1px solid border-color;
   border-bottom: 1px solid border-color;
+  a {
+    padding: 14px;
+  }
 }
 
 .project-list {
