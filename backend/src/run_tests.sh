@@ -33,7 +33,6 @@ sleep 15
 echo "Running tests"
 
 REST_STREAK_INTEGRATION="http://localhost:$REST_PORT" node ./test/index.js
-echo $?
 
 echo "Inpsect test logs in $DATA_DIR"
 # rm -rf $DATA_DIR
