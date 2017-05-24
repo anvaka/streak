@@ -12,6 +12,7 @@ import ProjectOverview from '../components/ProjectOverview.vue';
 import ProjectSettings from '../components/settings/ProjectSettings.vue';
 import ExplorerPage from '../components/ExplorerPage.vue';
 import ProjectDiscussions from '../components/ProjectDiscussions.vue';
+import StartDiscussion from '../components/StartDiscussion.vue';
 
 Vue.use(Router);
 
@@ -61,6 +62,11 @@ export default new Router({
         name: 'project-discussion',
         props: true,
         component: ProjectDiscussions
+      }, {
+        path: 'discuss/add',
+        name: 'add-comment',
+        props: true,
+        component: StartDiscussion
       }, {
         path: 'add',
         name: 'add-record',
