@@ -11,6 +11,7 @@ import AboutPage from '../components/AboutPage.vue';
 import ProjectOverview from '../components/ProjectOverview.vue';
 import ProjectSettings from '../components/settings/ProjectSettings.vue';
 import ExplorerPage from '../components/ExplorerPage.vue';
+import ProjectDiscussions from '../components/ProjectDiscussions.vue';
 
 Vue.use(Router);
 
@@ -55,6 +56,11 @@ export default new Router({
         name: 'project-settings',
         props: true,
         component: ProjectSettings
+      }, {
+        path: 'discuss',
+        name: 'project-discussion',
+        props: true,
+        component: ProjectDiscussions
       }, {
         path: 'add',
         name: 'add-record',

@@ -1,6 +1,7 @@
 <template>
   <div class='tabs' v-if='project'>
     <router-link :to='{name: "project-overview"}' :class='{current: isCurrentPage("project-overview")}' class='tab-link'>Overview</router-link>
+    <router-link :to='{name: "project-discussion"}' :class='{current: isCurrentPage("project-discussion")}' class='tab-link'>Discuss</router-link>
     <router-link :to='{name: "project-settings"}' :class='{current: isCurrentPage("project-settings")}' class='tab-link' v-if='canEdit'>Settings</router-link>
   </div>
 </template>
