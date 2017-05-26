@@ -24,7 +24,7 @@
 import UiTextbox from 'keen-ui/src/UiTextbox';
 import UiButton from 'keen-ui/src/UiButton';
 
-import { addComment } from '../lib/streak-api/comments.js';
+import { addComment } from '../../lib/streak-api/comments.js';
 
 export default {
   name: 'AddComment',

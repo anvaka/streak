@@ -11,8 +11,8 @@ import AboutPage from '../components/AboutPage.vue';
 import ProjectOverview from '../components/ProjectOverview.vue';
 import ProjectSettings from '../components/settings/ProjectSettings.vue';
 import ExplorerPage from '../components/ExplorerPage.vue';
-import ProjectDiscussions from '../components/ProjectDiscussions.vue';
-import StartDiscussion from '../components/StartDiscussion.vue';
+import ProjectDiscussions from '../components/comments/ProjectDiscussions.vue';
+import StartDiscussion from '../components/comments/StartDiscussion.vue';
 
 Vue.use(Router);
 

@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { listComments } from '../lib/streak-api/comments.js';
+import { listComments } from '../../lib/streak-api/comments.js';
 
 export default {
   name: 'ProjectDiscussions',
