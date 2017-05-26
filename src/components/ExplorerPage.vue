@@ -24,7 +24,7 @@
 </template>
 <script>
 import Loading from './Loading.vue';
-import listUsers from '../lib/streak-api/listUsers.js';
+import { listAllUsers } from '../lib/streak-api/users.js';
 import setPageTitle from '../lib/setPageTitle.js';
 
 export default {
@@ -54,7 +54,7 @@ export default {
   methods: {
     updateUsers() {
       this.isLoading = true;
-      listUsers(this.$route.query).then(response => {
+      listAllUsers(this.$route.query).then(response => {
         this.isLoading = false;
         this.users = response.users;
         this.nextCursor = response.users.length > 0 ? response.pageCursor : null;

@@ -35,13 +35,13 @@ function queryNode(kind, pageCursor) {
       }
 
       return {
-        users: entities.map(toUserWithId),
+        nodes: entities.map(toNodeWithId),
         pageCursor: nextPage
       };
     });
 }
 
-function toUserWithId(entity) {
+function toNodeWithId(entity) {
   entity.id = entity[datastore.KEY].name;
   return entity;
 }

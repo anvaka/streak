@@ -1,7 +1,7 @@
 const gapiListProjects = require('./operations/gapi/listProjects.js');
 const gapiUpdateProject = require('./operations/gapi/updateProject.js');
 const gapiUpdateUserInfo = require('./operations/gapi/updateUserInfo.js');
-const gapiListUsers = require('./operations/gapi/listUsers.js');
+const users = require('./operations/gapi/users.js');
 const comments = require('./operations/gapi/comments.js');
 
 module.exports = route;
@@ -26,8 +26,10 @@ function route(req) {
         console.log('Gapi update project: ', JSON.stringify(res));
         return res;
       });
-    case 'list-users':
-      return gapiListUsers(queryString);
+    case 'list-all-users':
+      return users.listAll(queryString);
+    case 'list-specific-users':
+      return users.listSpecific(queryString);
     case 'list-projects':
       return gapiListProjects(queryString).then(res => {
         console.log('Gapi list projects: ', JSON.stringify(res));

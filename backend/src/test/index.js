@@ -1,30 +1,17 @@
 const test = require('tap').test;
-const request = require('request');
-const createUser = require('./lib/create-user.js');
-const encodeUser = require('./lib/encode-user.js');
-
-const endpoint = process.env.REST_STREAK_INTEGRATION;
-
-if (!endpoint) {
-  console.log('Make sure to specify REST_STREAK_INTEGRATION endpoint in environment variables');
-  process.exit(1);
-}
-
-console.log('Starting tests at ' + endpoint);
+const createUserModel = require('./lib/create-user.js');
+const rp = require('./lib/rp.js');
 
 test('it can update user info', t => {
   const userName = 'john smith 1';
   const userPicture = 'www.site.com/picture.png';
-  const user = createUser(userName, userPicture);
+  const user = createUserModel(userName, userPicture);
 
-  rp('post', {
-    qs: { id_token: user },
-    form: { operation: 'update-user-info' }
-  })
+  createUserRequest(user)
   .then(() => rp('get', {
     qs: {
       id_token: user,
-      operation: 'list-users'
+      operation: 'list-all-users'
     }
   })).then(response => {
     const ourUserIsHere = response.users.find(u => {
@@ -40,8 +27,15 @@ test('it can update user info', t => {
   });
 });
 
+function createUserRequest(user) {
+  return rp('post', {
+    qs: { id_token: user },
+    form: { operation: 'update-user-info' }
+  });
+}
+
 test('it can update project info', t => {
-  const user = createUser('Anna Bella');
+  const user = createUserModel('Anna Bella');
 
   const project = {
     projectId: 'anna_project_1',
@@ -96,8 +90,44 @@ test('it can update project info', t => {
   }
 });
 
+test('it can list specific users', (t) => {
+  const userModels = [];
+  const userLookup = new Map();
+  for (let i = 0; i < 5; ++i) {
+    const model = createUserModel('user' + i, 'http://user' + i);
+    userLookup.set(model.id, model);
+    userModels.push(model);
+  }
+
+  Promise.all(userModels.map(createUserRequest))
+  .then(() => {
+    return getSpecificUsers([userModels[0].id, userModels[3].id]);
+  }).then(users => {
+    t.equals(users.length, 2, 'both users are here');
+    users.forEach(assertPresent);
+    t.end();
+  });
+
+  function assertPresent(user) {
+    const ourUser = userLookup.get(user.id);
+    t.ok(ourUser, 'user is found');
+    t.equals(user.name, ourUser.data.name, 'name is ok');
+    t.equals(user.picture, ourUser.data.picture, 'picture is ok');
+  }
+
+  function getSpecificUsers(userIds) {
+    return rp('get', {
+      qs: {
+        id_token: userModels[0],
+        operation: 'list-specific-users',
+        users: JSON.stringify(userIds)
+      }
+    });
+  }
+});
+
 test('it can add comments', (t) => {
-  const user = createUser('anvaka');
+  const user = createUserModel('anvaka');
   const comment = {
     projectId: 'project-1',
     text: 'hello world',
@@ -136,17 +166,3 @@ test('it can add comments', (t) => {
   }
 });
 
-
-function rp(method, options) {
-  if (options.qs.id_token) {
-    options.qs.id_token = encodeUser(options.qs.id_token);
-  }
-
-  return new Promise((resolve, reject) => {
-    request[method](endpoint, options, (error, response, body) => {
-      if (error) reject(error);
-      if (body) resolve(JSON.parse(body));
-      else resolve(body);
-    });
-  });
-}
