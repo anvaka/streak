@@ -1,4 +1,5 @@
 const streakGraph = require('./streakGraph.js');
+const toUserWithoutSensitiveInfo = require('./toUserWithoutSensitiveInfo.js');
 
 module.exports = function listUsers(queryString) {
   return streakGraph.queryNode('user', queryString && queryString.pageCursor)
@@ -8,10 +9,3 @@ module.exports = function listUsers(queryString) {
     });
 };
 
-function toUserWithoutSensitiveInfo(user) {
-  return {
-    id: user.id,
-    name: user.name,
-    picture: user.picture
-  };
-}

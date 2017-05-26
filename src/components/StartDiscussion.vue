@@ -24,7 +24,7 @@
 import UiTextbox from 'keen-ui/src/UiTextbox';
 import UiButton from 'keen-ui/src/UiButton';
 
-import comments from '../lib/gapi/comments.js';
+import { addComment } from '../lib/streak-api/comments.js';
 
 export default {
   name: 'AddComment',
@@ -42,16 +42,9 @@ export default {
         // TODO: Validation
         return;
       }
-      const DEFAULT_COMMENT_FIELDS = 'author,id,content';
-      comments('create', {
-        fileId: this.project.id,
-        fields: DEFAULT_COMMENT_FIELDS,
-        resource: {
-          content: this.comment
-        }
-      }).then(() => {
-        this.$router.push({ name: 'project-discussion' });
-      });
+      addComment(this.project.id, this.comment).then(() =>
+        this.$router.push({ name: 'project-discussion' })
+      );
     },
     cancel() {
       this.$router.push({ name: 'project-overview' });

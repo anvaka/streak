@@ -96,6 +96,46 @@ test('it can update project info', t => {
   }
 });
 
+test('it can add comments', (t) => {
+  const user = createUser('anvaka');
+  const comment = {
+    projectId: 'project-1',
+    text: 'hello world',
+  };
+
+  addComment(comment)
+    .then(() => listComments('project-1'))
+    .then(c => {
+      t.equals(c.comments.length, 1, 'One comment is here');
+      t.equals(c.comments[0].text, comment.text, 'Comment text is valid');
+      t.equals(c.comments[0].projectId, comment.projectId, 'project is valid');
+      t.equals(c.comments[0].userId, user.id, 'user is valid');
+      t.ok(c.comments[0].id !== undefined, 'comment id is here');
+      t.ok(c.comments[0].created !== undefined, 'created date here');
+      t.end();
+    });
+
+  function addComment(comment) {
+    return rp('post', {
+      form: comment,
+      qs: {
+        id_token: user,
+        operation: 'add-project-comment',
+      }
+    });
+  }
+
+  function listComments(projectId) {
+    return rp('get', {
+      qs: {
+        projectId,
+        id_token: user,
+        operation: 'list-project-comments',
+      }
+    });
+  }
+});
+
 
 function rp(method, options) {
   if (options.qs.id_token) {

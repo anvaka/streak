@@ -12,7 +12,8 @@ module.exports = {
   removeEdge,
   getEdgesFrom,
   getNode,
-  queryNode
+  queryNode,
+  datastore
 };
 
 function queryNode(kind, pageCursor) {
@@ -49,6 +50,7 @@ function addNode(node) {
   const transaction = datastore.transaction();
   const nodeKey = [node.kind, node.id];
   const key = datastore.key([node.kind, node.id]);
+
   console.log(nodeKey, 'addNode ', JSON.stringify(node));
 
   return transaction.run().then(() => {

@@ -5,13 +5,13 @@
       Start new discussion
     </router-link>.
     <div class='comment' v-for='comment in discussions'>
-      {{comment.content}}
+      {{comment.text}}
     </div>
   </div>
 </template>
 
 <script>
-import comments from '../lib/gapi/comments.js';
+import { listComments } from '../lib/streak-api/comments.js';
 
 export default {
   name: 'ProjectDiscussions',
@@ -28,10 +28,7 @@ export default {
   methods: {
     loadComments() {
       this.loading = true;
-      comments('list', {
-        fileId: this.project.id,
-        fields: '*',
-      }).then(res => {
+      listComments(this.project.id).then(res => {
         this.loading = false;
         this.discussions = res.comments;
       });
