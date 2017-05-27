@@ -4,6 +4,7 @@
 
     <ui-textbox
         placeholder='Enter text here'
+        required
         :autofocus='true'
         :rows='1'
         :multi-line='true'

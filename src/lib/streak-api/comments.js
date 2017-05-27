@@ -1,6 +1,9 @@
 import { request } from './ajax.js';
 import { getUsers } from './users';
 
+// maps from projectId -> Map<pageId>-> comment response
+const cachedComments = new Map();
+
 // Comments: [Comment,...]
 // Comment: {
 //  commentId,
@@ -13,6 +16,8 @@ import { getUsers } from './users';
 export function addComment(projectId, text) {
   if (!projectId) throw new Error('project id is required');
   if (!text) throw new Error('Comment text is required');
+
+  invalidateProjectCommentCache(projectId);
 
   // For now this is just fire and forget call.
   return request({
@@ -27,6 +32,15 @@ export function addComment(projectId, text) {
 
 export function listComments(projectId, pageCursor) {
   if (!projectId) throw new Error('project id is required');
+  let comments = cachedComments.get(projectId);
+  if (!comments) {
+    comments = new Map();
+    cachedComments.set(projectId, comments);
+  }
+
+  const cachedComment = comments.get(pageCursor);
+  if (cachedComment) return new Promise(resolve => resolve(cachedComment));
+
   return request({
     method: 'GET',
     qs: {
@@ -42,8 +56,14 @@ export function listComments(projectId, pageCursor) {
     };
     injectUsers(response.comments);
 
+    comments.set(pageCursor, response);
+
     return response;
   });
+}
+
+function invalidateProjectCommentCache(projectId) {
+  cachedComments.delete(projectId);
 }
 
 function injectUsers(commentsArray) {
