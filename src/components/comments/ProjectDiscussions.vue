@@ -1,5 +1,8 @@
 <template>
   <div class='discussions'>
+    <div v-if='!isLoading && !discussions.length'>
+      There are no discussions here yet...
+    </div>
     <router-link  class='start-discussion action' :to='{name: "add-comment"}'>
       Start new discussion
     </router-link>
@@ -51,7 +54,7 @@ export default {
 };
 </script>
 
-<style lang='stylus'>
+<style lang='stylus' scoped>
 @import '../../styles/variables.styl'
 
 .time,

@@ -3,18 +3,18 @@
     <h3>Start discussion</h3>
 
     <ui-textbox
+        placeholder='Enter text here'
         :autofocus='true'
-        floating-label
         :rows='1'
         :multi-line='true'
         v-model='comment'></ui-textbox>
 
     <div class='actions' v-if='showActions'>
-      <router-link type='secondary' class='cancel-btn'  buttonType='button' :to='{name: "project-discussion"}'>
+      <router-link type='secondary' class='cancel-btn small secondary'  buttonType='button' :to='{name: "project-discussion"}'>
         Cancel
       </router-link>
       <ui-button type='secondary' class='commit-btn' color='primary'  buttonType='submit'>
-        Start new discussion
+        Start public discussion
       </ui-button>
     </div>
   </form>
@@ -57,14 +57,15 @@ export default {
 };
 </script>
 
-<style lang='stylus'>
+<style lang='stylus' scoped>
 .start-discussion {
   max-width: 500px;
 }
+
 .cancel-btn {
-  line-height: 36px;
   text-transform: uppercase;
-  font-weight: 500;
-  font-size: 0.875rem;
+}
+.actions {
+  align-items: baseline;
 }
 </style>
