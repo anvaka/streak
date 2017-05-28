@@ -52,6 +52,7 @@ import escape from 'lodash.escape';
 import InputTypes from 'src/types/InputTypes';
 import UiFab from 'keen-ui/src/UiFab';
 import { formatDateOnly, formatHoursOnly } from '../lib/dateUtils.js';
+import isTextField from '../lib/isTextField.js';
 
 import ActionRow from './ActionRow.vue';
 import renderMakrdown from '../lib/markdown/index.js';
@@ -146,7 +147,7 @@ export default {
         return isHeader ? formatDateOnly(value) : formatHoursOnly(value);
       }
 
-      if (cell.valueType === InputTypes.MULTI_LINE_TEXT) {
+      if (isTextField(cell)) {
         return renderMakrdown(value);
       }
 

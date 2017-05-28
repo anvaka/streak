@@ -27,7 +27,7 @@ export default class ProjectHistoryViewModel {
         header => header.valueType === InputTypes.NUMBER
       );
       const categoricalColumn = getColumnIndex(
-        headers, header => header.valueType === InputTypes.SINGLE_LINE_TEXT
+        headers, header => header.valueType === InputTypes.TEXT
       );
       this.contributionsByDay = makeContributionsByDayIndex(
         dateIndex, typedRows, makeCellGetter(numericColumn), makeCellGetter(categoricalColumn)

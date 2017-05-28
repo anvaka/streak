@@ -1,6 +1,6 @@
 import InputTypes from 'src/types/InputTypes';
 
-const DEFAULT_TYPE = InputTypes.SINGLE_LINE_TEXT;
+const DEFAULT_TYPE = InputTypes.TEXT;
 
 /**
  * Detects input string type (string, date, or number)

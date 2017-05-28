@@ -5,11 +5,8 @@
         <div v-if='field.valueType === "date"'>
           <date :vm='field'></date>
         </div>
-        <div v-if='field.valueType === "multiline-text"'>
+        <div v-if='isTextField(field)'>
           <multi-line-text :vm='field'></multi-line-text>
-        </div>
-        <div v-if='field.valueType === "string"'>
-          <single-line-text :vm='field'></single-line-text>
         </div>
         <div v-if='field.valueType === "number"'>
           <number :vm='field'></number>
@@ -35,9 +32,9 @@ import UiButton from 'keen-ui/src/UiButton';
 import UiIconButton from 'keen-ui/src/UiIconButton';
 import Date from './inputs/Date';
 import MultiLineText from './inputs/MultiLineText';
-import SingleLineText from './inputs/SingleLineText';
 import Number from './inputs/Number';
 import ImageInput from './inputs/Image';
+import isTextField from '../lib/isTextField.js';
 
 export default {
   props: ['fields', 'showActions', 'row'],
@@ -47,7 +44,6 @@ export default {
     UiIconButton,
     Date,
     MultiLineText,
-    SingleLineText,
     Number,
     ImageInput
   },
@@ -55,6 +51,11 @@ export default {
     return {};
   },
   methods: {
+    isTextField(cell) {
+      // note: we are not using this.isTextField() - that would be a recursion
+      // This method comes from the lib folder. See imports above.
+      return isTextField(cell);
+    },
     commitChanges() {
       const newRowValues = this.fields.map(field => field.value);
       this.$emit('commit', newRowValues);

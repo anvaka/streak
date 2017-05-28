@@ -1,20 +1,28 @@
 <template>
-  <ui-textbox
+    <multi-complete
       class='multi-line-goal'
       :label='vm.title'
       floating-label
       :rows='1'
-      :multi-line='true'
-      v-model='vm.value'></ui-textbox>
+      :suggestions='suggestions'
+      v-model='vm.value'
+      ></multi-complete>
 </template>
 <script>
-import UiTextbox from 'keen-ui/src/UiTextbox';
+import MultiComplete from '../multi-complete/MultiComplete.vue';
+import InputTypes from '../../types/InputTypes';
 
 export default {
   name: 'MultiLineText',
   props: ['vm'],
   components: {
-    UiTextbox
+    MultiComplete
+  },
+  computed: {
+    suggestions() {
+      // Show suggestions only if there are no multiline text.
+      return this.vm.hasMultiline ? [] : this.vm.autocomplete;
+    }
   }
 };
 </script>

@@ -8,8 +8,8 @@ export const DATE = {
   value: InputTypes.DATE
 };
 
-export const MULTI_LINE_TEXT = {
-  label: 'Multiline text',
+export const TEXT = {
+  label: 'Text',
   value: InputTypes.MULTI_LINE_TEXT,
 };
 
@@ -28,7 +28,7 @@ export const IMAGE = {
   value: InputTypes.IMAGE
 };
 
-export const FIELD_TYPES = [DATE, MULTI_LINE_TEXT, SINGLE_LINE_TEXT, NUMBER, IMAGE];
+export const FIELD_TYPES = [DATE, TEXT, NUMBER];
 
 export function getFieldByType(typeName) {
   return typeNameToFieldLookup().get(typeName);
@@ -43,6 +43,9 @@ function typeNameToFieldLookup() {
   FIELD_TYPES.forEach(f => {
     typeNameToField.set(f.value, f);
   });
+  // Legacy input types map to text.
+  typeNameToField.set(InputTypes.MULTI_LINE_TEXT, TEXT);
+  typeNameToField.set(InputTypes.SINGLE_LINE_TEXT, TEXT);
 
   return typeNameToField;
 }

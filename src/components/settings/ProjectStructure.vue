@@ -25,7 +25,7 @@
 import UiButton from 'keen-ui/src/UiButton';
 
 import FieldPair from './FieldPair.vue';
-import { MULTI_LINE_TEXT, DATE, getFieldByType } from '../../types/FieldTypes.js';
+import { TEXT, DATE, getFieldByType } from '../../types/FieldTypes.js';
 
 // We limit it to 26 because sheetOpartions.js assumes range names can anly be
 // within engilsih alphabet. This is soft limit and can be easily changed.
@@ -116,7 +116,7 @@ export default {
       const field = {
         title: '',
         error: false,
-        type: MULTI_LINE_TEXT
+        type: TEXT
       };
       this.currentFields.push(field);
       this.focusedField = field;

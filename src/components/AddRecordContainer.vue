@@ -101,7 +101,10 @@ function getFieldsFromProject(project, row, date) {
       value: fieldValue,
     };
 
-    if (header.autocomplete) field.autocomplete = header.autocomplete;
+    if (header.autocomplete) {
+      field.autocomplete = header.autocomplete;
+      field.hasMultiline = header.hasMultiline;
+    }
 
     return field;
   });

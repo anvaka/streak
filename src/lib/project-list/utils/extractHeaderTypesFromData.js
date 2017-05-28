@@ -46,6 +46,7 @@ class HeaderCounter {
   constructor(name) {
     this.name = name;
     this.countsByType = new Map();
+    // TODO: this should be sorted set. Use LRU item to be on top of completion
     this.seenValues = new Set();
   }
 
@@ -54,7 +55,15 @@ class HeaderCounter {
     this.countsByType.set(guessedType, (this.countsByType.get(guessedType) || 0) + 1);
 
     const trimmedValue = cellValue && cellValue.trim();
-    if (trimmedValue) this.seenValues.add(trimmedValue);
+    if (!trimmedValue) return;
+    if (!this.hasMultiline) {
+      if (guessedType === InputTypes.SINGLE_LINE_TEXT ||
+        guessedType === InputTypes.MULTI_LINE_TEXT ||
+        guessedType === InputTypes.TEXT) {
+        this.hasMultiline = trimmedValue.indexOf('\n') > -1;
+      }
+    }
+    this.seenValues.add(trimmedValue);
   }
 
   setType(newType) {
@@ -75,7 +84,8 @@ class HeaderCounter {
     return {
       title,
       valueType,
-      autocomplete: Array.from(this.seenValues)
+      autocomplete: Array.from(this.seenValues),
+      hasMultiline: this.hasMultiline
     };
   }
 }

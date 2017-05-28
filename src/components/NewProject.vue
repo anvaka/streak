@@ -54,7 +54,7 @@ import setPageTitle from '../lib/setPageTitle.js';
 
 import NameAndDescription from './settings/NameAndDescription.vue';
 import ProjectStructure from './settings/ProjectStructure.vue';
-import { MULTI_LINE_TEXT, DATE } from '../types/FieldTypes.js';
+import { TEXT, DATE } from '../types/FieldTypes.js';
 
 export default {
   name: 'NewProject',
@@ -70,7 +70,7 @@ export default {
         valueType: DATE.value
       }, {
         title: 'Note',
-        valueType: MULTI_LINE_TEXT.value
+        valueType: TEXT.value
       }]
     };
   },
