@@ -17,3 +17,7 @@ indexes:
   - name: "projectId"
   - name: "created"
     direction: desc
+- kind: "reply"
+  ancestor: yes
+  properties:
+  - name: "created"

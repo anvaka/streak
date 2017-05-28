@@ -133,8 +133,8 @@ test('it can add comments', (t) => {
     text: 'hello world',
   };
 
-  addComment(comment)
-    .then(() => listComments('project-1'))
+  addComment(comment, user)
+    .then(() => listComments('project-1', user))
     .then(c => {
       t.equals(c.comments.length, 1, 'One comment is here');
       t.equals(c.comments[0].text, comment.text, 'Comment text is valid');
@@ -144,25 +144,82 @@ test('it can add comments', (t) => {
       t.ok(c.comments[0].created !== undefined, 'created date here');
       t.end();
     });
+});
 
-  function addComment(comment) {
-    return rp('post', {
-      form: comment,
-      qs: {
-        id_token: user,
-        operation: 'add-project-comment',
-      }
-    });
-  }
+test('it can add comment replies', (t) => {
+  const user = createUserModel('commentor');
+  const comment = {
+    projectId: 'project-comments',
+    text: 'hello world',
+  };
 
-  function listComments(projectId) {
-    return rp('get', {
-      qs: {
-        projectId,
-        id_token: user,
-        operation: 'list-project-comments',
-      }
+  addComment(comment, user)
+    .then(() => listComments('project-comments', user))
+    .then(c => c.comments[0].id)
+    .then(commentId => getComment(commentId, user))
+    .then(resp => {
+      assertCommentIsHere(resp);
+      t.equals(resp.replies.length, 0, 'no replies yet');
+      return addReply(resp.comment.id, 'my first reply', user);
+    })
+    .then(r => getComment(r.commentId, user))
+    .then(resp => {
+      assertCommentIsHere(resp);
+      t.equals(resp.replies.length, 1, 'one reply is here');
+      const reply = resp.replies[0];
+      t.ok(reply, 'one reply is here');
+      t.equals(reply.text, 'my first reply', 'reply text is here');
+      t.ok(reply.created && reply.id, 'reply created/id are here');
+      t.end();
     });
+
+  function assertCommentIsHere(resp) {
+    t.equals(resp.comment.text, comment.text, 'text is here');
+    t.equals(resp.comment.userId, user.id, 'user is here');
+    t.equals(resp.comment.projectId, comment.projectId, 'project is here');
+    t.ok(resp.comment.created && resp.comment.id, 'created/id are here');
   }
 });
 
+function addReply(commentId, text, user) {
+  return rp('post', {
+    form: {
+      commentId,
+      text,
+      operation: 'reply-to-comment',
+    },
+    qs: {
+      id_token: user,
+    }
+  });
+}
+
+function getComment(commentId, user) {
+  return rp('get', {
+    qs: {
+      id_token: user,
+      commentId,
+      operation: 'get-comment',
+    }
+  });
+}
+
+function addComment(comment, user) {
+  return rp('post', {
+    form: comment,
+    qs: {
+      id_token: user,
+      operation: 'add-project-comment',
+    }
+  });
+}
+
+function listComments(projectId, user) {
+  return rp('get', {
+    qs: {
+      projectId,
+      id_token: user,
+      operation: 'list-project-comments',
+    }
+  });
+}

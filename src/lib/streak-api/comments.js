@@ -12,7 +12,6 @@ const cachedComments = new Map();
 //  created: timestamp
 //  modified: timestamp
 // }
-
 export function addComment(projectId, text) {
   if (!projectId) throw new Error('project id is required');
   if (!text) throw new Error('Comment text is required');
@@ -26,6 +25,40 @@ export function addComment(projectId, text) {
       projectId,
       text,
       operation: 'add-project-comment',
+    }
+  });
+}
+
+export function getComment(commentId) {
+  return request({
+    method: 'GET',
+    qs: {
+      commentId,
+      operation: 'get-comment',
+    }
+  }).then(res => JSON.parse(res))
+  .then(res => {
+    const response = {
+      comment: toCommentViewModel(res.comment),
+      replies: res.replies.map(toCommentViewModel)
+    };
+
+    injectUsers(response.replies.concat([response.comment]));
+
+    return response;
+  });
+}
+
+export function reply(commentId, text) {
+  if (!commentId) throw new Error('commentId is required');
+  if (!text) throw new Error('Text is required');
+
+  return request({
+    method: 'POST',
+    body: {
+      commentId,
+      text,
+      operation: 'reply-to-comment',
     }
   });
 }
@@ -51,7 +84,7 @@ export function listComments(projectId, pageCursor) {
   }).then(res => JSON.parse(res))
   .then(res => {
     const response = {
-      comments: res.comments.map(toViewModel),
+      comments: res.comments.map(toCommentViewModel),
       pageCursor: res.pageCursor
     };
     injectUsers(response.comments);
@@ -82,18 +115,20 @@ function injectUsers(commentsArray) {
     commentsArray.forEach((comment) => {
       const u = userInfoLookup.get(comment.author.id);
       comment.author.name = u.name;
+      comment.author.picture = u.picture;
     });
   });
 }
 
-function toViewModel(comment) {
+function toCommentViewModel(comment) {
   return {
     id: comment.id,
     text: comment.text,
     created: new Date(comment.created).toLocaleString(),
     author: {
       id: comment.userId,
-      name: ''
+      name: '',
+      picture: ''
     }
   };
 }

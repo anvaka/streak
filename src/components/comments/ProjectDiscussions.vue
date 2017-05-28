@@ -10,7 +10,7 @@
     <loading :isLoading='isLoading'>Loading latest comments...</loading>
 
     <div class='comment' v-for='comment in discussions' v-if='!isLoading'>
-      <div class='header'>{{comment.text}}</div>
+      <router-link class='header' :to='{name: "comment-details", params: { commentId: comment.id }}'>{{comment.text}}</router-link>
       <div class='byline'>
         <div class='time small secondary'>{{comment.created}}</div>
         <div class='author small' v-if='comment.author.name' >
@@ -61,9 +61,18 @@ export default {
 .author {
   display: inline-block;
 }
+.header {
+  color: #2c3e50;
+  display: block;
+  width: 100%;
+  font-weight: 500;
+}
 .comment {
   border-bottom: 1px solid strong-border-color;
   padding: 14px;
+  &:hover {
+    background: header-background;
+  }
 }
 .start-discussion {
   font-size: 24px;

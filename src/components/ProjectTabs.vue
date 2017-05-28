@@ -1,7 +1,7 @@
 <template>
   <div class='tabs' v-if='project'>
     <router-link :to='{name: "project-overview"}' :class='{current: isCurrentPage("project-overview")}' class='tab-link'>Overview</router-link>
-    <!--router-link :to='{name: "project-discussion"}' :class='{current: isCurrentPage("project-discussion")}' class='tab-link'>Discuss</router-link-->
+    <router-link :to='{name: "project-discussion"}' :class='{current: isCurrentPage("project-discussion")}' class='tab-link'>Discuss</router-link>
     <router-link :to='{name: "project-settings"}' :class='{current: isCurrentPage("project-settings")}' class='tab-link' v-if='canEdit'>Settings</router-link>
   </div>
 </template>
@@ -14,6 +14,9 @@ export default {
     isCurrentPage(page) {
       const currentRoute = this.$route.name;
       if (page === currentRoute) return true;
+      if (page === 'project-discussion' && (
+        (currentRoute === 'add-comment') || (currentRoute === 'comment-details')
+      )) return true;
 
       // Consider 'add record' as project overview.
       return page === 'project-overview' && currentRoute === 'add-record';

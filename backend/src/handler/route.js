@@ -39,6 +39,10 @@ function route(req) {
       return comments.add(req.body, req.user);
     case 'list-project-comments':
       return comments.list(queryString.projectId, queryString.pageCursor, req.user);
+    case 'get-comment':
+      return comments.getComment(queryString.commentId, req.user);
+    case 'reply-to-comment':
+      return comments.reply(req.body, req.user);
 
     default:
       throw new Error('Not implemented');
