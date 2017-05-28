@@ -16,7 +16,7 @@
             {{comment.text}}
         </div>
       </div>
-      <div class='replies'>
+      <div class='replies' v-if='replies.length'>
         <div v-for='reply in replies' class='reply'>
           <img :src='reply.author.picture' class='avatar'>
           <div class='content'>
@@ -32,23 +32,21 @@
       </div>
       <form class='add-comment-form' @submit.prevent='addComment'>
         <div class='my-comment' >
-          <div>
-              <img :src='profile.image' class='avatar'>
+          <img :src='profile.image' class='avatar'>
+          <div class='my-comment-input'>
+            <ui-textbox
+                placeholder='Add a comment'
+                required
+                :rows='2'
+                :multi-line='true'
+                v-model='myReply'></ui-textbox>
+            <div class='actions' v-if='showActions'>
+              <router-link type='secondary' class='cancel-btn small secondary'  buttonType='button' :to='{name: "project-discussion"}'>
+                Cancel
+              </router-link>
+              <ui-button type='secondary' class='commit-btn' color='primary'  buttonType='submit'>Post</ui-button>
+            </div>
           </div>
-          <ui-textbox
-              placeholder='Add a comment'
-              class='my-comment-input'
-              required
-              :rows='2'
-              :multi-line='true'
-              v-model='myReply'></ui-textbox>
-        </div>
-
-        <div class='actions' v-if='showActions'>
-          <router-link type='secondary' class='cancel-btn small secondary'  buttonType='button' :to='{name: "project-discussion"}'>
-            Cancel
-          </router-link>
-          <ui-button type='secondary' class='commit-btn' color='primary'  buttonType='submit'>Post</ui-button>
         </div>
       </form>
     </div>
@@ -128,7 +126,6 @@ export default {
 .header {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid strong-border-color;
   .avatar {
     width: 36px;
     margin: 14px;
@@ -139,10 +136,6 @@ export default {
   margin-bottom: 14px;
   padding-bottom: 14px;
   border-bottom: 1px solid strong-border-color;
-
-  .content {
-    margin-top: 14px;
-  }
 }
 .user-link {
   color: base-text-color;
@@ -162,9 +155,12 @@ export default {
   }
 }
 
+.replies {
+  border-bottom: 1px solid strong-border-color;
+}
+
 .add-comment-form {
   padding-top: 14px;
-  border-top: 1px solid strong-border-color;
 }
 
 .cancel-btn {
@@ -173,12 +169,24 @@ export default {
 .actions {
   align-items: baseline;
 }
+
 .my-comment {
   display: flex;
   flex-direction: row;
+  .avatar {
+    margin-left: 14px;
+    width: 24px;
+    height: 24px;
+  }
 }
+
 .my-comment-input {
   flex: 1;
   margin-left: 14px;
+  display: flex;
+  flex-direction: column;
+  .ui-textbox {
+    margin-bottom: 0;
+  }
 }
 </style>
