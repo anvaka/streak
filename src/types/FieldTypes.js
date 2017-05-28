@@ -10,7 +10,7 @@ export const DATE = {
 
 export const TEXT = {
   label: 'Text',
-  value: InputTypes.MULTI_LINE_TEXT,
+  value: InputTypes.TEXT,
 };
 
 export const SINGLE_LINE_TEXT = {

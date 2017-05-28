@@ -10,7 +10,6 @@
 </template>
 <script>
 import MultiComplete from '../multi-complete/MultiComplete.vue';
-import InputTypes from '../../types/InputTypes';
 
 export default {
   name: 'MultiLineText',
