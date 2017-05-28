@@ -14,6 +14,6 @@ export default function moveProjectToTrash(fileId) {
     }
   }).then(() => {
     resetProjectFileCache(fileId);
-    return setProjectPublic(fileId, false);
+    return setProjectPublic({ fileId }, false);
   });
 }
