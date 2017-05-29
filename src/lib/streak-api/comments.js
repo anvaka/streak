@@ -36,8 +36,7 @@ export function getComment(commentId) {
       commentId,
       operation: 'get-comment',
     }
-  }).then(res => JSON.parse(res))
-  .then(res => {
+  }).then(res => {
     const response = {
       comment: toCommentViewModel(res.comment),
       replies: res.replies.map(toCommentViewModel)
@@ -81,8 +80,7 @@ export function listComments(projectId, pageCursor) {
       pageCursor,
       operation: 'list-project-comments',
     }
-  }).then(res => JSON.parse(res))
-  .then(res => {
+  }).then(res => {
     const response = {
       comments: res.comments.map(toCommentViewModel),
       pageCursor: res.pageCursor

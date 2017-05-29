@@ -61,8 +61,7 @@ export function request(params, url, isRetry) {
         return renewAuth().then(() => request(params, url, /* isRetry = */ true));
       }
 
-      // TODO: JSON.parse it
-      resolve(this.responseText);
+      resolve(this.responseText ? JSON.parse(this.responseText) : '');
     }
   });
 }

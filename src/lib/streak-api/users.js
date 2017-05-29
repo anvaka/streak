@@ -8,9 +8,7 @@ export function listAllUsers(query) {
     operation: 'list-all-users'
   });
 
-  return get(qs).then(usersList => {
-    return JSON.parse(usersList);
-  });
+  return get(qs);
 }
 
 export function getUsers(userIds) {
@@ -48,7 +46,6 @@ function getInternal(users) {
       operation: 'list-specific-users',
     }
   })
-    .then(res => JSON.parse(res))
     .then(res => {
       res.forEach(u => {
         internalUsersCache.set(u.id, u);

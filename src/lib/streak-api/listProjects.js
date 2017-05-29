@@ -4,7 +4,5 @@ export default function listProjects(userId) {
   return get({
     operation: 'list-projects',
     userId
-  }).then(projectList => {
-    return JSON.parse(projectList);
   });
 }
