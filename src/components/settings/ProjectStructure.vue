@@ -6,14 +6,19 @@
       an input box when you add records to your project.
     </div>
     <div>
-      <field-pair v-for='field in currentFields' :field='field' @remove='removeField' :focused='field === focusedField'></field-pair>
-      <a @click.prevent='addField' class='add-field' href='#' v-if='canAddMore'>Add field</a>
+      <field-pair v-for='field in currentFields' :field='field' @remove='removeField' :focused='field === focusedField' :readonly='loading'></field-pair>
+      <a @click.prevent='addField' class='add-field' href='#' v-if='canAddMore && !loading'>Add field</a>
     </div>
 
     <slot :hasError='hasError'>
-      <ui-button type='secondary' color='primary' buttonType='submit' :disabled='hasError'>
-        {{formName}}
-      </ui-button>
+      <div>
+        <ui-button type='secondary' color='primary' buttonType='submit' :disabled='hasError' v-if='!loading'>
+          {{formName}}
+        </ui-button>
+        <div v-if='loading'>
+          <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button> Updating...
+        </div>
+      </div>
     </slot>
     <div v-if='hasError'>
       <div v-for='error in errors' class='error'>&gt; {{error}}</div>
@@ -23,6 +28,7 @@
 
 <script>
 import UiButton from 'keen-ui/src/UiButton';
+import UiIconButton from 'keen-ui/src/UiIconButton';
 
 import FieldPair from './FieldPair.vue';
 import { TEXT, DATE, getFieldByType } from '../../types/FieldTypes.js';
@@ -35,6 +41,10 @@ export default {
   name: 'ProjectStructure',
   props: {
     fields: Array,
+    loading: {
+      type: Boolean,
+      default: false
+    },
     formTitle: {
       type: String,
       default: 'Project structure'
@@ -42,7 +52,8 @@ export default {
   },
   components: {
     FieldPair,
-    UiButton
+    UiButton,
+    UiIconButton
   },
   watch: {
     fields(newFields) {

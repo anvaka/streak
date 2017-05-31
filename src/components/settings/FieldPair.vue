@@ -3,6 +3,7 @@
       <ui-textbox
             class='field-name'
             label='Field name'
+            :disabled='readonly'
             autocomplete='off'
             placeholder='Give this field a name'
             v-model='field.title'
@@ -12,10 +13,11 @@
       <ui-select
             class='field-type'
             label='Field type'
+            :disabled='readonly'
             placeholder='Select a field type'
             :options='fieldTypes'
             v-model='field.type'></ui-select>
-      <a title='Remove this field' class='remove-row secondary' @click.prevent='removeField(field)' href='#'>x</a>
+      <a title='Remove this field' class='remove-row secondary' @click.prevent='removeField(field)' href='#' v-if='!readonly'>x</a>
   </div>
 </template>
 <script>
@@ -30,6 +32,10 @@ export default {
   props: {
     field: Object,
     focused: {
+      type: Boolean,
+      default: false
+    },
+    readonly: {
       type: Boolean,
       default: false
     }

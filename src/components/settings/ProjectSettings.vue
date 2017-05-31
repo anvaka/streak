@@ -8,7 +8,7 @@
       :isPublic='isPublic'>
     </name-and-description>
 
-    <project-structure :fields='fields' @updated='onProjectStructureUpdated'></project-structure>
+    <project-structure :fields='fields' @updated='onProjectStructureUpdated' :loading='updateProjectInProgress'></project-structure>
 
     <form class='settings-group'>
       <h3 class='danger'>Risky actions</h3>
@@ -87,6 +87,7 @@ export default {
   data() {
     return {
       updateInProgress: false,
+      updateProjectInProgress: false,
       deleteConfirm: false
     };
   },
@@ -108,7 +109,9 @@ export default {
     },
 
     onProjectStructureUpdated(projectStructure) {
+      this.updateProjectInProgress = true;
       this.project.updateStructure(projectStructure).then(() => {
+        this.updateProjectInProgress = false;
         this.goToParent();
       });
     },
