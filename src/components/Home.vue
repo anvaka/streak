@@ -10,7 +10,7 @@
       <div v-if='signedIn' class='router-container'>
         <router-view></router-view>
       </div>
-      <div v-if='signedOut'>
+      <div v-if='signedOut' class='signed-out'>
         <welcome />
       </div>
     </div>
@@ -81,6 +81,10 @@ export default {
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+.signed-out {
+  overflow: auto;
 }
 
 .router-container {

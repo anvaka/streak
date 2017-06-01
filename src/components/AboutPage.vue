@@ -4,15 +4,20 @@
     <p>Streak is a simple life logging application, that helps you <b>build habits</b> and <b>achieve commitments</b>.</p>
     <p>Everything is saved directly into Google Drive, so you are always in control of your data</p>
     <h2>How to use it?</h2>
-    <p>
-      Step 1: Set your goal.
-    </p><p>
-      Step 2: Configure a project to record your progress towards goal
-    </p><p>
+    <h3>
+      Step 1: Set your goal
+    </h3>
+    <img src='static/step-1-configure.gif'>
+    <h3>
+      Step 2: Configure what you want to capture
+    </h3>
+
+    <img src='static/step-2-structure.gif'>
+    <h3>
       Step 3: Log every step that brings your closer to your goal.
-    </p><p>
-      Don't forget to look back at your history, share and inspire your friends
-    </p>
+    </h3>
+
+    <img src='static/step-3-create.gif'>
 
 
     <h4>Soure code</h4>
