@@ -21,6 +21,7 @@
                     ref="textarea"
 
                     autocomplete="off"
+                    autocorrect="off"
                     :disabled="disabled"
                     :maxlength="enforceMaxlength ? maxlength : null"
                     :name="name"
