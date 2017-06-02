@@ -354,7 +354,7 @@ export default {
     },
 
     selectHighlighted(index, e) {
-      if (this.showDropdown && this.$refs.suggestions.length > 0) {
+      if (this.showDropdown && this.$refs.suggestions && this.$refs.suggestions.length > 0) {
         e.preventDefault();
         const currentSuggestion = this.$refs.suggestions[index];
         if (currentSuggestion) this.selectSuggestion(currentSuggestion.suggestion);
@@ -362,6 +362,10 @@ export default {
     },
 
     openDropdown() {
+      if (!this.hasSuggestions) {
+        return;
+      }
+
       if (!this.showDropdown) {
         this.showDropdown = true;
         this.$emit('dropdown-open');
