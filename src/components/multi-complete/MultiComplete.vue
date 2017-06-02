@@ -21,7 +21,7 @@
                     ref="textarea"
 
                     autocomplete="off"
-                    autocorrect="off"
+                    :autocorrect="hasSuggestions ? 'off' : 'on'"
                     :disabled="disabled"
                     :maxlength="enforceMaxlength ? maxlength : null"
                     :name="name"
@@ -219,6 +219,10 @@ export default {
         { 'has-label': this.hasLabel },
         { 'has-floating-label': this.hasFloatingLabel }
       ];
+    },
+
+    hasSuggestions() {
+      return this.suggestions && this.suggestions.length > 0;
     },
 
     labelClasses() {
