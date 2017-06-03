@@ -117,8 +117,12 @@ export default {
     left: 0;
     padding-top: 0;
   }
-.go-to-user {
-  display: block;
-}
+  .project-list-loading {
+    position: absolute;
+    z-index: 3;
+  }
+  .go-to-user {
+    display: block;
+  }
 }
 </style>
