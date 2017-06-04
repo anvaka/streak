@@ -57,6 +57,9 @@ function addChartSettingsIfNeeded(settingsObject) {
     {
       type: 'contributions-wall',
       version: '1.0',
+      settings: {
+        showStreakStats: true
+      }
     }
   ];
 

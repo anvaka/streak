@@ -1,5 +1,7 @@
 <template>
-  <contributions-wall :dates='projectContributions' @filter='filterContributions'>
+  <contributions-wall :dates='projectContributions'
+     @filter='filterContributions'
+     :settings='settings'>
   </contributions-wall>
 </template>
 
