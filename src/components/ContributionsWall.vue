@@ -31,7 +31,7 @@ const colorBag = makeColorBag();
 
 export default {
   name: 'ContributionsWall',
-  props: ['project'],
+  props: ['dates'],
   data() {
     return {
       daysOfTheWeek: [{
@@ -48,7 +48,7 @@ export default {
   },
   computed: {
     wall() {
-      return buildWall(this.project);
+      return buildWall(this.dates);
     },
     hasRangeFilter() {
       return this.$route.query.from;
@@ -110,12 +110,18 @@ function scrollToTheEnd(svg) {
   svg.parentElement.scrollLeft = 600;
 }
 
-function buildWall(project) {
+/**
+ * For a given set of dates builds a new "Contributions Wall" view model
+ *
+ * @param {Object} dates - set, where key is a date, and the value is
+ * an object, that represents records for the date.
+ */
+function buildWall(dates) {
   const weeks = [];
   const today = new Date();
   const sunday = getSunday(today);
 
-  const thisWeek = buildWeekDays(sunday, project).filter(removeFutureDays);
+  const thisWeek = buildWeekDays(sunday, dates).filter(removeFutureDays);
 
   weeks.push({
     index: MAX_WEEKS_TO_SHOW,
@@ -127,7 +133,7 @@ function buildWall(project) {
 
     weeks.push({
       index: i,
-      days: buildWeekDays(sunday, project)
+      days: buildWeekDays(sunday, dates)
     });
   }
 
@@ -170,14 +176,13 @@ function buildWall(project) {
   }
 }
 
-
 function getSunday(day) {
   const sunday = new Date(day);
   sunday.setDate(day.getDate() - day.getDay());
   return sunday;
 }
 
-function buildWeekDays(sunday, project) {
+function buildWeekDays(sunday, dates) {
   const weekDays = [];
   for (let i = 0; i < 7; ++i) {
     const day = new Date(sunday);
@@ -189,18 +194,15 @@ function buildWeekDays(sunday, project) {
       dayKey,
       tooltip: formatDowDate(day),
       dayNumber: i,
-      fill: getFillForDate(dayKey, project)
+      fill: getFillForDate(dayKey, dates)
     });
   }
 
   return weekDays;
 }
 
-function getFillForDate(dayKey, project) {
-  const history = project && project.projectHistory;
-  if (!history) return '#eee';
-
-  const contributions = history.contributionsByDay[dayKey];
+function getFillForDate(dayKey, contributionsByDay) {
+  const contributions = contributionsByDay && contributionsByDay[dayKey];
 
   if (!contributions) {
     return 'rgb(235, 237, 240)';

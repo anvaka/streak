@@ -2,7 +2,7 @@
   <div class='project-details-container' v-if='project && !project.loading'>
     <div class='description' v-if='description' v-html='description'></div>
 
-    <contributions-wall :project='project' @filter='filterContributions' v-if='!error && project'></contributions-wall>
+    <contributions-wall :dates='projectContributions' @filter='filterContributions' v-if='!error && project'></contributions-wall>
 
     <div v-if='noRecordsAtAll'>
       <p>
@@ -74,6 +74,10 @@ export default {
       if (description) {
         return renderMakrdown(description);
       }
+    },
+
+    projectContributions() {
+      return this.hasValidProject() && this.project.projectHistory.contributionsByDay;
     },
 
     hasSomethingOnTheWall() {
