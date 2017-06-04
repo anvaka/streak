@@ -31,7 +31,8 @@ function loadSettings(settingsId) {
   return new Promise((resolve, reject) => {
     if (!settingsId) {
       // this is possible for old projects, that were created without settings file
-      resolve();
+      const settings = addChartSettingsIfNeeded({});
+      resolve(settings);
       return;
     }
 
@@ -42,10 +43,24 @@ function loadSettings(settingsId) {
     }
 
     return gapiLoadSettings(settingsId).then(settings => {
+      settings = addChartSettingsIfNeeded(settings);
       settingsIdCache.set(settingsId, settings);
       return settings;
     }).then(resolve, reject);
   });
+}
+
+function addChartSettingsIfNeeded(settingsObject) {
+  if (!settingsObject) settingsObject = Object.create(null);
+
+  settingsObject.charts = [
+    {
+      type: 'contributions-wall',
+      version: '1.0',
+    }
+  ];
+
+  return settingsObject;
 }
 
 function loadSheet(spreadsheetId) {

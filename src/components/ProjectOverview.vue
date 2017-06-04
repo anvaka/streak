@@ -2,7 +2,9 @@
   <div class='project-details-container' v-if='project && !project.loading'>
     <div class='description' v-if='description' v-html='description'></div>
 
-    <contributions-wall :dates='projectContributions' @filter='filterContributions' v-if='!error && project'></contributions-wall>
+    <div class='charts' v-if='hasValidProject'>
+      <component v-for='chart in charts' :is='getChartType(chart)' :project='project' :settings='chart.settings'></component>
+    </div>
 
     <div v-if='noRecordsAtAll'>
       <p>
@@ -56,7 +58,7 @@ import isTextField from '../lib/isTextField.js';
 
 import ActionRow from './ActionRow.vue';
 import renderMakrdown from '../lib/markdown/index.js';
-import ContributionsWall from './ContributionsWall.vue';
+import ContributionsWallContainer from './charts/ContributionsWallContainer.vue';
 import SelectedFilters from './SelectedFilters.vue';
 
 export default {
@@ -76,8 +78,8 @@ export default {
       }
     },
 
-    projectContributions() {
-      return this.hasValidProject() && this.project.projectHistory.contributionsByDay;
+    charts() {
+      return this.hasValidProject() && this.project.settings.charts;
     },
 
     hasSomethingOnTheWall() {
@@ -100,7 +102,7 @@ export default {
 
   components: {
     ActionRow,
-    ContributionsWall,
+    ContributionsWallContainer,
     SelectedFilters,
     UiFab
   },
@@ -114,12 +116,23 @@ export default {
         }
       });
     },
+
+    getChartType(chartSettings) {
+      if (chartSettings.type === 'contributions-wall') {
+        return ContributionsWallContainer;
+      }
+
+      throw new Error('Unknown chart type ' + chartSettings.type);
+    },
+
     getFromDate() {
       return this.$route.query.from;
     },
+
     hasValidProject() {
       return !this.error && this.project;
     },
+
     getFilterPeriodMessage() {
       const { from, to } = this.$route.query;
       if (!to || from === to) {
@@ -127,19 +140,6 @@ export default {
       }
 
       return 'on these days';
-    },
-    filterContributions(from, to) {
-      const query = { from };
-      if (to !== from) {
-        query.to = to;
-      }
-      this.$router.push({
-        name: 'project-overview',
-        params: {
-          projectId: this.project.id,
-        },
-        query
-      });
     },
 
     getUICellValue(cell, isHeader) {
