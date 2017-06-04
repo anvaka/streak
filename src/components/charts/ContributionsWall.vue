@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { getDateString, formatDowDate, formatDateOnly } from 'src/lib/dateUtils.js';
+import { getDateString, formatDowDate, formatDateOnly, getDateFromFilterString } from 'src/lib/dateUtils.js';
 
 import { makeColorBag } from 'src/lib/color';
 import Tooltip from 'tether-tooltip';
@@ -161,7 +161,7 @@ function buildWall(dates) {
   }
 
   const months = getMonths(weeks);
-  const streakStats = computeStreakStats(Object.keys(dates).map(x => new Date(x)));
+  const streakStats = computeStreakStats(Object.keys(dates).map(getDateFromFilterString));
 
   return {
     weeks,
