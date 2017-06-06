@@ -82,7 +82,8 @@ function createProject(name, description, isPublic, fields) {
       fields: fields.map(c => ({
         title: c.title,
         type: c.type.value
-      }))
+      })),
+      charts: createDefaultCharts()
     };
 
     return uploadJsonFile({
@@ -143,4 +144,14 @@ function updateSheetTemplate(spreadsheetId, name, fields) {
       }
     }]
   }).then(() => spreadsheetId);
+}
+
+export function createDefaultCharts() {
+  return [{
+    type: 'contributions-wall',
+    version: '1.0',
+    settings: {
+      showStreakStats: true
+    }
+  }];
 }

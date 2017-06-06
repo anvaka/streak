@@ -3,6 +3,7 @@ import {
   getLogFileSpreadsheetId as gapiGetLogFileSpreadsheetId,
   loadSettings as gapiLoadSettings
 } from './googleDocs.js';
+import { createDefaultCharts } from '../createProject.js';
 
 // maps google sheet id to corresponding spreadsheet data (actual row values)
 const sheetIdToSheetData = new Map();
@@ -53,15 +54,11 @@ function loadSettings(settingsId) {
 function addChartSettingsIfNeeded(settingsObject) {
   if (!settingsObject) settingsObject = Object.create(null);
 
-  settingsObject.charts = [
-    {
-      type: 'contributions-wall',
-      version: '1.0',
-      settings: {
-        showStreakStats: true
-      }
-    }
-  ];
+  if (!('charts' in settingsObject)) {
+    // Legacy projects didn't have chart configuration. Set the default
+    // config.
+    settingsObject.charts = createDefaultCharts();
+  }
 
   return settingsObject;
 }

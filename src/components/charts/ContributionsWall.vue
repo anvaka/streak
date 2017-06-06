@@ -14,8 +14,8 @@
     </div>
   </div>
   <div v-if='showStreakStats' class='summary secondary small'>
-    <div>Longest streak: <span>{{formatCount(wall.longestStreak)}}</span> (<span>{{formatStreakRange(wall.longestStreak)}}</span>)</div>
-    <div>Current streak: <span>{{formatCount(wall.currentStreak)}}</span> (<span>{{formatStreakRange(wall.currentStreak)}}</span>)</div>
+    <div>Longest streak: <span>{{formatCount(wall.longestStreak)}}</span> <span>{{formatStreakRange(wall.longestStreak)}}</span></div>
+    <div>Current streak: <span>{{formatCount(wall.currentStreak)}}</span> <span>{{formatStreakRange(wall.currentStreak)}}</span></div>
   </div>
 </div>
 </template>
@@ -79,11 +79,11 @@ export default {
   },
   methods: {
     formatStreakRange(streakRange) {
-      if (!streakRange) return '';
+      if (!streakRange || !streakRange.end) return '';
       if (!streakRange.start) {
-        return 'Last contribution: ' + formatDateOnly(streakRange.end);
+        return '(Last contribution: ' + formatDateOnly(streakRange.end) + ')';
       }
-      return formatDateOnly(streakRange.start) + ' - ' + formatDateOnly(streakRange.end);
+      return '(' + formatDateOnly(streakRange.start) + ' - ' + formatDateOnly(streakRange.end) + ')';
     },
 
     formatCount(streakRange) {
@@ -247,7 +247,7 @@ function computeStreakStats(dates) {
     currentStreak
   };
 
-  if (!dates) return stats;
+  if (!dates || dates.length === 0) return stats;
 
   computeLongestStreak();
   computeCurrentStreak();
