@@ -1,3 +1,6 @@
+/**
+ * This file provides caching layer on top of the ./googleDocs.js
+ */
 import {
   loadSheetData as gapiLoadSheetData,
   getLogFileSpreadsheetId as gapiGetLogFileSpreadsheetId,
@@ -14,6 +17,11 @@ const projetIdToProjectFile = new Map();
 // Store settings files here
 const settingsIdCache = new Map();
 
+/**
+ * We store sheet settings in a separate file called 'settings.json'
+ * Both files live under the same project folder.
+ * This method will load them both.
+ */
 export function loadSheetWithSettings(spreadsheetId, settingsId) {
   // TODO: There is probably no need to store independent caches
   // for spreadsheets/settings?
