@@ -59,6 +59,7 @@ import isTextField from '../lib/isTextField.js';
 import ActionRow from './ActionRow.vue';
 import renderMakrdown from '../lib/markdown/index.js';
 import ContributionsWallContainer from './charts/ContributionsWallContainer.vue';
+import ContributionStats from './charts/Stats.vue';
 import SelectedFilters from './SelectedFilters.vue';
 
 export default {
@@ -120,6 +121,8 @@ export default {
     getChartType(chartSettings) {
       if (chartSettings.type === 'contributions-wall') {
         return ContributionsWallContainer;
+      } else if (chartSettings.type === 'contribution-stats') {
+        return ContributionStats;
       }
 
       throw new Error('Unknown chart type ' + chartSettings.type);

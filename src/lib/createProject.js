@@ -150,8 +150,10 @@ export function createDefaultCharts() {
   return [{
     type: 'contributions-wall',
     version: '1.0',
-    settings: {
-      showStreakStats: true
-    }
+    settings: { }
+  }, {
+    type: 'contribution-stats',
+    version: '1.0',
+    settings: {}
   }];
 }
