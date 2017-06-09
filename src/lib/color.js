@@ -1,7 +1,7 @@
 export function makeColorBag() {
-  const groupKeyToColorHsl = new Map();
+  const colorMap = new Map();
   // TODO: More colors
-  const predefinedGroups = [
+  const predefinedColors = [
     [0.97, 1, 0.5],
     [0.57, 1, 0.5],
     [0.87, 1, 0.5],
@@ -12,13 +12,13 @@ export function makeColorBag() {
   return {
     getColor(key) {
       const hashKey = getHash(key);
-      let hslColor = groupKeyToColorHsl.get(hashKey);
+      let hslColor = colorMap.get(hashKey);
       if (hslColor) return hslColor;
 
       // const hue = random(hashCode(key)).nextDouble();
       // hslColor = [hue, 1, 0.5];
-      hslColor = predefinedGroups[hashKey % predefinedGroups.length];
-      groupKeyToColorHsl.set(hashKey, hslColor);
+      hslColor = predefinedColors[hashKey % predefinedColors.length];
+      colorMap.set(hashKey, hslColor);
       return hslColor;
     }
   };
