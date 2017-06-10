@@ -5,14 +5,14 @@ describe('Type detector', () => {
     const expectations = [
       { input: '42', output: 'number' },
       { input: '42.3', output: 'number' },
-      { input: 'hello 1', output: 'string' },
-      { input: undefined, output: 'string' },
+      { input: 'hello 1', output: 'text' },
+      { input: undefined, output: 'text' },
       { input: '9/26/2016 8:00:23', output: 'date' },
       { input: '9/26/2016', output: 'date' },
       { input: '9/26/2016 8:00', output: 'date' },
       { input: '12/26/2016 8:00', output: 'date' },
-      { input: '13/26/2016 8:00', output: 'string' }, // month 13 is not a valid month
-      { input: '9/26/2016 hello', output: 'string' }
+      { input: '13/26/2016 8:00', output: 'text' }, // month 13 is not a valid month
+      { input: '9/26/2016 hello', output: 'text' }
     ];
 
     expectations.forEach(testCase => {
