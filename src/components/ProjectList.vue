@@ -26,7 +26,7 @@
       <div slot='brand' class='brand'>
         <router-link to='/' class='logo-text'> Streak <small title='Alpha version means that bugs are expected! Please do not use for anything critical.'>αλφα</small></router-link>
         <div class='go-outside'>
-          <router-link to='/explore'>explore</router-link>
+          <router-link to='/explore'>users</router-link>
           <router-link to='/about' >about</router-link>
         </div>
       </div>
