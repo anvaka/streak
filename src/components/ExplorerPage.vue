@@ -1,6 +1,6 @@
 <template>
   <div class='explore'>
-    <h2>Streakers</h2>
+    <h2>Our users</h2>
     <p> This is a list of all our users.  </p>
 
     <loading :isLoading='isLoading'>Loading list...</loading>
