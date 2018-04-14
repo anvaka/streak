@@ -129,7 +129,18 @@ function computeStreakStats(dates) {
   }
 
   function moreThanOneDay(day1, day2) {
-    return Math.abs(day1 - day2) > ONE_DAY;
+    const tz1 = day1.getTimezoneOffset();
+    const tz2 = day2.getTimezoneOffset();
+    if (tz1 === tz2) {
+      return Math.abs(day1 - day2) > ONE_DAY;
+    }
+    // We want to make sure that daylight time saving doesn't mess with the streak.
+    // E.g. Nov 4, 2018 and Nov 5, 2018 would have distance larger than ONE_DAY.
+    // Taking time zone into consideration fixes it.
+    // > new Date('Nov 4, 2018') == Sun Nov 04 2018 00:00:00 GMT-0700 (PDT)
+    // > new Date('Nov 5, 2018') == Mon Nov 05 2018 00:00:00 GMT-0800 (PST)
+
+    return Math.abs(day1 + 1000 * tz1 / 60 - (day2 + 1000 * tz2 / 60)) > ONE_DAY;
   }
 }
 </script>
