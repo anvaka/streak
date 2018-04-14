@@ -214,7 +214,8 @@ function getFillForDate(dayKey, contributionsByDay) {
   }
 
   // todo: the color should come from the settings
-  const hsl = colorBag.getColor('defaultColor');
+  // const hsl = colorBag.getColor('defaultColor');
+  const hsl = colorBag.getColor(contributions.groupKey);
 
   const h = Math.round(hsl[0] * 360);
   const s = Math.round(hsl[1] * 100);
