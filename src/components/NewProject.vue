@@ -64,7 +64,7 @@ export default {
       projectName: '',
       description: '',
       error: null,
-      isPublic: true,
+      isPublic: false,
       fields: [{
         title: 'When',
         valueType: DATE.value
