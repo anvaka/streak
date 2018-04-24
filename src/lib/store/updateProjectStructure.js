@@ -27,7 +27,7 @@ export default function updateProjectStructure(project, newFields) {
 
   // And wait until both promises are resolved
   return Promise.all(pendingRequests).then(() => {
-    // when all is done, we must reset our caches, so that we requerry full information
+    // when all is done, we must reset our caches, so that we re-query full information
     // on next page render.
     resetProjectFileCache(project.id);
     resetSettings(project.settingsFileId);

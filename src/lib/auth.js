@@ -53,7 +53,7 @@ export default {
   initiateSignInStatus,
 
   /**
-   * Rewquest to sign out current user
+   * Request to sign out current user
    */
   signOut,
 

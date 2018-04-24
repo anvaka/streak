@@ -53,7 +53,7 @@ export function getLogFileSpreadsheetId(projectFolderId) {
 
     for (let i = 0; i < files.length; i++) {
       if (files[i].name === 'streak-settings.json') {
-        if (settingsFile) throw new Error('Cannot have multiple streak setttings files');
+        if (settingsFile) throw new Error('Cannot have multiple streak settings files');
         settingsFile = files[i];
       } else {
         if (spreadsheetFile) throw new Error('At the moment, only one log file is supported');

@@ -2,7 +2,7 @@ import InputTypes from './InputTypes';
 
 // Difference between input types and field types, is that field types are
 // shown in UI as drop down box. Thus they need more information to
-// present themsef nicely (like a friendly label).
+// present themselves nicely (like a friendly label).
 export const DATE = {
   label: 'Date',
   value: InputTypes.DATE

@@ -5,7 +5,7 @@ export default function createSheetViewModel(rows) {
 
   function groupBy(key) {
     if (!key) {
-      throw new Error('Key functon is required');
+      throw new Error('Key function is required');
     }
 
     const group = new Map();

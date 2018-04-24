@@ -12,7 +12,7 @@ import { createDefaultCharts } from '../createProject.js';
 const sheetIdToSheetData = new Map();
 
 // maps project id (a google drive folder) to spreadsheet file.
-const projetIdToProjectFile = new Map();
+const projectIdToProjectFile = new Map();
 
 // Store settings files here
 const settingsIdCache = new Map();
@@ -88,14 +88,14 @@ function loadSheet(spreadsheetId) {
 
 export function getLogFileSpreadsheetId(projectFolderId) {
   return new Promise((resolve, reject) => {
-    const cachedFile = projetIdToProjectFile.get(projectFolderId);
+    const cachedFile = projectIdToProjectFile.get(projectFolderId);
     if (cachedFile) {
       resolve(cachedFile);
       return;
     }
 
     gapiGetLogFileSpreadsheetId(projectFolderId).then(file => {
-      projetIdToProjectFile.set(projectFolderId, file);
+      projectIdToProjectFile.set(projectFolderId, file);
       return file;
     }).then(resolve, reject);
   });
@@ -110,5 +110,5 @@ export function resetSettings(settingsId) {
 }
 
 export function resetProjectFileCache(projectId) {
-  return projetIdToProjectFile.delete(projectId);
+  return projectIdToProjectFile.delete(projectId);
 }
