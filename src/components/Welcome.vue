@@ -27,7 +27,9 @@
     <h4>Soure code</h4>
     <p>
       Streak was created by <a href='https://streak.anvaka.com/#/114708134049085210473'>Andrei Kashcha</a>.
-      The source code of this website is fully available on our <a href='https://github.com/anvaka/streak'>GitHub page</a>
+      The source code of this website is fully available on our <a href='https://github.com/anvaka/streak'>GitHub page</a>.
+      Also don't forget to check our <a href='https://github.com/anvaka/streak/blob/master/privacy.md'>Privacy policy</a>.
+
     </p>
     </div>
 
