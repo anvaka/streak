@@ -4,7 +4,7 @@ export default handleAuthError;
 
 function handleAuthError(retryCallback, rejectCallback) {
   return err => {
-    // TOOD: should I give up at some point?
+    // TODO: should I give up at some point?
     const isInvalidCredentials = (err.status === 401) &&
       err.result && (
         // Google drive returns one error message

@@ -1,4 +1,4 @@
-// Welcome to the streak app. THis is the entry point.
+// Welcome to the streak app. This is the entry point.
 
 import Vue from 'vue';
 import Home from './components/Home.vue';
