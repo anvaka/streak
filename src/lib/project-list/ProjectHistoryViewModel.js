@@ -1,6 +1,6 @@
 /**
- * Given a spreadsheet buidls a project history. Project history has information
- * about log entries grouped by date (though this can be customezed0. And has
+ * Given a spreadsheet builds a project history. Project history has information
+ * about log entries grouped by date (though this can be customized. And has
  * an index of all rows by given day.
  *
  * Additionally, project contributions can be filtered to be only within specific range.
@@ -139,14 +139,14 @@ function groupBy(groupIndex, typedRows) {
   });
 
   const groupRecords = Array.from(groups.values());
-  removeRedundnantGroupKeys(groupRecords);
+  removeRedundantGroupKeys(groupRecords);
 
   return groupRecords.sort((x, y) => {
     return y.group.value - x.group.value;
   });
 }
 
-function removeRedundnantGroupKeys(groupRecords) {
+function removeRedundantGroupKeys(groupRecords) {
   groupRecords.forEach(groupRecord => {
     const { items } = groupRecord;
     if (items.length > 1) {

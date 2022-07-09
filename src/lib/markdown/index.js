@@ -14,12 +14,12 @@ function constructRemarkableRenderer() {
     linkify: true
   });
 
-  md.use(inlineYoutebeVideos);
+  md.use(inlineYoutubeVideos);
 
   return md;
 }
 
-function inlineYoutebeVideos(md) {
+function inlineYoutubeVideos(md) {
   // I'm not sure if this is the right way to extend Remarkable. I'm just
   // checking if a link is a youtube link, and if it is, then I return my own
   // html. Otherwise the original remarkable methods are called.
@@ -29,7 +29,7 @@ function inlineYoutebeVideos(md) {
 
   rules.link_open = function linkDecorator(tokens, idx, options) {
     const href = tokens[idx].href;
-    const youtubeVideoId = isYouTubueLink(href);
+    const youtubeVideoId = isYouTubeLink(href);
     if (youtubeVideoId) {
       tokens.noClose = true;
       // TODO: this should be flexible width;
@@ -45,7 +45,7 @@ function inlineYoutebeVideos(md) {
   };
 }
 
-function isYouTubueLink(href) {
+function isYouTubeLink(href) {
   const youtubeRegex = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
   const youtubeMatch = href.match(youtubeRegex);
   if (youtubeMatch && youtubeMatch[7].length === 11) {

@@ -10,7 +10,7 @@ export default function extractHeaderTypesFromData(sheetData, settings) {
   const headerCounters = headers.map(h => new HeaderCounter(h));
 
   if (settings && settings.fields) {
-    // if we have settings, they should override type sepcification.
+    // if we have settings, they should override type specification.
     settings.fields.forEach(field => setHeaderType(field.title, field.type));
   }
 
