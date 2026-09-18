@@ -1,0 +1,69 @@
+name: Deploy to GitHub Pages
+
+# Production deploy. On every push to master, build and publish ./dist to the
+# ROOT of the gh-pages branch (which GitHub Pages serves). Per-PR previews live
+# under pr-preview/ in the same branch (see preview.yml); clean-exclude keeps
+# this production deploy from wiping them, and force:false appends instead of
+# rewriting history so the two workflows don't clobber each other.
+#
+# CUTOVER CHECKLIST - the site still runs on Netlify; this branch is staged.
+# Do these in order, because the order is what avoids downtime:
+#
+#   1. Push. This workflow creates gh-pages. Nothing is served yet.
+#   2. Settings -> Pages -> Source: "Deploy from a branch", gh-pages, / (root).
+#      Leave the custom domain EMPTY. Verify at anvaka.github.io/streak.
+#   3. Only once that looks right:  echo streak.anvaka.com > static/CNAME
+#      and push. Vite copies publicDir into dist, so from then on every deploy
+#      republishes CNAME - which is required, because Pages drops the custom
+#      domain the moment a deploy lands without it.
+#   4. Squarespace DNS: point the `streak` CNAME at anvaka.github.io.
+#   5. Wait for the Let's Encrypt cert, then tick "Enforce HTTPS".
+#   6. Delete netlify.toml and turn off builds on the Netlify side.
+#
+# Step 3 is deliberately NOT done yet: a CNAME file present at step 2 makes
+# GitHub claim streak.anvaka.com immediately, and anvaka.github.io/streak then
+# redirects to it - i.e. to Netlify - so you would be verifying the old site.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          # Keep in sync with preview.yml. Vite 6 needs a modern Node, and 24
+          # is what the app is developed on, so local green and CI green mean
+          # the same thing.
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Gate the deploy on the suite. These tests are not decoration: each one
+      # pins a Vue 3 migration regression that neither the build nor the type
+      # system catches (the ajax.js id_token TDZ, ProjectList reactivity, the
+      # v-if/v-for split in ProjectOverview). A failure here means dist is
+      # never published and the live site keeps serving the last good build.
+      #
+      # `npm run lint` is deliberately NOT a gate - it still reports 24 known
+      # non-breaking errors from the migration, so gating would block every
+      # deploy. Clean those up first, then add it here.
+      - run: npm test
+      - run: npm run build
+      - name: Publish to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          clean: true
+          clean-exclude: pr-preview/
+          force: false

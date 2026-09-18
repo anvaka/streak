@@ -16,7 +16,7 @@ Every colored dot here is a day when I read at least 30 minutes.
 The data is stored directly to your Google Drive. You have full control over
 spreadsheet. This website provides a nice user interface to enter records:
 
-![entry demo](https://streak.anvaka.com/static/step-3-create.gif)
+![entry demo](src/assets/step-3-create.gif)
 
 ## Development
 

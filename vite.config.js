@@ -3,6 +3,11 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
 export default defineConfig({
+  // Relative base, so one build serves correctly from the site root AND from a
+  // PR preview subpath (/streak/pr-preview/pr-N/). An absolute base would 404
+  // every asset in a preview, and building previews with a different base would
+  // mean reviewing a bundle that isn't the one that ships.
+  base: './',
   plugins: [vue()],
   publicDir: 'static',
   resolve: {

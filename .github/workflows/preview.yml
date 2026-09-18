@@ -1,0 +1,57 @@
+name: PR Preview
+
+# Per-PR preview deploys, entirely on GitHub (no external accounts/secrets).
+# On open/update: build and publish ./dist to pr-preview/pr-<N>/ on the
+# gh-pages branch, served at <pages-url>/pr-preview/pr-<N>/, and post the link
+# as a sticky comment. On close: the action removes that folder again.
+#
+# This only works because vite.config.js sets `base: './'` - the built bundle
+# uses relative URLs, so the same dist serves correctly from the site root and
+# from a pr-preview/pr-N/ subpath. An absolute base would 404 every asset here.
+#
+# IMPORTANT: previews are served from anvaka.github.io, a different origin than
+# streak.anvaka.com, so https://anvaka.github.io MUST be listed in the OAuth
+# client's Authorized JavaScript origins. This is not optional polish - without
+# it gapi fails with idpiframe_initialization_failed during init and the app
+# renders its "Something is wrong. Try refreshing the page." error screen, not
+# a signed-out Welcome page. A preview is useless until that origin is added.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+# Serialize per PR so an update doesn't race its own previous run.
+concurrency:
+  group: pr-preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write       # push the preview to gh-pages
+  pull-requests: write  # comment the preview URL
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    # Forks can't push to gh-pages; only run for same-repo PRs.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v7
+
+      # Skip the build entirely on close (the action only removes the folder).
+      - uses: actions/setup-node@v7
+        if: github.event.action != 'closed'
+        with:
+          node-version: 24  # keep in sync with deploy.yml; see the note there
+          cache: npm
+      - run: npm ci
+        if: github.event.action != 'closed'
+      # Runs before the build so a red PR is visible here first - this is the
+      # lane where a broken change gets caught, ahead of master.
+      - run: npm test
+        if: github.event.action != 'closed'
+      - run: npm run build
+        if: github.event.action != 'closed'
+
+      - name: Deploy / update / remove preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: dist
