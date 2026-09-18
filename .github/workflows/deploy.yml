@@ -6,23 +6,14 @@ name: Deploy to GitHub Pages
 # this production deploy from wiping them, and force:false appends instead of
 # rewriting history so the two workflows don't clobber each other.
 #
-# CUTOVER CHECKLIST - the site still runs on Netlify; this branch is staged.
-# Do these in order, because the order is what avoids downtime:
+# streak.anvaka.com is served from this branch over HTTPS (Let's Encrypt,
+# provisioned 2026-09-18). The custom domain is asserted by static/CNAME, which
+# Vite copies into dist on every build - Pages drops the domain the moment a
+# deploy lands without that file, so do not move or delete it.
 #
-#   1. Push. This workflow creates gh-pages. Nothing is served yet.
-#   2. Settings -> Pages -> Source: "Deploy from a branch", gh-pages, / (root).
-#      Leave the custom domain EMPTY. Verify at anvaka.github.io/streak.
-#   3. Only once that looks right:  echo streak.anvaka.com > static/CNAME
-#      and push. Vite copies publicDir into dist, so from then on every deploy
-#      republishes CNAME - which is required, because Pages drops the custom
-#      domain the moment a deploy lands without it.
-#   4. Squarespace DNS: point the `streak` CNAME at anvaka.github.io.
-#   5. Wait for the Let's Encrypt cert, then tick "Enforce HTTPS".
-#   6. Delete netlify.toml and turn off builds on the Netlify side.
+# DNS: streak.anvaka.com is a CNAME to anvaka.github.io, managed at Squarespace
+# (no API - the DNS panel is the only way to change it).
 #
-# Step 3 is deliberately NOT done yet: a CNAME file present at step 2 makes
-# GitHub claim streak.anvaka.com immediately, and anvaka.github.io/streak then
-# redirects to it - i.e. to Netlify - so you would be verifying the old site.
 on:
   push:
     branches: [master]

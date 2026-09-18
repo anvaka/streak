@@ -9,12 +9,15 @@ name: PR Preview
 # uses relative URLs, so the same dist serves correctly from the site root and
 # from a pr-preview/pr-N/ subpath. An absolute base would 404 every asset here.
 #
-# IMPORTANT: previews are served from anvaka.github.io, a different origin than
-# streak.anvaka.com, so https://anvaka.github.io MUST be listed in the OAuth
-# client's Authorized JavaScript origins. This is not optional polish - without
-# it gapi fails with idpiframe_initialization_failed during init and the app
-# renders its "Something is wrong. Try refreshing the page." error screen, not
-# a signed-out Welcome page. A preview is useless until that origin is added.
+# Previews are reachable at streak.anvaka.com/pr-preview/pr-<N>/ - Pages serves
+# the whole gh-pages branch at the custom domain, and anvaka.github.io/streak/*
+# 301s there path-preserving. That matters for auth: streak.anvaka.com is a
+# registered origin on the OAuth client, so sign-in works on previews. If the
+# custom domain is ever removed, previews fall back to anvaka.github.io, which
+# must then be added to the client's Authorized JavaScript origins or gapi
+# fails with idpiframe_initialization_failed and the app renders its error
+# screen instead of the signed-out Welcome page.
+#
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
@@ -55,3 +58,6 @@ jobs:
         uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: dist
+          # Post the custom-domain URL directly rather than the github.io one,
+          # which would only 301 to it.
+          pages-base-url: streak.anvaka.com
