@@ -1,0 +1,11 @@
+# Build settings live here rather than in the Netlify UI, so the build is
+# reproducible and a dashboard left over from the webpack era cannot
+# silently disagree with the repo.
+[build]
+  command = "npm run build"   # -> vite build
+  publish = "dist"
+
+[build.environment]
+  # Vite 6 needs a modern Node. Without pinning this, the site inherits
+  # whatever default its (2017-era) config carries.
+  NODE_VERSION = "22"
