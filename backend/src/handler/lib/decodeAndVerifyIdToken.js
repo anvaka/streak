@@ -1,8 +1,10 @@
-const https = require('https');
+const { OAuth2Client } = require('google-auth-library');
 
 const isIntegration = !!process.env.INTEGRATION_TEST_RUN;
 
 const streakAppAud = '808734092016-u5ss25nmh0j9o5ponusu5l3tnqb7vl9g.apps.googleusercontent.com';
+
+const oauthClient = new OAuth2Client(streakAppAud);
 
 module.exports = decodeAndVerifyIdToken;
 
@@ -11,24 +13,16 @@ function decodeAndVerifyIdToken(idToken) {
     return integrationUser(idToken);
   }
 
-  return new Promise((resolve, reject) => {
-    https.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${idToken}`, (res) => {
-      res.on('data', (d) => {
-        try {
-          const data = JSON.parse(d);
-          resolve(verifyToken(data, idToken));
-        } catch (e) {
-          console.log('Failed to parse the token response');
-          console.log(d, idToken);
-          reject(e);
-        }
-      });
-    }).on('error', (e) => {
-      // TODO: retry?
+  // Cryptographically verifies the JWT signature and standard claims locally
+  // using Google's public keys, instead of trusting the unauthenticated
+  // tokeninfo endpoint response.
+  return oauthClient.verifyIdToken({ idToken, audience: streakAppAud })
+    .then((ticket) => verifyToken(ticket.getPayload(), idToken))
+    .catch((e) => {
+      console.log('Failed to verify the token', idToken);
       console.error(e);
-      reject(e);
+      return undefined;
     });
-  });
 }
 
 function integrationUser(idToken) {
