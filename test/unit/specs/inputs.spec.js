@@ -23,6 +23,23 @@ describe('record input components write back through the vm prop', () => {
     warn.mockRestore();
   });
 
+  it('Number: accepts decimals - step must be "any"', async () => {
+    const vm = { title: 'Weight', value: '' };
+    const w = mount(NumberInput, { props: { vm } });
+    const input = w.find('input');
+
+    await input.setValue('3.5');
+    expect(vm.value).toBe(3.5);
+
+    // The regression this guards: a bare <input type="number"> defaults to
+    // step=1, which makes every decimal a stepMismatch. AddRecord.vue submits
+    // these through a <form>, and native validation runs before the submit
+    // event fires - so an invalid field means "Save record" silently does
+    // nothing. jsdom does not implement stepMismatch, so assert the attribute
+    // that prevents it rather than the validity state.
+    expect(input.attributes('step')).toBe('any');
+  });
+
   it('MultiLineText: typing updates vm.value', async () => {
     const vm = { title: 'Note', value: '', hasMultiline: false, autocomplete: [] };
     const w = mount(MultiLineText, { props: { vm } });
