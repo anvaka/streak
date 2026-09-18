@@ -1,17 +1,12 @@
 <template>
-  <ui-textbox
-      :label='vm.title'
-      placeholder='Paste image url'
-      v-model='vm.value'></ui-textbox>
+  <div class='form-field'>
+    <label>{{vm.title}}</label>
+    <input type='text' placeholder='Paste image url' v-model='vm.value'>
+  </div>
 </template>
 <script>
-import UiTextbox from 'keen-ui/src/UiTextbox';
-
 export default {
   name: 'Image',
   props: ['vm'],
-  components: {
-    UiTextbox
-  }
 };
 </script>

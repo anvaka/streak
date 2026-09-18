@@ -1,3 +1,4 @@
+import { reactive } from 'vue';
 import updateUserInfo from './streak-api/updateUserInfo.js';
 
 /**
@@ -34,7 +35,11 @@ const DISCOVERY_DOCS = [
 /**
  * This is where authentication state is stored inside application
  */
-const signInStatus = {
+// Must be `reactive()`: Home.vue returns this object straight from data(),
+// and this module mutates it directly. In Vue 2 that worked because Vue
+// installed getters on this very object; in Vue 3 data() is wrapped in a
+// proxy, so writes to a raw object would never trigger a re-render.
+const signInStatus = reactive({
   error: null,
   loading: true,
   profile: null,
@@ -44,7 +49,7 @@ const signInStatus = {
   // Maybe I should change this to enum
   signedIn: false,
   signedOut: false,
-};
+});
 
 export default {
   /**

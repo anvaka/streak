@@ -1,18 +1,13 @@
 <template>
-  <div class='loading' v-if='isLoading'>
-      <ui-icon-button icon="refresh" :loading="isLoading" type='secondary'></ui-icon-button>
+  <div class='loading loading-spinner' v-if='isLoading'>
+      <span class='spinner'></span>
       <slot>Loading...</slot>
   </div>
 </template>
 
 <script>
-import UiIconButton from 'keen-ui/src/UiIconButton';
-
 export default {
   name: 'Loading',
   props: ['isLoading'],
-  components: {
-    UiIconButton
-  }
 };
 </script>

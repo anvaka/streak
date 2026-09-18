@@ -7,17 +7,17 @@
     <h3>
       Step 1: Set your goal
     </h3>
-    <img src='static/step-1-configure.gif'>
+    <img src='/step-1-configure.gif'>
     <h3>
       Step 2: Configure what you want to capture
     </h3>
 
-    <img src='static/step-2-structure.gif'>
+    <img src='/step-2-structure.gif'>
     <h3>
       Step 3: Log every step that brings your closer to your goal.
     </h3>
 
-    <img src='static/step-3-create.gif'>
+    <img src='/step-3-create.gif'>
 
 
     <h4>Soure code</h4>

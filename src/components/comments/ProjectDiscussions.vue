@@ -9,7 +9,7 @@
 
     <loading :isLoading='isLoading'>Loading latest comments...</loading>
 
-    <div class='comment' v-for='comment in discussions' v-if='!isLoading'>
+    <div class='comment' v-for='comment in discussions' :key='comment.id' v-show='!isLoading'>
       <router-link class='header' :to='{name: "comment-details", params: { commentId: comment.id }}'>{{comment.text}}</router-link>
       <div class='byline'>
         <div class='time small secondary'>{{comment.created}}</div>

@@ -26,11 +26,15 @@ export function request(params, url, isRetry) {
     let id_token = params.qs && params.qs.id_token;
     if (!id_token) {
       id_token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().id_token;
-      if (method === 'POST') {
-        params.body.id_token = id_token;
-      } else {
-        params.qs.id_token = id_token;
-      }
+      // Always goes into the query string, including for POSTs. This used to
+      // read `if (method === 'POST') params.body.id_token = ...`, but `method`
+      // is declared further down: under babel-preset-es2015 that compiled to a
+      // hoisted `var`, so the test silently saw `undefined` and always fell
+      // through to here. Without Babel it is a TDZ ReferenceError instead.
+      // Kept on the query-string path deliberately - that is what production
+      // has always sent, and the backend checks the query string first
+      // (see extracIdToken in backend/src/handler/index.js).
+      params.qs.id_token = id_token;
     }
 
     const queryPart = stringify(params.qs);

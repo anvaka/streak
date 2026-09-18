@@ -47,7 +47,7 @@ export default {
     bus.on('reload-project', this.loadCurrentProject, this);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     bus.off('reload-project', this.loadCurrentProject);
   },
 

@@ -5,8 +5,8 @@
         :fields='fields' :row='row'
         @commit='commitChanges' @cancel='goToProjects'></add-record>
 
-    <div v-if='isSaveInProgress'>
-      <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
+    <div v-if='isSaveInProgress' class='loading-spinner'>
+      <span class='spinner'></span>
       Saving record...
     </div>
     <div v-if='error'>
@@ -20,8 +20,6 @@
   </div>
 </template>
 <script>
-import UiIconButton from 'keen-ui/src/UiIconButton';
-
 import InputTypes from 'src/types/InputTypes';
 import { getDateFromFilterString, getNow } from 'src/lib/dateUtils';
 
@@ -32,16 +30,12 @@ export default {
   props: ['project', 'row', 'date'],
   components: {
     AddRecord,
-    UiIconButton
   },
   created() {
     this.ensureFieldsLoaded();
   },
   watch: {
     'project.loading': function projectLoadingChanged() {
-      // TODO: this seem to be very complex. I cannot use
-      // computed properties because keen ui/vue do not save updated values.
-      // need to figure out what is wrong.
       this.ensureFieldsLoaded();
     }
   },
@@ -87,10 +81,8 @@ function getFieldsFromProject(project, row, date) {
     const { valueType, title } = header;
     if (valueType === InputTypes.DATE) {
       if (!fieldValue && date) {
-        // date was set via query string, and field didn't have a default date:
         fieldValue = date;
       } else if (!fieldValue) {
-        // Set date to now.
         fieldValue = getNow();
       }
     }

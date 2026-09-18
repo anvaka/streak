@@ -10,8 +10,8 @@
         </span>
       </div>
     </div>
-    <div v-if='deleteInProgress' class='secondary'>
-      <ui-icon-button icon="refresh" :loading="true" type='secondary'></ui-icon-button>
+    <div v-if='deleteInProgress' class='secondary loading-spinner'>
+      <span class='spinner'></span>
       removing row...
     </div>
     <div v-if='error'>Something is wrong. Reload the page?</div>
@@ -19,7 +19,6 @@
 </template>
 
 <script>
-import UiIconButton from 'keen-ui/src/UiIconButton';
 import bus from '../lib/bus.js';
 
 export default {
@@ -49,9 +48,6 @@ export default {
       });
     },
   },
-  components: {
-    UiIconButton
-  }
 };
 </script>
 

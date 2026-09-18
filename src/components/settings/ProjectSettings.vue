@@ -30,14 +30,14 @@
             The project will be moved to your <a href='https://drive.google.com/drive/trash'>Trash</a> folder.
           </div>
         </div>
-        <ui-button type='secondary' class='danger-trigger-button' color='red' @click.prevent='deleteConfirm = true'>Delete Project</ui-button>
+        <button class='btn btn--danger danger-trigger-button' @click.prevent='deleteConfirm = true'>Delete Project</button>
       </div>
       <div v-if='deleteConfirm'>
         <div>Are you sure you want to delete this project?</div>
         <div>This action cannot be undone from the streak website!</div>
         <div class='row-confirm'>
-          <ui-button type='secondary' class='danger-confirm' color='red' @click.prevent='deleteProjectClick'>Delete the project</ui-button>
-          <ui-button type='secondary' @click.prevent='deleteConfirm = false'>No. I changed my mind</ui-button>
+          <button class='btn btn--danger danger-confirm' @click.prevent='deleteProjectClick'>Delete the project</button>
+          <button class='btn' @click.prevent='deleteConfirm = false'>No. I changed my mind</button>
         </div>
       </div>
     </form>
@@ -46,9 +46,6 @@
 </template>
 
 <script>
-// TODO: This page needs to handle errors properly
-import UiButton from 'keen-ui/src/UiButton';
-
 import NameAndDescription from './NameAndDescription.vue';
 import ProjectStructure from './ProjectStructure.vue';
 
@@ -57,7 +54,6 @@ export default {
   props: ['project'],
 
   components: {
-    UiButton,
     NameAndDescription,
     ProjectStructure
   },
@@ -74,7 +70,6 @@ export default {
       return this.project && this.project.isPublic;
     },
     fields() {
-      // TODO: should call this consistently (headers/fields/columns are all the same);
       return this.project && this.project.headers;
     },
     spreadSheetUrl() {
@@ -97,10 +92,6 @@ export default {
       this.updateInProgress = true;
       this.project.updateProjectInfo(name, description, isPublic)
         .then(() => {
-          // eventual consistency :( - this is probably not very reliable.
-          // We are waiting to let Google read endpoint catch up
-          // with our latest changes.
-          // TODO: Should probably update local copy in memory...
           setTimeout(() => {
             this.updateInProgress = false;
             this.goToParent();

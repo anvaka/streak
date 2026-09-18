@@ -13,6 +13,7 @@
       </svg>
     </div>
   </div>
+  <div v-if='tooltipText' class='cw-tooltip' :style='tooltipStyle'>{{tooltipText}}</div>
 </div>
 </template>
 
@@ -20,7 +21,6 @@
 import { getDateString, formatDowDate } from 'src/lib/dateUtils.js';
 
 import { makeColorBag } from 'src/lib/color';
-import Tooltip from 'tether-tooltip';
 
 const DAY_HEIGHT = 12;
 const DAY_WIDTH = 12;
@@ -35,6 +35,8 @@ export default {
   props: ['dates', 'settings'],
   data() {
     return {
+      tooltipText: '',
+      tooltipStyle: {},
       daysOfTheWeek: [{
         name: 'Mon',
         y: getDayOfTheYOffset(1)
@@ -61,16 +63,16 @@ export default {
   mounted() {
     const svg = this.$refs.contributions;
     this.mouseEnterHandler = this.mouseEnter.bind(this);
+    this.mouseLeaveHandler = this.mouseLeave.bind(this);
     svg.addEventListener('mouseenter', this.mouseEnterHandler, true);
+    svg.addEventListener('mouseleave', this.mouseLeaveHandler, true);
     scrollToTheEnd(svg);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     const svg = this.$refs.contributions;
     svg.removeEventListener('mouseenter', this.mouseEnterHandler, true);
-    if (this.tooltip) {
-      this.tooltip.destroy();
-    }
+    svg.removeEventListener('mouseleave', this.mouseLeaveHandler, true);
   },
   methods: {
     onDayClick(e, day) {
@@ -96,30 +98,25 @@ export default {
       if (!dayDom.classList.contains('contribution-day')) {
         return;
       }
-      if (this.tooltip) {
-        this.tooltip.destroy();
-      }
-      this.tooltip = new Tooltip({
-        target: dayDom,
-        content: dayDom.getAttribute('data-day'),
-        classes: 'ui-tooltip--theme-default',
-      });
-      this.tooltip.open();
+      const content = dayDom.getAttribute('data-day');
+      if (!content) return;
+      const rect = dayDom.getBoundingClientRect();
+      this.tooltipText = content;
+      this.tooltipStyle = {
+        left: rect.left + rect.width / 2 + 'px',
+        top: rect.top - 4 + 'px',
+      };
+    },
+    mouseLeave() {
+      this.tooltipText = '';
     }
   }
 };
 
 function scrollToTheEnd(svg) {
-  // always scroll to the very end.
   svg.parentElement.scrollLeft = 600;
 }
 
-/**
- * For a given set of dates builds a new "Contributions Wall" view model
- *
- * @param {Object} dates - set, where key is a date, and the value is
- * an object, that represents records for the date.
- */
 function buildWall(dates) {
   const weeks = [];
   const today = new Date();
@@ -213,8 +210,6 @@ function getFillForDate(dayKey, contributionsByDay) {
     return 'rgb(235, 237, 240)';
   }
 
-  // todo: the color should come from the settings
-  // const hsl = colorBag.getColor('defaultColor');
   const hsl = colorBag.getColor(contributions.groupKey);
 
   const h = Math.round(hsl[0] * 360);
@@ -247,5 +242,18 @@ function getDayOfTheYOffset(dayIndex) {
     overflow-x: auto;
     flex: 1;
   }
+}
+
+.cw-tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
 }
 </style>

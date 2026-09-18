@@ -1,30 +1,27 @@
 <template>
   <div class='field' :class='{error: field.error}'>
-      <ui-textbox
-            class='field-name'
-            label='Field name'
+      <div class='form-field field-name'>
+        <label>Field name</label>
+        <input
+            type='text'
             :disabled='readonly'
             autocomplete='off'
             placeholder='Give this field a name'
             v-model='field.title'
             :autofocus='focused'
-            :invalid='field.error'
-      ></ui-textbox>
-      <ui-select
-            class='field-type'
-            label='Field type'
-            :disabled='readonly'
-            placeholder='Select a field type'
-            :options='fieldTypes'
-            v-model='field.type'></ui-select>
+        >
+      </div>
+      <div class='form-field field-type'>
+        <label>Field type</label>
+        <select :disabled='readonly' v-model='field.type'>
+          <option disabled value=''>Select a field type</option>
+          <option v-for='ft in fieldTypes' :key='ft.value' :value='ft'>{{ft.label}}</option>
+        </select>
+      </div>
       <a title='Remove this field' class='remove-row secondary' @click.prevent='removeField(field)' href='#' v-if='!readonly'>x</a>
   </div>
 </template>
 <script>
-import UiTextbox from 'keen-ui/src/UiTextbox';
-import UiButton from 'keen-ui/src/UiButton';
-import UiSelect from 'keen-ui/src/UiSelect';
-
 import { FIELD_TYPES } from '../../types/FieldTypes.js';
 
 export default {
@@ -39,11 +36,6 @@ export default {
       type: Boolean,
       default: false
     }
-  },
-  components: {
-    UiTextbox,
-    UiButton,
-    UiSelect,
   },
   data() {
     return {
@@ -80,12 +72,6 @@ export default {
     display: inline-block;
     width: 21px;
     padding-left: 7px;
-  }
-  .ui-textbox__input {
-    border-bottom: 1px solid transparent;
-  }
-  .ui-select__display {
-    border-bottom: 1px solid transparent;
   }
 }
 .field.error {

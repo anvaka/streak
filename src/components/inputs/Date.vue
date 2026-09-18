@@ -25,7 +25,6 @@ export default {
       enableSeconds: true,
       defaultDate: initialValue,
       dateFormat: 'm/d/Y H:i:S',
-      utc: false,
       onChange() {
         self.changeFromFlatPickr = true;
       },
@@ -33,7 +32,7 @@ export default {
     this.flatPickr = new Flatpickr(this.$refs.date, pickerConfig);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.flatPickr.destroy();
   },
 

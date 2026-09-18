@@ -1,15 +1,15 @@
 <template>
-    <div class="ui-textbox multi-suggest" :class="classes">
-        <div class="ui-textbox__icon-wrapper" v-if="icon || $slots.icon">
+    <div class="multi-suggest" :class="classes">
+        <div class="mc-icon-wrapper" v-if="icon || $slots.icon">
             <slot name="icon">
-                <ui-icon :icon="icon"></ui-icon>
+                <i class="material-icons">{{icon}}</i>
             </slot>
         </div>
 
-        <div class="ui-textbox__content">
-            <label class="ui-autocomplete__label">
+        <div class="mc-content">
+            <label class="mc-label">
                 <div
-                    class="ui-textbox__label-text"
+                    class="mc-label-text"
                     :class="labelClasses"
                     v-if="label || $slots.default"
                 >
@@ -17,7 +17,7 @@
                 </div>
 
                 <textarea
-                    class="ui-textbox__textarea"
+                    class="mc-textarea"
                     ref="textarea"
 
                     autocomplete="off"
@@ -29,7 +29,7 @@
                     :readonly="readonly"
                     :required="required"
                     :rows="rows"
-                    :value="value"
+                    :value="modelValue"
 
                     @blur="onBlur"
                     @change="onChange"
@@ -40,42 +40,32 @@
                     @keydown="onKeydown"
 
                     v-autofocus="autofocus"
-                >{{ value }}</textarea>
+                >{{ modelValue }}</textarea>
 
-                <ul class="ui-autocomplete__suggestions" :style='{"width": currentWidth, "top": currentBottom}' v-show="showDropdown">
-                    <ui-autocomplete-suggestion
+                <ul class="mc-suggestions" :style='{"width": currentWidth, "top": currentBottom}' v-show="showDropdown">
+                    <li
                         ref="suggestions"
-                        :highlighted="highlightedIndex === index"
-                        :keys="keys"
-                        :suggestion="suggestion"
-                        type="simple"
-
-                        @click.native="selectSuggestion(suggestion)"
-
+                        class="mc-suggestion-item"
+                        :class="{ 'is-highlighted': highlightedIndex === index }"
                         v-for="(suggestion, index) in matchingSuggestions"
+                        @click="selectSuggestion(suggestion)"
                     >
-                        <slot
-                            name="suggestion"
-
-                            :highlighted="highlightedIndex === index"
-                            :index="index"
-                            :suggestion="suggestion"
-                        ></slot>
-                    </ui-autocomplete-suggestion>
+                        {{ suggestion }}
+                    </li>
                 </ul>
             </label>
 
-            <div class="ui-textbox__feedback" v-if="hasFeedback || maxlength">
-                <div class="ui-textbox__feedback-text" v-if="showError">
+            <div class="mc-feedback" v-if="hasFeedback || maxlength">
+                <div class="mc-feedback-text" v-if="showError">
                     <slot name="error">{{ error }}</slot>
                 </div>
 
-                <div class="ui-textbox__feedback-text" v-else-if="showHelp">
+                <div class="mc-feedback-text" v-else-if="showHelp">
                     <slot name="help">{{ help }}</slot>
                 </div>
 
-                <div class="ui-textbox__counter" v-if="maxlength">
-                    {{ value.length + '/' + maxlength }}
+                <div class="mc-counter" v-if="maxlength">
+                    {{ modelValue.length + '/' + maxlength }}
                 </div>
             </div>
         </div>
@@ -83,9 +73,6 @@
 </template>
 
 <script>
-// eslint-disable
-import UiIcon from 'keen-ui/src/UiIcon';
-import UiAutocompleteSuggestion from 'keen-ui/src/UiAutocompleteSuggestion';
 import autosize from 'autosize';
 
 import autofocus from './autofocus';
@@ -96,14 +83,14 @@ export default {
   props: {
     name: String,
     placeholder: String,
-    value: {
+    modelValue: {
       type: [String, Number],
       required: true
     },
     icon: String,
     iconPosition: {
       type: String,
-      default: 'left' // 'left' or 'right'
+      default: 'left'
     },
     label: String,
     floatingLabel: {
@@ -112,7 +99,7 @@ export default {
     },
     type: {
       type: String,
-      default: 'text' // all the possible HTML5 input types, except those that have a special UI
+      default: 'text'
     },
     rows: {
       type: Number,
@@ -193,13 +180,17 @@ export default {
     },
   },
 
+  emits: ['update:modelValue', 'select', 'focus', 'blur', 'touch', 'change',
+          'keydown', 'keydown-enter', 'highlight', 'highlight-overflow',
+          'dropdown-open', 'dropdown-close'],
+
   data() {
     return {
       currentWidth: '100%',
       currentBottom: '0',
       isActive: false,
       isTouched: false,
-      initialValue: this.value,
+      initialValue: this.modelValue,
       autosizeInitialized: false,
       showDropdown: false,
       highlightedIndex: -1
@@ -209,7 +200,7 @@ export default {
   computed: {
     classes() {
       return [
-        `ui-textbox--icon-position-${this.iconPosition}`,
+        `mc--icon-position-${this.iconPosition}`,
         { 'is-active': this.isActive },
         { 'is-invalid': this.invalid },
         { 'is-touched': this.isTouched },
@@ -241,27 +232,7 @@ export default {
     },
 
     isLabelInline() {
-      return this.value.length === 0 && !this.isActive;
-    },
-
-    minValue() {
-      if (this.type === 'number' && this.min !== undefined) {
-        return this.min;
-      }
-
-      return null;
-    },
-
-    maxValue() {
-      if (this.type === 'number' && this.max !== undefined) {
-        return this.max;
-      }
-
-      return null;
-    },
-
-    stepValue() {
-      return this.type === 'number' ? this.step : null;
+      return this.modelValue.length === 0 && !this.isActive;
     },
 
     hasFeedback() {
@@ -279,15 +250,15 @@ export default {
     matchingSuggestions() {
       return this.suggestions
         .filter(suggestion => {
-          return this.defaultFilter(suggestion, this.value);
+          return this.defaultFilter(suggestion, this.modelValue);
         })
         .slice(0, this.limit);
     }
   },
 
   watch: {
-    value() {
-      if (this.isActive && this.value.length >= this.minChars) {
+    modelValue() {
+      if (this.isActive && this.modelValue.length >= this.minChars) {
         this.openDropdown();
       }
       this.highlightedIndex = this.highlightOnFirstMatch ? 0 : -1;
@@ -302,7 +273,7 @@ export default {
     document.addEventListener('click', this.onExternalClick);
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.autosizeInitialized) {
       autosize.destroy(this.$refs.textarea);
     }
@@ -334,8 +305,8 @@ export default {
 
     highlightSuggestion(index) {
       const firstIndex = 0;
-      const lastIndex = this.$refs.suggestions.length - 1;
-      if (index === -2) { // Allows for cycling from first to last when cycleHighlight is disabled
+      const lastIndex = this.matchingSuggestions.length - 1;
+      if (index === -2) {
         index = lastIndex;
       } else if (index < firstIndex) {
         index = this.cycleHighlight ? lastIndex : index;
@@ -349,15 +320,15 @@ export default {
       if (index < firstIndex || index > lastIndex) {
         this.$emit('highlight-overflow', index);
       } else {
-        this.$emit('highlight', this.$refs.suggestions[index].suggestion, index);
+        this.$emit('highlight', this.matchingSuggestions[index], index);
       }
     },
 
     selectHighlighted(index, e) {
-      if (this.showDropdown && this.$refs.suggestions && this.$refs.suggestions.length > 0) {
+      if (this.showDropdown && this.matchingSuggestions.length > 0) {
         e.preventDefault();
-        const currentSuggestion = this.$refs.suggestions[index];
-        if (currentSuggestion) this.selectSuggestion(currentSuggestion.suggestion);
+        const suggestion = this.matchingSuggestions[index];
+        if (suggestion) this.selectSuggestion(suggestion);
       }
     },
 
@@ -383,11 +354,11 @@ export default {
     },
 
     updateValue(value) {
-      this.$emit('input', value);
+      this.$emit('update:modelValue', value);
     },
 
     onChange(e) {
-      this.$emit('change', this.value, e);
+      this.$emit('change', this.modelValue, e);
     },
 
     onFocus(e) {
@@ -448,8 +419,6 @@ export default {
     },
 
     reset() {
-      // Blur the input if it's focused to prevent required errors
-      // when it's value is reset
       if (document.activeElement === this.$refs.textarea) {
         document.activeElement.blur();
       }
@@ -469,187 +438,130 @@ export default {
     }
   },
 
-  components: {
-    UiIcon,
-    UiAutocompleteSuggestion
-  },
-
   directives: {
     autofocus
   }
 };
 </script>
 
-<style lang="scss">
-@import '../../../node_modules/keen-ui/src/styles/imports';
-// TODO: Remove dependency on keen&#45;us styles
+<style lang="stylus">
+@import '../../styles/variables.styl'
 
-.ui-autocomplete {
-    align-items: flex-start;
-    display: flex;
-    font-family: $font-stack;
-    margin-bottom: $ui-input-margin-bottom;
-    position: relative;
-    &:hover:not(.is-disabled) {
-        .ui-autocomplete__label-text {
-            color: $ui-input-label-color--hover;
-        }
-        .ui-autocomplete__input {
-            border-bottom-color: $ui-input-border-color--hover;
-        }
-    }
-    &.is-active:not(.is-disabled) {
-        .ui-autocomplete__label-text,
-        .ui-autocomplete__icon-wrapper .ui-icon {
-            color: $ui-input-label-color--active;
-        }
-        .ui-autocomplete__input {
-            border-bottom-color: $ui-input-border-color--active;
-            border-bottom-width: $ui-input-border-width--active;
-        }
-    }
-    &.has-floating-label {
-        .ui-autocomplete__label-text {
-            // Behaves like a block, but width is the width of its content.
-            // Needed here so label doesn't overflow parent when scaled.
-            display: table;
-            &.is-inline {
-                color: $ui-input-label-color; // So the hover styles don't override it
-                cursor: text;
-                transform: translateY($ui-input-label-top--inline) scale(1.1);
-            }
-            &.is-floating {
-                transform: translateY(0) scale(1);
-            }
-        }
-    }
-    &.has-label {
-        .ui-autocomplete__icon-wrapper {
-            padding-top: $ui-input-icon-margin-top--with-label;
-        }
-        .ui-autocomplete__clear-button {
-            top: $ui-input-button-margin-top--with-label;
-        }
-    }
-    &.is-invalid:not(.is-disabled) {
-        .ui-autocomplete__label-text,
-        .ui-autocomplete__icon-wrapper .ui-icon {
-            color: $ui-input-label-color--invalid;
-        }
-        .ui-autocomplete__input {
-            border-bottom-color: $ui-input-border-color--invalid;
-        }
-        .ui-autocomplete__feedback {
-            color: $ui-input-feedback-color--invalid;
-        }
-    }
-    &.is-disabled {
-        .ui-autocomplete__input {
-            border-bottom-style: $ui-input-border-style--disabled;
-            border-bottom-width: $ui-input-border-width--active;
-            color: $ui-input-text-color--disabled;
-        }
-        .ui-autocomplete__icon-wrapper .ui-icon {
-            opacity: $ui-input-icon-opacity--disabled;
-        }
-        .ui-autocomplete__feedback {
-            opacity: $ui-input-feedback-opacity--disabled;
-        }
-    }
-}
-.ui-autocomplete__label {
-    display: block;
-    margin: 0;
-    padding: 0;
-    position: relative;
-    width: 100%;
-}
-.ui-autocomplete__icon-wrapper {
-    flex-shrink: 0;
-    margin-right: $ui-input-icon-margin-right;
-    padding-top: $ui-input-icon-margin-top;
-    .ui-icon {
-        color: $ui-input-icon-color;
-    }
-}
-.ui-autocomplete__content {
-    flex-grow: 1;
-}
-.ui-autocomplete__label-text {
-    color: $ui-input-label-color;
-    font-size: $ui-input-label-font-size;
-    line-height: $ui-input-label-line-height;
-    margin-bottom: $ui-input-label-margin-bottom;
-    transform-origin: left;
-    transition: color 0.1s ease, transform 0.2s ease;
-}
-.ui-autocomplete__input {
-    background: none;
-    border: none;
-    border-bottom-color: $ui-input-border-color;
-    border-bottom-style: solid;
-    border-bottom-width: $ui-input-border-width;
-    border-radius: 0;
-    color: $ui-input-text-color;
-    cursor: auto;
-    font-family: $font-stack;
-    font-size: $ui-input-text-font-size;
-    font-weight: normal;
-    height: $ui-input-height;
-    outline: none;
-    padding: 0;
-    transition: border 0.1s ease;
-    width: 100%;
-    // Hide Edge and IE input clear button
-    &::-ms-clear {
-        display: none;
-    }
-}
-.ui-autocomplete__clear-button {
-    color: $ui-input-button-color;
-    cursor: pointer;
-    font-size: $ui-input-button-size;
-    position: absolute;
-    right: 0;
-    top: $ui-input-button-margin-top;
-    &:hover {
-        color: $ui-input-button-color--hover;
-    }
-}
-.ui-autocomplete__suggestions {
-    background-color: white;
-    box-shadow: 1px 2px 8px $md-grey-600;
-    color: $primary-text-color;
-    display: block;
-    list-style-type: none;
-    margin: 0;
-    margin-bottom: rem-calc(8px);
-    padding: 0;
-    position: absolute;
-    z-index: $z-index-dropdown;
-}
-.ui-autocomplete__feedback {
-    color: $ui-input-feedback-color;
-    font-size: $ui-input-feedback-font-size;
-    line-height: $ui-input-feedback-line-height;
-    margin: 0;
-    padding-top: $ui-input-feedback-padding-top;
-    position: relative;
-}
-// ================================================
-// Icon positions
-// ================================================
-.ui-autocomplete--icon-position-right {
-    .ui-autocomplete__icon-wrapper {
-        margin-left: rem-calc(8px);
-        margin-right: 0;
-        order: 1;
-    }
-}
+.multi-suggest
+  align-items flex-start
+  display flex
+  margin-bottom 1rem
+  position relative
 
-.multi-suggest {
-  .ui-autocomplete__suggestions {
-    position: fixed;
-  }
-}
+  &:hover:not(.is-disabled)
+    .mc-label-text
+      color rgba(0, 0, 0, 0.75)
+    .mc-textarea
+      border-bottom-color rgba(0, 0, 0, 0.54)
+
+  &.is-active:not(.is-disabled)
+    .mc-label-text
+      color #2196f3
+    .mc-textarea
+      border-bottom-color #2196f3
+      border-bottom-width 2px
+
+  &.has-floating-label
+    .mc-label-text
+      display table
+      &.is-inline
+        color secondary-text-color
+        cursor text
+        transform translateY(1.6rem) scale(1.1)
+      &.is-floating
+        transform translateY(0) scale(1)
+
+  &.is-invalid:not(.is-disabled)
+    .mc-label-text
+      color error-color
+    .mc-textarea
+      border-bottom-color error-color
+
+  &.is-disabled
+    .mc-textarea
+      border-bottom-style dashed
+      color rgba(0, 0, 0, 0.38)
+
+.mc-label
+  display block
+  margin 0
+  padding 0
+  position relative
+  width 100%
+
+.mc-icon-wrapper
+  flex-shrink 0
+  margin-right 12px
+  .material-icons
+    color secondary-text-color
+
+.mc-content
+  flex-grow 1
+
+.mc-label-text
+  color secondary-text-color
+  font-size 0.8125rem
+  line-height 1.2
+  margin-bottom 4px
+  transform-origin left
+  transition color 0.1s ease, transform 0.2s ease
+
+.mc-textarea
+  background none
+  border none
+  border-bottom 1px solid rgba(0, 0, 0, 0.12)
+  border-radius 0
+  color base-text-color
+  cursor auto
+  font-family inherit
+  font-size 1rem
+  font-weight normal
+  outline none
+  padding 6px 0
+  resize vertical
+  transition border 0.1s ease
+  width 100%
+
+.mc-suggestions
+  background-color white
+  box-shadow 1px 2px 8px rgba(0, 0, 0, 0.3)
+  color base-text-color
+  display block
+  list-style-type none
+  margin 0
+  margin-bottom 8px
+  padding 0
+  position fixed
+  z-index 100
+
+.mc-suggestion-item
+  padding 8px 16px
+  cursor pointer
+  font-size 0.875rem
+  &:hover, &.is-highlighted
+    background-color #f5f5f5
+
+.mc-feedback
+  color secondary-text-color
+  font-size 0.75rem
+  line-height 1.4
+  margin 0
+  padding-top 4px
+  position relative
+
+.mc-counter
+  position absolute
+  right 0
+  top 4px
+
+.mc--icon-position-right
+  .mc-icon-wrapper
+    margin-left 8px
+    margin-right 0
+    order 1
 </style>

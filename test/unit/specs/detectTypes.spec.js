@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import detectType from 'src/lib/project-list/utils/detectType';
 
 describe('Type detector', () => {
@@ -17,7 +18,7 @@ describe('Type detector', () => {
 
     expectations.forEach(testCase => {
       const result = detectType(testCase.input);
-      expect(result).to.equal(testCase.output, `Test case ${testCase.input}`);
+      expect(result).toBe(testCase.output);
     });
   });
 });

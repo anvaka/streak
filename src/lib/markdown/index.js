@@ -1,7 +1,8 @@
 /**
  * Renders a markdown string as html.
  */
-import Remarkable from 'remarkable';
+import { Remarkable } from 'remarkable';
+import { linkify } from 'remarkable/linkify';
 
 const md = constructRemarkableRenderer();
 
@@ -10,10 +11,9 @@ export default function renderMarkdown(string) {
 }
 
 function constructRemarkableRenderer() {
-  const md = new Remarkable({
-    linkify: true
-  });
+  const md = new Remarkable();
 
+  md.use(linkify);
   md.use(inlineYoutubeVideos);
 
   return md;

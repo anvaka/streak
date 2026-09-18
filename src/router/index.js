@@ -1,8 +1,7 @@
 /**
  * This file contains all routes inside streak application.
  */
-import Vue from 'vue';
-import Router from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import UserPage from '../components/UserPage.vue';
 import AddRecordContainer from '../components/AddRecordContainer.vue';
 import NewProject from '../components/NewProject.vue';
@@ -15,9 +14,8 @@ import ProjectDiscussions from '../components/comments/ProjectDiscussions.vue';
 import StartDiscussion from '../components/comments/StartDiscussion.vue';
 import CommentDetails from '../components/comments/CommentDetails.vue';
 
-Vue.use(Router);
-
-export default new Router({
+export default createRouter({
+  history: createWebHashHistory(),
   routes: [{
     // By default I want people to go to the user page. This might be changed
     // in future

@@ -17,19 +17,16 @@
       </div>
     </div>
     <div class='actions' v-if='showActions'>
-      <ui-button type='secondary' class='cancel-btn'  buttonType='button' @click.prevent='cancel'>
+      <button type='button' class='btn cancel-btn' @click.prevent='cancel'>
         Cancel
-      </ui-button>
-      <ui-button type='secondary' class='commit-btn' color='primary'  buttonType='submit'>
+      </button>
+      <button type='submit' class='btn btn--primary commit-btn'>
         Save record
-      </ui-button>
+      </button>
     </div>
   </form>
 </template>
 <script>
-import UiTextbox from 'keen-ui/src/UiTextbox';
-import UiButton from 'keen-ui/src/UiButton';
-import UiIconButton from 'keen-ui/src/UiIconButton';
 import Date from './inputs/Date';
 import MultiLineText from './inputs/MultiLineText';
 import Number from './inputs/Number';
@@ -39,9 +36,6 @@ import isTextField from '../lib/isTextField.js';
 export default {
   props: ['fields', 'showActions', 'row'],
   components: {
-    UiTextbox,
-    UiButton,
-    UiIconButton,
     Date,
     MultiLineText,
     Number,
@@ -52,8 +46,6 @@ export default {
   },
   methods: {
     isTextField(cell) {
-      // note: we are not using this.isTextField() - that would be a recursion
-      // This method comes from the lib folder. See imports above.
       return isTextField(cell);
     },
     commitChanges() {

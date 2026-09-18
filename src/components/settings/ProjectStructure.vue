@@ -12,11 +12,11 @@
 
     <slot :hasError='hasError'>
       <div>
-        <ui-button type='secondary' color='primary' buttonType='submit' :disabled='hasError' v-if='!loading'>
+        <button type='submit' class='btn btn--primary' :disabled='hasError' v-if='!loading'>
           {{formName}}
-        </ui-button>
-        <div v-if='loading'>
-          <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button> Updating...
+        </button>
+        <div v-if='loading' class='loading-spinner'>
+          <span class='spinner'></span> Updating...
         </div>
       </div>
     </slot>
@@ -27,14 +27,9 @@
 </template>
 
 <script>
-import UiButton from 'keen-ui/src/UiButton';
-import UiIconButton from 'keen-ui/src/UiIconButton';
-
 import FieldPair from './FieldPair.vue';
 import { TEXT, DATE, getFieldByType } from '../../types/FieldTypes.js';
 
-// We limit it to 26 because sheetOpartions.js assumes range names can anly be
-// within engilsih alphabet. This is soft limit and can be easily changed.
 const MAX_COLUMNS = 26;
 
 export default {
@@ -52,8 +47,6 @@ export default {
   },
   components: {
     FieldPair,
-    UiButton,
-    UiIconButton
   },
   watch: {
     fields(newFields) {
@@ -62,7 +55,6 @@ export default {
   },
   data() {
     return {
-      // should be props
       formName: 'Update project structure',
       currentFields: cloneFields(this.fields),
       focusedField: null
@@ -146,15 +138,10 @@ function cloneFields(fields) {
   if (!fields) return [];
 
   return fields.map((f, idx) => ({
-    // UI is bound to this title and can modify it
     title: f.title,
-    // To update modified fields, we preserve the original title here:
     originalTitle: f.title,
-    // If this field has error, we set this to true.
     error: false,
-    // Finally, this is a value for the drop down.
     type: getFieldByType(f.valueType),
-
     columnIndex: idx
   }));
 }

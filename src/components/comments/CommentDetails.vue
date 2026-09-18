@@ -34,17 +34,18 @@
         <div class='my-comment' >
           <img :src='profile.image' class='avatar'>
           <div class='my-comment-input'>
-            <ui-textbox
-                placeholder='Add a comment'
-                required
-                :rows='2'
-                :multi-line='true'
-                v-model='myReply'></ui-textbox>
+            <div class='form-field'>
+              <textarea
+                  placeholder='Add a comment'
+                  required
+                  rows='2'
+                  v-model='myReply'></textarea>
+            </div>
             <div class='actions' v-if='showActions'>
               <router-link type='secondary' class='cancel-btn small secondary'  buttonType='button' :to='{name: "project-discussion"}'>
                 Cancel
               </router-link>
-              <ui-button type='secondary' class='commit-btn' color='primary'  buttonType='submit'>Post</ui-button>
+              <button type='submit' class='btn btn--primary commit-btn'>Post</button>
             </div>
           </div>
         </div>
@@ -54,9 +55,6 @@
 </template>
 
 <script>
-import UiTextbox from 'keen-ui/src/UiTextbox';
-import UiButton from 'keen-ui/src/UiButton';
-
 import Loading from '../Loading.vue';
 import auth from '../../lib/auth';
 import { getComment, reply } from '../../lib/streak-api/comments.js';
@@ -81,7 +79,6 @@ export default {
   methods: {
     addComment() {
       if (!this.comment) {
-        // TODO: Validation
         return;
       }
 
@@ -108,9 +105,7 @@ export default {
     }
   },
   components: {
-    UiTextbox,
     Loading,
-    UiButton
   }
 };
 </script>
@@ -185,7 +180,7 @@ export default {
   margin-left: 14px;
   display: flex;
   flex-direction: column;
-  .ui-textbox {
+  .form-field {
     margin-bottom: 0;
   }
 }

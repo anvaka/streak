@@ -1,37 +1,45 @@
 <template>
   <form @submit.prevent='updateProjectClick' class='settings-group'>
     <h3>{{formTitle}}</h3>
-    <ui-textbox label="Project name" v-model="projectName" required :autofocus='focus'></ui-textbox>
-    <ui-textbox label="Project description (Optional)" v-model="projectDescription"></ui-textbox>
+    <div class='form-field'>
+      <label>Project name</label>
+      <input type='text' v-model='projectName' required :autofocus='focus'>
+    </div>
+    <div class='form-field'>
+      <label>Project description (Optional)</label>
+      <input type='text' v-model='projectDescription'>
+    </div>
     <div class='visibility-settings-container'>
       <div class='secondary'>Project visibility</div>
       <div class='visibility-settings-content'>
-        <ui-radio v-model='projectVisibility' true-value='public' class='visibility-radio'>
+        <label class='radio-label visibility-radio'>
+          <input type='radio' v-model='projectVisibility' value='public'>
           <div>
             <div class='visibility-header'>Public</div>
             <div class='visibility-help'>
               Public projects are visible to everyone.
             </div>
           </div>
-        </ui-radio>
-        <ui-radio v-model='projectVisibility' true-value='private' class='visibility-radio'>
+        </label>
+        <label class='radio-label visibility-radio'>
+          <input type='radio' v-model='projectVisibility' value='private'>
           <div>
             <div class='visibility-header'>Private</div>
             <div class='visibility-help'>Only you can see this project.</div>
           </div>
-        </ui-radio>
+        </label>
       </div>
     </div>
     <div>
       <slot>
         <div>
-          <ui-button type='secondary' color='primary'
-                    v-if='!loading'
-                    buttonType='submit' class='update-project-name submit-button' :class='{"invalid-project": isProjectNameInvalid()}'>
+          <button type='submit' class='btn btn--primary update-project-name submit-button'
+                  v-if='!loading'
+                  :class='{"invalid-project": isProjectNameInvalid()}'>
             {{formAction}}
-          </ui-button>
-          <div v-if='loading'>
-            <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button> Updating...
+          </button>
+          <div v-if='loading' class='loading-spinner'>
+            <span class='spinner'></span> Updating...
           </div>
         </div>
       </slot>
@@ -39,11 +47,6 @@
   </form>
 </template>
 <script>
-import UiTextbox from 'keen-ui/src/UiTextbox';
-import UiButton from 'keen-ui/src/UiButton';
-import UiRadio from 'keen-ui/src/UiRadio';
-import UiIconButton from 'keen-ui/src/UiIconButton';
-
 export default {
   name: 'NameAndDescription',
   props: {
@@ -66,12 +69,6 @@ export default {
       type: String,
       default: 'Save'
     }
-  },
-  components: {
-    UiButton,
-    UiTextbox,
-    UiRadio,
-    UiIconButton
   },
   data() {
     return {

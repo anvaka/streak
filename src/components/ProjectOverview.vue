@@ -27,32 +27,33 @@
     <router-link class='add-record-link action vertical-padding' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}' v-if='hasSomethingOnTheWall && project.canEdit'>Add record</router-link>
 
     <div v-if='project && project.projectHistory' class='project-details list'>
-      <div v-for='groupRecord in project.projectHistory.groups' class='group-record'>
+      <div v-for='(groupRecord, groupIndex) in project.projectHistory.groups' :key='groupIndex' class='group-record'>
         <h4>{{getUICellValue(groupRecord.group, /* isHeader =*/ true)}}</h4>
-        <div v-for='row in groupRecord.items' class='subgroup'>
-          <div v-for='column in row' v-if='column.value'  class='cell-record'>
-            <div class='secondary column-title'>{{column.title}}</div>
-            <div class='column-value cell-container' v-html='getUICellValue(column)'></div>
-          </div>
+        <div v-for='(row, rowIndex) in groupRecord.items' :key='rowIndex' class='subgroup'>
+          <!-- v-if has to sit on an inner element, not alongside v-for: in Vue 3
+               v-if is evaluated first and cannot see the v-for scope, so
+               `v-for='column in row' v-if='column.value'` throws on `column`. -->
+          <template v-for='(column, columnIndex) in row' :key='columnIndex'>
+            <div v-if='column.value' class='cell-record'>
+              <div class='secondary column-title'>{{column.title}}</div>
+              <div class='column-value cell-container' v-html='getUICellValue(column)'></div>
+            </div>
+          </template>
           <action-row :row='row' :project='project' v-if='project.canEdit'></action-row>
         </div>
       </div>
     </div>
-    <ui-fab
+    <button
         v-if='project && project.canEdit && !error'
-        class='fab-add'
-        color='primary'
-        icon='add'
-        size='normal'
+        class='fab fab-add'
         @click='addRecordClick'
-    ></ui-fab>
+    ><i class='material-icons'>add</i></button>
   </div>
 </template>
 
 <script>
 import escape from 'lodash.escape';
 import InputTypes from 'src/types/InputTypes';
-import UiFab from 'keen-ui/src/UiFab';
 import { formatDateOnly, formatHoursOnly } from '../lib/dateUtils.js';
 import isTextField from '../lib/isTextField.js';
 
@@ -105,7 +106,6 @@ export default {
     ActionRow,
     ContributionsWallContainer,
     SelectedFilters,
-    UiFab
   },
 
   methods: {
@@ -148,8 +148,6 @@ export default {
     getUICellValue(cell, isHeader) {
       const { value } = cell;
 
-      // TODO: This should be more extensible. The `inputs` should
-      // be related to the rendrers here.
       if (value instanceof Date) {
         return isHeader ? formatDateOnly(value) : formatHoursOnly(value);
       }

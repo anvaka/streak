@@ -26,9 +26,6 @@
   </div>
 </template>
 <script>
-import UiButton from 'keen-ui/src/UiButton';
-import UiIconButton from 'keen-ui/src/UiIconButton';
-
 import ProjectList from './ProjectList.vue';
 import Loading from './Loading.vue';
 
@@ -40,8 +37,6 @@ export default {
   props: ['projectId', 'userId'],
   components: {
     ProjectList,
-    UiButton,
-    UiIconButton,
     Loading,
   },
   data() {

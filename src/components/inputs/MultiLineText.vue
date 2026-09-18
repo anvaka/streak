@@ -26,7 +26,7 @@ export default {
 };
 </script>
 <style>
-.multi-line-goal.ui-textbox.has-floating-label .ui-textbox__label-text.is-inline {
+.multi-line-goal.has-floating-label .mc-label-text.is-inline {
   transform: translateY(1.3rem) scale(1.1);
 }
 </style>

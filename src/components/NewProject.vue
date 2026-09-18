@@ -9,45 +9,42 @@
         :isPublic='isPublic'
         :focus='true' @updated='saveNameAndDescription'>
         <div class='step-actions'>
-          <ui-button type='secondary' color='primary' @click.prevent='goBack' buttonType='button'>
+          <button type='button' class='btn btn--primary' @click.prevent='goBack'>
             Go Back
-          </ui-button>
-          <ui-button type='secondary' color='primary' buttonType='submit'>
+          </button>
+          <button type='submit' class='btn btn--primary'>
             Next
-          </ui-button>
+          </button>
         </div>
       </name-and-description>
     </div>
     <div v-if='step === 2'>
       <project-structure form-title='Step 2: Project structure' @updated='saveFields' :fields='fields'>
-        <template scope='props'>
+        <template v-slot='props'>
         <div class='step-actions'>
-          <ui-button type='secondary' color='primary' @click.prevent='step = 1' buttonType='button'>
+          <button type='button' class='btn btn--primary' @click.prevent='step = 1'>
             Go Back
-          </ui-button>
-          <ui-button type='secondary' color='primary' buttonType='submit' :disabled='props.hasError'>
+          </button>
+          <button type='submit' class='btn btn--primary' :disabled='props.hasError'>
             Create Project
-          </ui-button>
+          </button>
         </div>
         </template>
       </project-structure>
     </div>
-    <div v-if='step === 3'>
-        <ui-icon-button icon='refresh' :loading='true' type='secondary'></ui-icon-button>
+    <div v-if='step === 3' class='loading-spinner'>
+        <span class='spinner'></span>
           Creating new project...
     </div>
     <div v-if='error' class='error'>
         <h3>Something is wrong...</h3>
-          I couldn't create a new project. Please try again. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
+          <p>I couldn't create a new project. Please try again. If error persists, please reach out to me at <a href='mailto:anvaka@gmail.com'>anvaka@gmail.com</a>.</p>
           <h4>Technical details</h4>
           <pre>{{error}}</pre>
       </div>
   </div>
 </template>
 <script>
-import UiIconButton from 'keen-ui/src/UiIconButton';
-import UiButton from 'keen-ui/src/UiButton';
-
 import { getCurrentUserId } from '../lib/auth.js';
 import getProjectList from '../lib/getProjectList.js';
 import setPageTitle from '../lib/setPageTitle.js';
@@ -126,7 +123,6 @@ export default {
           params: { projectId, userId }
         });
       }, err => {
-        // Go to previous wizard page
         this.step = 2;
         this.error = err;
       });
@@ -135,8 +131,6 @@ export default {
   components: {
     NameAndDescription,
     ProjectStructure,
-    UiButton,
-    UiIconButton,
   }
 };
 </script>

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import makeRowsModel from 'src/lib/sheetViewModel';
 
 describe('Sheet view model', () => {
@@ -9,8 +10,8 @@ describe('Sheet view model', () => {
       ['2017-01-04', 4],
     ]);
     const dateGroups = data.groupBy(x => x[0]);
-    expect(dateGroups.size).to.equal(3);
+    expect(dateGroups.size).toBe(3);
     const records = dateGroups.get('2017-01-02');
-    expect(records.length).to.equal(2);
+    expect(records.length).toBe(2);
   });
 });
