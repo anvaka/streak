@@ -16,8 +16,6 @@ export default function extractHeaderTypesFromData(sheetData, settings) {
 
   // iterate over each row, and remember values.
   // TODO: Should I limit this to top N rows?
-  // TODO: If I iterate from the back, I'd get LRU items, which might be better
-  // for autocompletion
   values.forEach(row => {
     row.forEach((cell, headerNumber) => {
       if (headerNumber < headerCounters.length) {
@@ -46,8 +44,11 @@ class HeaderCounter {
   constructor(name) {
     this.name = name;
     this.countsByType = new Map();
-    // TODO: this should be sorted set. Use LRU item to be on top of completion
-    this.seenValues = new Set();
+    // How often each value was seen, and how recently, so that autocomplete can
+    // offer the values this column actually repeats before the one-offs.
+    this.countsByValue = new Map();
+    this.lastSeenAt = new Map();
+    this.cellsSeen = 0;
   }
 
   count(cellValue) {
@@ -63,11 +64,27 @@ class HeaderCounter {
         this.hasMultiline = trimmedValue.indexOf('\n') > -1;
       }
     }
-    this.seenValues.add(trimmedValue);
+    this.cellsSeen += 1;
+    this.countsByValue.set(trimmedValue, (this.countsByValue.get(trimmedValue) || 0) + 1);
+    this.lastSeenAt.set(trimmedValue, this.cellsSeen);
   }
 
   setType(newType) {
     this.valueType = newType;
+  }
+
+  /**
+   * Most used value first. Ties are broken by whichever was used most recently
+   * - rows are read oldest to newest, so a larger `lastSeenAt` means later in
+   * the sheet. Between two values used the same number of times, the one you
+   * came back to more recently is the better guess.
+   */
+  sortedValues() {
+    return Array.from(this.countsByValue.keys()).sort((a, b) => {
+      const byCount = this.countsByValue.get(b) - this.countsByValue.get(a);
+      if (byCount !== 0) return byCount;
+      return this.lastSeenAt.get(b) - this.lastSeenAt.get(a);
+    });
   }
 
   toHeaderDef() {
@@ -84,7 +101,7 @@ class HeaderCounter {
     return {
       title,
       valueType,
-      autocomplete: Array.from(this.seenValues),
+      autocomplete: this.sortedValues(),
       hasMultiline: this.hasMultiline
     };
   }

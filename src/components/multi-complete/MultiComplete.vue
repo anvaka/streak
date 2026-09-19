@@ -152,6 +152,16 @@ export default {
       type: Number,
       default: 8
     },
+    // A column that only ever holds a handful of values - mood, workout type,
+    // which gym - is faster to pick from than to type, so focusing the field
+    // shows the whole list and the entry costs two taps. Columns with more
+    // distinct values than this keep the type-to-filter behaviour, since a long
+    // list thrown up on focus is just noise. Matches `limit`, so whatever opens
+    // on focus is also fully visible rather than silently truncated.
+    openOnFocusMaxSuggestions: {
+      type: Number,
+      default: 8
+    },
     minChars: {
       type: Number,
       default: 1
@@ -216,6 +226,16 @@ export default {
       return this.suggestions && this.suggestions.length > 0;
     },
 
+    shouldOpenOnFocus() {
+      // Only while the field is still empty. Focusing a field that already has
+      // a value means the user wants to change it, and the prefix filter would
+      // match that value and little else - a one item dropdown over the
+      // keyboard helps nobody.
+      return !this.modelValue &&
+        this.hasSuggestions &&
+        this.suggestions.length <= this.openOnFocusMaxSuggestions;
+    },
+
     labelClasses() {
       return {
         'is-inline': this.hasFloatingLabel && this.isLabelInline,
@@ -271,6 +291,10 @@ export default {
       this.autosizeInitialized = true;
     }
     document.addEventListener('click', this.onExternalClick);
+    // Capture phase, because the record form scrolls in its own container
+    // (.input-fields) rather than on window.
+    document.addEventListener('scroll', this.onViewportChange, true);
+    window.addEventListener('resize', this.onViewportChange);
   },
 
   beforeUnmount() {
@@ -278,6 +302,8 @@ export default {
       autosize.destroy(this.$refs.textarea);
     }
     document.removeEventListener('click', this.onExternalClick);
+    document.removeEventListener('scroll', this.onViewportChange, true);
+    window.removeEventListener('resize', this.onViewportChange);
   },
 
   methods: {
@@ -338,9 +364,18 @@ export default {
       }
 
       if (!this.showDropdown) {
+        // The list is position:fixed against the textbox's viewport rect, so it
+        // has to be measured every time it is shown, not just on focus. On a
+        // phone the software keyboard resizes the viewport right after focus,
+        // which would otherwise leave the list pinned where the field used to be.
+        this.updateSuggestionsPosition();
         this.showDropdown = true;
         this.$emit('dropdown-open');
       }
+    },
+
+    onViewportChange() {
+      if (this.showDropdown) this.updateSuggestionsPosition();
     },
 
     closeDropdown() {
@@ -364,6 +399,7 @@ export default {
     onFocus(e) {
       this.isActive = true;
       this.updateSuggestionsPosition();
+      if (this.shouldOpenOnFocus) this.openDropdown();
       this.$emit('focus', e);
     },
 
