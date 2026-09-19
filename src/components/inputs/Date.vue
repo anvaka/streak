@@ -1,6 +1,17 @@
 <template>
   <div class='date-container'>
-    <input ref='date' type='datetime-local' v-model='vm.value' data-input>
+    <!-- step='any' is load-bearing on mobile. flatpickr hides this input there
+         and builds its own native <input type='datetime-local'>, whose value it
+         formats as Y-m-dTH:i:S - with seconds, because enableSeconds is on. A
+         datetime-local input defaults to step=60, so any non-zero seconds are a
+         stepMismatch. AddRecord.vue wraps these in a <form> with a submit button
+         and native validation runs BEFORE the submit event, so an invalid field
+         means 'Save record' silently does nothing. flatpickr 2 set step="any" on
+         that mobile input unconditionally; flatpickr 4 only copies it from here
+         (see setupMobile: `if (self.input.getAttribute("step"))`), so the v2->v4
+         bump in the Vite migration dropped it. Desktop ignores this - flatpickr
+         retypes this input to text. -->
+    <input ref='date' type='datetime-local' step='any' v-model='vm.value' data-input>
     <label class='secondary'>{{vm.title}} <a href='#' @click.prevent='setNow()'>set to now</a></label>
   </div>
 </template>

@@ -56,4 +56,43 @@ describe('record input components write back through the vm prop', () => {
     // toDateInputStr's US format, matching flatpickr's dateFormat 'm/d/Y H:i:S'.
     expect(vm.value).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}$/);
   });
+
+  it('Date: carries step="any" for flatpickr to copy onto its mobile input', () => {
+    const vm = { title: 'When', value: '' };
+    const w = mount(DateInput, { props: { vm } });
+
+    expect(w.find('input').attributes('step')).toBe('any');
+  });
+
+  it('Date: flatpickr\'s mobile input accepts times with seconds', async () => {
+    // On a mobile UA flatpickr hides our input and inserts its own native
+    // <input type="datetime-local">, filling it from the Y-m-d\TH:i:S format -
+    // with seconds, since enableSeconds is on. A datetime-local input defaults
+    // to step=60, so those seconds are a stepMismatch and AddRecord.vue's form
+    // refuses to submit. flatpickr 2 hardcoded step="any" on that input;
+    // flatpickr 4 only copies it from ours, so the v2->v4 bump silently dropped
+    // it. Drive the real mobile code path rather than trusting the attribute.
+    const realUa = Object.getOwnPropertyDescriptor(Navigator.prototype, 'userAgent');
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1',
+      configurable: true,
+    });
+
+    try {
+      const vm = { title: 'When', value: '03/15/2026 09:45:07' };
+      const w = mount(DateInput, { props: { vm }, attachTo: document.body });
+
+      const mobile = w.element.querySelector('input.flatpickr-mobile');
+      expect(mobile, 'flatpickr did not take its mobile path').not.toBeNull();
+      expect(mobile.type).toBe('datetime-local');
+      // The seconds are what step=60 would reject. Matched loosely because
+      // jsdom leaves the milliseconds on that a real browser sanitizes away.
+      expect(mobile.value).toMatch(/^2026-03-15T09:45:07/);
+      expect(mobile.getAttribute('step')).toBe('any');
+
+      w.unmount();
+    } finally {
+      Object.defineProperty(navigator, 'userAgent', realUa);
+    }
+  });
 });
