@@ -9,6 +9,12 @@ const RANGE_NAMES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 export function updateRow(projectId, spreadsheetId, record, row) {
   if (record.length >= RANGE_NAMES.length) throw new Error('Too many columns');
+  // `row` is used in arithmetic below, so a string would concatenate instead of
+  // add ('A' + ('3' + 2) === 'A32') and quietly overwrite an unrelated row.
+  // Fail loudly rather than write to a guessed range.
+  if (row !== undefined && !Number.isInteger(row)) {
+    throw new Error('Row index must be an integer, got ' + typeof row + ' ' + JSON.stringify(row));
+  }
 
   const prefix = row !== undefined ? 'A' + (row + 2) : 'A2'; // +2 because we are zero based, and skip headers
   const range = `${prefix}:${RANGE_NAMES[record.length]}`;
@@ -29,6 +35,12 @@ export function updateRow(projectId, spreadsheetId, record, row) {
 }
 
 export function deleteRow(projectId, spreadsheetId, rowIndex) {
+  // Same arithmetic hazard as updateRow: a string index would build a nonsense
+  // range and delete the wrong rows.
+  if (!Number.isInteger(rowIndex)) {
+    throw new Error('Row index must be an integer, got ' + typeof rowIndex + ' ' + JSON.stringify(rowIndex));
+  }
+
   resetSheetDataCache(spreadsheetId);
 
   return gapiSheets('batchUpdate', {

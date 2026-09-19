@@ -80,8 +80,25 @@ export default createRouter({
         path: 'edit-record/:row',
         name: 'edit-record',
         component: AddRecordContainer,
-        props: true
+        // Not `props: true`. Route params are always strings in vue-router 4,
+        // and `row` is used as a number: sheetOperations.updateRow() builds the
+        // write range as 'A' + (row + 2), so a string row 3 concatenates into
+        // 'A32' and the edit lands 29 rows below the record being edited.
+        // vue-router 3 handed a pushed number straight through, which is why
+        // this only broke when the app moved to vue-router 4.
+        props: route => ({ row: toRowIndex(route.params.row) })
       }]
     }]
   }],
 });
+
+/**
+ * Route params arrive as strings. Editing record `row` needs a number; anything
+ * that isn't a non-negative integer means a hand-edited URL, and is treated as
+ * "no row" (i.e. append a new record) rather than writing to a guessed row.
+ */
+function toRowIndex(value) {
+  const row = Number(value);
+  if (!Number.isInteger(row) || row < 0) return undefined;
+  return row;
+}
