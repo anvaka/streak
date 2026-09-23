@@ -1,15 +1,21 @@
 <template>
 <div>
   <div class='contributions-wall'>
-    <div class='dow-container'>
-      <div v-for='dow in daysOfTheWeek' :style='{"top": dow.y + "px"}' class='dow'>{{dow.name}}</div>
+    <div class='dow-container' :style='{"width": layout.dowWidth + "px"}'>
+      <div v-for='dow in daysOfTheWeek' :key='dow.name' :style='{"top": dow.y + "px", "line-height": layout.cell + "px", "font-size": layout.fontSize + "px"}' class='dow'>{{dow.name}}</div>
     </div>
     <div class='days-container'>
-      <svg width='676' height='104' ref='contributions' :class='{"has-range-filter": hasRangeFilter}'>
-        <g v-for='week in wall.weeks' :transform='getWeekTransform(week)'>
-          <rect v-for='day in week.days' :fill='day.fill' width='10' height='10' x='0' :y='getDayYPosition(day)' :title='day.day' class='contribution-day' :data-day='day.tooltip' @click='onDayClick($event, day)'></rect>
+      <!-- Taps are resolved from coordinates on the whole svg (see dayAt) rather
+           than per-rect listeners, so the gaps between squares count too and a
+           slightly-off finger still lands on the nearest day. -->
+      <svg :width='layout.width' :height='layout.height' ref='contributions'
+           :class='{"has-range-filter": hasRangeFilter}'
+           @click='onClick' @pointermove='onPointerMove' @pointerleave='hideTooltip'>
+        <g v-for='week in wall.weeks' :key='week.index' :transform='getWeekTransform(week)'>
+          <rect v-for='day in week.days' :key='day.dayNumber' :fill='day.fill' :width='layout.cell' :height='layout.cell' x='0' :y='day.dayNumber * layout.pitch'
+            class='contribution-day' :class='{"is-selected": isSelected(day)}'></rect>
         </g>
-        <text v-for='month in wall.months' :x='month.x' font-size='9' y='12'>{{month.name}}</text>
+        <text v-for='month in wall.months' :key='month.x' :x='month.x' :font-size='layout.fontSize' :y='layout.monthHeight - 6'>{{month.name}}</text>
       </svg>
     </div>
   </div>
@@ -18,17 +24,23 @@
 </template>
 
 <script>
-import { getDateString, formatDowDate } from 'src/lib/dateUtils.js';
+import { getDateString, formatDowDate, getDateFromFilterString } from 'src/lib/dateUtils.js';
 
 import { makeColorBag } from 'src/lib/color';
 
-const DAY_HEIGHT = 12;
-const DAY_WIDTH = 12;
-const DAY_OF_THE_WEEK_LENGTH = 0;
-const MONTH_NAMES_HEIGHT = 18;
 const MAX_WEEKS_TO_SHOW = 52;
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Month labels closer together than this would overlap, so the earlier one is dropped.
+const MIN_MONTH_LABEL_SPACING = 30;
 const colorBag = makeColorBag();
+
+// `cell` is the drawn square, `pitch` the distance between neighbouring squares.
+// A 10px square is fine under a mouse but far below a fingertip, so touch
+// screens get squares big enough to aim at. The wall is wider than a phone
+// either way; it scrolls sideways and starts at the most recent week.
+const MOUSE_LAYOUT = { cell: 10, pitch: 12, monthHeight: 18, fontSize: 9, dowWidth: 25 };
+const TOUCH_LAYOUT = { cell: 18, pitch: 21, monthHeight: 22, fontSize: 11, dowWidth: 30 };
+const COARSE_POINTER = '(pointer: coarse)';
 
 export default {
   name: 'ContributionsWall',
@@ -37,45 +49,62 @@ export default {
     return {
       tooltipText: '',
       tooltipStyle: {},
-      daysOfTheWeek: [{
-        name: 'Mon',
-        y: getDayOfTheYOffset(1)
-      }, {
-        name: 'Wed',
-        y: getDayOfTheYOffset(3)
-      }, {
-        name: 'Fri',
-        y: getDayOfTheYOffset(5)
-      }]
+      isTouch: matchesMedia(COARSE_POINTER),
     };
   },
   computed: {
+    layout() {
+      const base = this.isTouch ? TOUCH_LAYOUT : MOUSE_LAYOUT;
+      return {
+        ...base,
+        // One column per week plus the current one, and room on the right so
+        // the last month label is not clipped.
+        width: (MAX_WEEKS_TO_SHOW + 1) * base.pitch + 40,
+        height: base.monthHeight + 7 * base.pitch + 2,
+      };
+    },
+    daysOfTheWeek() {
+      const { monthHeight, pitch } = this.layout;
+      return [1, 3, 5].map(dayIndex => ({
+        name: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayIndex],
+        y: dayIndex * pitch + monthHeight
+      }));
+    },
     wall() {
-      return buildWall(this.dates);
+      return buildWall(this.dates, this.layout.pitch);
     },
     hasRangeFilter() {
       return this.$route.query.from;
+    },
+    selection() {
+      const { from, to } = this.$route.query;
+      if (!from) return null;
+      const start = getDateFromFilterString(from).getTime();
+      const end = to ? getDateFromFilterString(to).getTime() : start;
+      return { min: Math.min(start, end), max: Math.max(start, end) };
     },
     showStreakStats() {
       return this.settings && this.settings.showStreakStats;
     }
   },
   mounted() {
-    const svg = this.$refs.contributions;
-    this.mouseEnterHandler = this.mouseEnter.bind(this);
-    this.mouseLeaveHandler = this.mouseLeave.bind(this);
-    svg.addEventListener('mouseenter', this.mouseEnterHandler, true);
-    svg.addEventListener('mouseleave', this.mouseLeaveHandler, true);
-    scrollToTheEnd(svg);
+    if (typeof window.matchMedia === 'function') {
+      this.pointerQuery = window.matchMedia(COARSE_POINTER);
+      this.onPointerQueryChange = e => { this.isTouch = e.matches; };
+      this.pointerQuery.addEventListener('change', this.onPointerQueryChange);
+    }
+    scrollToTheEnd(this.$refs.contributions);
   },
 
   beforeUnmount() {
-    const svg = this.$refs.contributions;
-    svg.removeEventListener('mouseenter', this.mouseEnterHandler, true);
-    svg.removeEventListener('mouseleave', this.mouseLeaveHandler, true);
+    if (this.pointerQuery) {
+      this.pointerQuery.removeEventListener('change', this.onPointerQueryChange);
+    }
   },
   methods: {
-    onDayClick(e, day) {
+    onClick(e) {
+      const day = this.dayAt(e);
+      if (!day) return;
       let from = day.dayKey;
       let to = from;
       if (e.shiftKey) {
@@ -83,46 +112,77 @@ export default {
         from = this.$route.query.from || from;
         e.preventDefault();
       }
+      this.hideTooltip();
       this.$emit('filter', from, to);
     },
-    getWeekTransform(week) {
-      const xOffset = week.index * DAY_WIDTH + DAY_OF_THE_WEEK_LENGTH;
-      return `translate(${xOffset}, ${MONTH_NAMES_HEIGHT})`;
-    },
-    getDayYPosition(day) {
-      const y = day.dayNumber * DAY_HEIGHT;
-      return y;
-    },
-    mouseEnter(e) {
-      const dayDom = e.target;
-      if (!dayDom.classList.contains('contribution-day')) {
+    onPointerMove(e) {
+      // A tap also produces pointer events, and a tooltip opened by one would
+      // have no pointerleave to close it. On touch the selection outline and
+      // the date under the chart say which day was picked instead.
+      if (e.pointerType !== 'mouse') return;
+      const day = this.dayAt(e);
+      if (!day) {
+        this.hideTooltip();
         return;
       }
-      const content = dayDom.getAttribute('data-day');
-      if (!content) return;
-      const rect = dayDom.getBoundingClientRect();
-      this.tooltipText = content;
+      const svgRect = this.$refs.contributions.getBoundingClientRect();
+      const { cell, pitch, monthHeight } = this.layout;
+      this.tooltipText = day.tooltip;
       this.tooltipStyle = {
-        left: rect.left + rect.width / 2 + 'px',
-        top: rect.top - 4 + 'px',
+        left: svgRect.left + day.weekIndex * pitch + cell / 2 + 'px',
+        top: svgRect.top + monthHeight + day.dayNumber * pitch - 4 + 'px',
       };
     },
-    mouseLeave() {
+    hideTooltip() {
       this.tooltipText = '';
-    }
+    },
+    /**
+     * The day closest to the pointer, or undefined when the pointer is clearly
+     * off the grid (in the month labels, past the current week, or on a day
+     * that has not happened yet). Snapping to the nearest square centre means
+     * the gaps between squares belong to a day instead of swallowing the tap.
+     */
+    dayAt(e) {
+      const svgRect = this.$refs.contributions.getBoundingClientRect();
+      const { cell, pitch, monthHeight } = this.layout;
+      const x = e.clientX - svgRect.left;
+      const y = e.clientY - svgRect.top - monthHeight;
+      const weekIndex = Math.round((x - cell / 2) / pitch);
+      const dayNumber = Math.round((y - cell / 2) / pitch);
+      if (weekIndex < 0 || weekIndex > MAX_WEEKS_TO_SHOW) return;
+      if (dayNumber < 0 || dayNumber > 6) return;
+
+      const week = this.wall.weeks.find(w => w.index === weekIndex);
+      return week && week.days.find(d => d.dayNumber === dayNumber);
+    },
+    isSelected(day) {
+      const s = this.selection;
+      return !!s && day.time >= s.min && day.time <= s.max;
+    },
+    getWeekTransform(week) {
+      const xOffset = week.index * this.layout.pitch;
+      return `translate(${xOffset}, ${this.layout.monthHeight})`;
+    },
   }
 };
 
-function scrollToTheEnd(svg) {
-  svg.parentElement.scrollLeft = 600;
+function matchesMedia(query) {
+  return typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia(query).matches;
 }
 
-function buildWall(dates) {
+function scrollToTheEnd(svg) {
+  // The most recent weeks are on the right, and they are the ones people tap.
+  svg.parentElement.scrollLeft = svg.parentElement.scrollWidth;
+}
+
+function buildWall(dates, pitch) {
   const weeks = [];
   const today = new Date();
   const sunday = getSunday(today);
 
-  const thisWeek = buildWeekDays(sunday, dates).filter(removeFutureDays);
+  const thisWeek = buildWeekDays(sunday, dates, MAX_WEEKS_TO_SHOW).filter(removeFutureDays);
 
   weeks.push({
     index: MAX_WEEKS_TO_SHOW,
@@ -131,7 +191,7 @@ function buildWall(dates) {
 
   for (let i = MAX_WEEKS_TO_SHOW - 1; i > -1; --i) {
     sunday.setDate(sunday.getDate() - 7);
-    const days = buildWeekDays(sunday, dates);
+    const days = buildWeekDays(sunday, dates, i);
 
     weeks.push({
       index: i,
@@ -167,11 +227,11 @@ function buildWall(dates) {
 
     return months.map(month => ({
       name: month.name,
-      x: (month.weekIndex - 0.5) * DAY_WIDTH
+      x: (month.weekIndex - 0.5) * pitch
     })).filter((month, index, array) => {
-      if (month.x <= DAY_OF_THE_WEEK_LENGTH) return false;
+      if (month.x <= 0) return false;
       if (index < array.length - 1) {
-        return month.x - array[index + 1].x > 30;
+        return month.x - array[index + 1].x > MIN_MONTH_LABEL_SPACING;
       }
       return true;
     });
@@ -184,7 +244,7 @@ function getSunday(day) {
   return sunday;
 }
 
-function buildWeekDays(sunday, dates) {
+function buildWeekDays(sunday, dates, weekIndex) {
   const weekDays = [];
   for (let i = 0; i < 7; ++i) {
     const day = new Date(sunday);
@@ -194,6 +254,9 @@ function buildWeekDays(sunday, dates) {
     weekDays.push({
       day,
       dayKey,
+      // Midnight, so it compares cleanly against the filter's from/to dates.
+      time: new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime(),
+      weekIndex,
       tooltip: formatDowDate(day),
       dayNumber: i,
       fill: getFillForDate(dayKey, dates)
@@ -219,10 +282,6 @@ function getFillForDate(dayKey, contributionsByDay) {
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
-
-function getDayOfTheYOffset(dayIndex) {
-  return dayIndex * DAY_HEIGHT + MONTH_NAMES_HEIGHT;
-}
 </script>
 
 <style lang='stylus'>
@@ -241,6 +300,18 @@ function getDayOfTheYOffset(dayIndex) {
   .days-container {
     overflow-x: auto;
     flex: 1;
+  }
+  svg {
+    cursor: pointer;
+    // No 300ms double-tap-to-zoom wait before a tap registers.
+    touch-action: pan-x pan-y;
+  }
+  .has-range-filter .contribution-day:not(.is-selected) {
+    opacity: 0.35;
+  }
+  .contribution-day.is-selected {
+    stroke: rgba(0, 0, 0, 0.7);
+    stroke-width: 1.5;
   }
 }
 
