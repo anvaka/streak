@@ -1,6 +1,6 @@
 <template>
 <div>
-  <div class='contributions-wall'>
+  <div class='contributions-wall' ref='wall'>
     <div class='dow-container' :style='{"width": layout.dowWidth + "px"}'>
       <div v-for='dow in daysOfTheWeek' :key='dow.name' :style='{"top": dow.y + "px", "line-height": layout.cell + "px", "font-size": layout.fontSize + "px"}' class='dow'>{{dow.name}}</div>
     </div>
@@ -34,13 +34,20 @@ const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 const MIN_MONTH_LABEL_SPACING = 30;
 const colorBag = makeColorBag();
 
-// `cell` is the drawn square, `pitch` the distance between neighbouring squares.
-// A 10px square is fine under a mouse but far below a fingertip, so touch
-// screens get squares big enough to aim at. The wall is wider than a phone
-// either way; it scrolls sideways and starts at the most recent week.
-const MOUSE_LAYOUT = { cell: 10, pitch: 12, monthHeight: 18, fontSize: 9, dowWidth: 25 };
-const TOUCH_LAYOUT = { cell: 18, pitch: 21, monthHeight: 22, fontSize: 11, dowWidth: 30 };
-const COARSE_POINTER = '(pointer: coarse)';
+// Squares are sized so a year of weeks fills the available width. `pitch` is
+// the distance between neighbouring squares, of which GAP is empty space.
+// MIN_PITCH keeps a square big enough to hit with a finger: a phone cannot fit
+// a year at that size, so there the wall scrolls sideways, starting at the
+// most recent week. MAX_PITCH stops squares ballooning on a wide monitor.
+const GAP = 3;
+const MIN_PITCH = 21;
+const MAX_PITCH = 24;
+const WEEK_COLUMNS = MAX_WEEKS_TO_SHOW + 1; // a year back, plus the current week
+const MONTH_NAMES_HEIGHT = 22;
+const DAY_NAMES_WIDTH = 30;
+const FONT_SIZE = 11;
+// Room after the last column so its month label is not clipped.
+const TRAILING_SPACE = 10;
 
 export default {
   name: 'ContributionsWall',
@@ -49,18 +56,22 @@ export default {
     return {
       tooltipText: '',
       tooltipStyle: {},
-      isTouch: matchesMedia(COARSE_POINTER),
+      // Measured on mount and on every resize; until then assume a phone.
+      availableWidth: 0,
     };
   },
   computed: {
     layout() {
-      const base = this.isTouch ? TOUCH_LAYOUT : MOUSE_LAYOUT;
+      const fitted = Math.floor((this.availableWidth - DAY_NAMES_WIDTH - TRAILING_SPACE) / WEEK_COLUMNS);
+      const pitch = Math.min(MAX_PITCH, Math.max(MIN_PITCH, fitted));
       return {
-        ...base,
-        // One column per week plus the current one, and room on the right so
-        // the last month label is not clipped.
-        width: (MAX_WEEKS_TO_SHOW + 1) * base.pitch + 40,
-        height: base.monthHeight + 7 * base.pitch + 2,
+        pitch,
+        cell: pitch - GAP,
+        monthHeight: MONTH_NAMES_HEIGHT,
+        fontSize: FONT_SIZE,
+        dowWidth: DAY_NAMES_WIDTH,
+        width: WEEK_COLUMNS * pitch + TRAILING_SPACE,
+        height: MONTH_NAMES_HEIGHT + 7 * pitch,
       };
     },
     daysOfTheWeek() {
@@ -88,20 +99,24 @@ export default {
     }
   },
   mounted() {
-    if (typeof window.matchMedia === 'function') {
-      this.pointerQuery = window.matchMedia(COARSE_POINTER);
-      this.onPointerQueryChange = e => { this.isTouch = e.matches; };
-      this.pointerQuery.addEventListener('change', this.onPointerQueryChange);
+    this.measure();
+    if (typeof ResizeObserver === 'function') {
+      this.resizeObserver = new ResizeObserver(() => this.measure());
+      this.resizeObserver.observe(this.$refs.wall);
     }
-    scrollToTheEnd(this.$refs.contributions);
   },
 
   beforeUnmount() {
-    if (this.pointerQuery) {
-      this.pointerQuery.removeEventListener('change', this.onPointerQueryChange);
-    }
+    if (this.resizeObserver) this.resizeObserver.disconnect();
   },
   methods: {
+    measure() {
+      const width = this.$refs.wall.clientWidth;
+      if (width === this.availableWidth) return;
+      this.availableWidth = width;
+      // A resize (rotating the phone, say) changes where the latest week is.
+      this.$nextTick(() => scrollToTheEnd(this.$refs.contributions));
+    },
     onClick(e) {
       const day = this.dayAt(e);
       if (!day) return;
@@ -165,12 +180,6 @@ export default {
     },
   }
 };
-
-function matchesMedia(query) {
-  return typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia(query).matches;
-}
 
 function scrollToTheEnd(svg) {
   // The most recent weeks are on the right, and they are the ones people tap.
