@@ -1,6 +1,7 @@
 <template>
   <contributions-wall :dates='projectContributions'
      @filter='filterContributions'
+     :categories='project.projectHistory.categories'
      :settings='settings'>
   </contributions-wall>
 </template>

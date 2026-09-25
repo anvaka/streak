@@ -19,6 +19,13 @@
       </svg>
     </div>
   </div>
+  <!-- Color alone never says which category a square is, so name them. A
+       single category needs no key - the project title already names it. -->
+  <ul v-if='palette.legend.length > 1' class='cw-legend' :style='{"padding-left": layout.dowWidth + "px"}'>
+    <li v-for='entry in palette.legend' :key='entry.color'>
+      <span class='cw-swatch' :style='{"background": entry.color}'></span><span class='cw-label'>{{entry.label}}</span>
+    </li>
+  </ul>
   <div v-if='tooltipText' class='cw-tooltip' :style='tooltipStyle'>{{tooltipText}}</div>
 </div>
 </template>
@@ -26,13 +33,17 @@
 <script>
 import { getDateString, formatDowDate, getDateFromFilterString } from 'src/lib/dateUtils.js';
 
-import { makeColorBag } from 'src/lib/color';
+import { assignCategoryColors, shade } from 'src/lib/color';
 
 const MAX_WEEKS_TO_SHOW = 52;
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 // Month labels closer together than this would overlap, so the earlier one is dropped.
 const MIN_MONTH_LABEL_SPACING = 30;
-const colorBag = makeColorBag();
+const EMPTY_DAY_COLOR = 'rgb(235, 237, 240)';
+// How far towards white the smallest day is drawn. Kept modest: shading says
+// "less", but lighten a color far enough and it starts to pass for another
+// category.
+const MAX_LIGHTEN = 0.25;
 
 // Squares are sized so a year of weeks fills the available width. `pitch` is
 // the distance between neighbouring squares, of which GAP is empty space.
@@ -51,7 +62,7 @@ const TRAILING_SPACE = 10;
 
 export default {
   name: 'ContributionsWall',
-  props: ['dates', 'settings'],
+  props: ['dates', 'categories', 'settings'],
   data() {
     return {
       tooltipText: '',
@@ -81,8 +92,11 @@ export default {
         y: dayIndex * pitch + monthHeight
       }));
     },
+    palette() {
+      return assignCategoryColors(this.categories || []);
+    },
     wall() {
-      return buildWall(this.dates, this.layout.pitch);
+      return buildWall(this.dates, this.layout.pitch, this.palette);
     },
     hasRangeFilter() {
       return this.$route.query.from;
@@ -142,7 +156,9 @@ export default {
       }
       const svgRect = this.$refs.contributions.getBoundingClientRect();
       const { cell, pitch, monthHeight } = this.layout;
-      this.tooltipText = day.tooltip;
+      this.tooltipText = this.palette.legend.length > 1 && day.hasRecords ?
+        `${day.tooltip} · ${day.category === null ? 'No value' : day.category}` :
+        day.tooltip;
       this.tooltipStyle = {
         left: svgRect.left + day.weekIndex * pitch + cell / 2 + 'px',
         top: svgRect.top + monthHeight + day.dayNumber * pitch - 4 + 'px',
@@ -186,12 +202,12 @@ function scrollToTheEnd(svg) {
   svg.parentElement.scrollLeft = svg.parentElement.scrollWidth;
 }
 
-function buildWall(dates, pitch) {
+function buildWall(dates, pitch, palette) {
   const weeks = [];
   const today = new Date();
   const sunday = getSunday(today);
 
-  const thisWeek = buildWeekDays(sunday, dates, MAX_WEEKS_TO_SHOW).filter(removeFutureDays);
+  const thisWeek = buildWeekDays(sunday, dates, MAX_WEEKS_TO_SHOW, palette).filter(removeFutureDays);
 
   weeks.push({
     index: MAX_WEEKS_TO_SHOW,
@@ -200,7 +216,7 @@ function buildWall(dates, pitch) {
 
   for (let i = MAX_WEEKS_TO_SHOW - 1; i > -1; --i) {
     sunday.setDate(sunday.getDate() - 7);
-    const days = buildWeekDays(sunday, dates, i);
+    const days = buildWeekDays(sunday, dates, i, palette);
 
     weeks.push({
       index: i,
@@ -253,12 +269,13 @@ function getSunday(day) {
   return sunday;
 }
 
-function buildWeekDays(sunday, dates, weekIndex) {
+function buildWeekDays(sunday, dates, weekIndex, palette) {
   const weekDays = [];
   for (let i = 0; i < 7; ++i) {
     const day = new Date(sunday);
     day.setDate(day.getDate() + i);
     const dayKey = getDateString(day);
+    const contributions = dates && dates[dayKey];
 
     weekDays.push({
       day,
@@ -268,27 +285,20 @@ function buildWeekDays(sunday, dates, weekIndex) {
       weekIndex,
       tooltip: formatDowDate(day),
       dayNumber: i,
-      fill: getFillForDate(dayKey, dates)
+      hasRecords: !!contributions,
+      category: contributions ? contributions.groupKey : null,
+      fill: getFill(contributions, palette)
     });
   }
 
   return weekDays;
 }
 
-function getFillForDate(dayKey, contributionsByDay) {
-  const contributions = contributionsByDay && contributionsByDay[dayKey];
+function getFill(contributions, palette) {
+  if (!contributions) return EMPTY_DAY_COLOR;
 
-  if (!contributions) {
-    return 'rgb(235, 237, 240)';
-  }
-
-  const hsl = colorBag.getColor(contributions.groupKey);
-
-  const h = Math.round(hsl[0] * 360);
-  const s = Math.round(hsl[1] * 100);
-  const l = Math.round((hsl[2] + 0.25 * (1 - contributions.scaledValue)) * 100);
-
-  return `hsl(${h}, ${s}%, ${l}%)`;
+  const color = palette.colorOf(contributions.groupKey);
+  return shade(color, MAX_LIGHTEN * (1 - contributions.scaledValue));
 }
 
 </script>
@@ -321,6 +331,33 @@ function getFillForDate(dayKey, contributionsByDay) {
   .contribution-day.is-selected {
     stroke: rgba(0, 0, 0, 0.7);
     stroke-width: 1.5;
+  }
+}
+
+.cw-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  list-style: none;
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.64);
+  li {
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+  }
+  .cw-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cw-swatch {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 5px;
   }
 }
 

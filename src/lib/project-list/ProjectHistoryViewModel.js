@@ -13,6 +13,7 @@ export default class ProjectHistoryViewModel {
     if (headers.length === 0) {
       this.groups = [];
       this.contributionsByDay = {};
+      this.categories = [];
       this.recordsCount = 0;
       return;
     }
@@ -32,9 +33,11 @@ export default class ProjectHistoryViewModel {
       this.contributionsByDay = makeContributionsByDayIndex(
         dateIndex, typedRows, makeCellGetter(numericColumn), makeCellGetter(categoricalColumn)
       );
+      this.categories = getCategoriesInOrderOfAppearance(this.contributionsByDay);
     } else {
       this.groups = [];
       this.contributionsByDay = {};
+      this.categories = [];
     }
 
     this.recordsCount = typedRows.length;
@@ -74,6 +77,7 @@ function makeContributionsByDayIndex(
       if (!dayContributions) {
         dayContributions = {
           rows: [],
+          date: cellRecord.value,
         };
         contributionsByDay[dayKey] = dayContributions;
       }
@@ -94,7 +98,7 @@ function makeContributionsByDayIndex(
         dayTotalValue += value;
 
         // TODO: what if it's multiple different groups?
-        dayContributions.groupKey = getCategoricalValue(row.cells);
+        dayContributions.groupKey = toCategory(getCategoricalValue(row.cells));
       });
 
       dayContributions.value = dayTotalValue;
@@ -103,10 +107,48 @@ function makeContributionsByDayIndex(
     });
 
     contributions.forEach(dayContributions => {
-      dayContributions.scaledValue = (maxValue === minValue) ? 0 :
+      // When every day adds up the same (one record a day, say) there is no
+      // "more" or "less" to show, so draw them all at full strength rather
+      // than all at the palest shade.
+      dayContributions.scaledValue = (maxValue === minValue) ? 1 :
         (dayContributions.value - minValue) / (maxValue - minValue);
     });
   }
+}
+
+/**
+ * The category each day was colored by, earliest day first. The heatmap hands
+ * out colors in this order, so a category keeps its color as records are
+ * added - a new category can only ever be later than the existing ones.
+ */
+function getCategoriesInOrderOfAppearance(contributionsByDay) {
+  const days = Object.keys(contributionsByDay)
+    .map(key => contributionsByDay[key])
+    // Undated days sort last. Compare rather than subtract: Infinity - Infinity is NaN.
+    .sort((a, b) => {
+      const x = timeOf(a.date);
+      const y = timeOf(b.date);
+      return x === y ? 0 : (x < y ? -1 : 1);
+    });
+
+  const seen = new Set();
+  days.forEach(day => seen.add(day.groupKey));
+  return Array.from(seen);
+}
+
+function timeOf(date) {
+  const time = date instanceof Date ? date.getTime() : NaN;
+  return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time;
+}
+
+/**
+ * Cells are compared as trimmed text, so 'Yes' and 'Yes ' are one category.
+ * A blank cell has no category (null).
+ */
+function toCategory(value) {
+  if (typeof value !== 'string') return value === undefined ? null : value;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
 }
 
 function groupBy(groupIndex, typedRows) {
