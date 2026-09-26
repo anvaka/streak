@@ -1,11 +1,14 @@
 <template>
   <div class='summary secondary small'>
-    <div>Longest streak: <span>{{formatCount(streakStats.longestStreak)}}</span> <span>{{formatStreakRange(streakStats.longestStreak)}}</span></div>
-    <div>Current streak: <span>{{formatCount(streakStats.currentStreak)}}</span> <span>{{formatStreakRange(streakStats.currentStreak)}}</span></div>
+    <!-- The dates open the streak on the heatmap, in whichever year it happened. -->
+    <div v-for='streak in streaks' :key='streak.name'>
+      {{streak.name}}: <span>{{formatCount(streak.range)}}</span> <router-link v-if='streak.range.end' class='streak-range' :to='getStreakLink(streak.range)'>{{formatStreakRange(streak.range)}}</router-link>
+    </div>
   </div>
 </template>
 <script>
-import { formatDateOnly, getDateFromFilterString } from 'src/lib/dateUtils.js';
+import { formatDateOnly, getDateFromFilterString, getDateString } from 'src/lib/dateUtils.js';
+import { getYearToShow } from 'src/lib/heatmapPeriod';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 export default {
@@ -19,7 +22,25 @@ export default {
     };
   },
 
+  computed: {
+    streaks() {
+      return [
+        { name: 'Longest streak', range: this.streakStats.longestStreak },
+        { name: 'Current streak', range: this.streakStats.currentStreak },
+      ];
+    },
+  },
+
   methods: {
+    getStreakLink(streakRange) {
+      const start = streakRange.start || streakRange.end;
+      const query = { from: getDateString(start) };
+      if (streakRange.end > start) query.to = getDateString(streakRange.end);
+      const year = getYearToShow(start);
+      if (year) query.year = String(year);
+      return { name: 'project-overview', params: { projectId: this.project.id }, query };
+    },
+
     formatStreakRange(streakRange) {
       if (!streakRange || !streakRange.end) return '';
       if (!streakRange.start) {
@@ -128,20 +149,25 @@ function computeStreakStats(dates) {
     }
   }
 
+  // Counted in calendar days, so the hour of `now` and daylight saving (a
+  // 23- or 25-hour day) don't matter: yesterday is one day ago whatever the
+  // time. This used to add a time zone offset to a Date, which made a string,
+  // so any gap across a daylight saving change counted as no gap at all.
   function moreThanOneDay(day1, day2) {
-    const tz1 = day1.getTimezoneOffset();
-    const tz2 = day2.getTimezoneOffset();
-    if (tz1 === tz2) {
-      return Math.abs(day1 - day2) > ONE_DAY;
-    }
-    // We want to make sure that daylight time saving doesn't mess with the streak.
-    // E.g. Nov 4, 2018 and Nov 5, 2018 would have distance larger than ONE_DAY.
-    // Taking time zone into consideration fixes it.
-    // > new Date('Nov 4, 2018') == Sun Nov 04 2018 00:00:00 GMT-0700 (PDT)
-    // > new Date('Nov 5, 2018') == Mon Nov 05 2018 00:00:00 GMT-0800 (PST)
+    return Math.abs(calendarDay(day1) - calendarDay(day2)) > 1;
+  }
 
-    return Math.abs(day1 + 1000 * tz1 / 60 - (day2 + 1000 * tz2 / 60)) > ONE_DAY;
+  function calendarDay(date) {
+    return Math.round(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / ONE_DAY);
   }
 }
 </script>
 
+
+<style lang='stylus'>
+.summary .streak-range {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 0, 0, 0.3);
+}
+</style>

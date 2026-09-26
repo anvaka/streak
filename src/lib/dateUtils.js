@@ -89,7 +89,12 @@ export function isDayInside(day, min, max) {
 
   const dayDate = (typeof day === 'string') ? day : getDateString(day);
   if (!max) return dayDate === min;
-  const dayWithoutTime = new Date(dayDate);
 
-  return (new Date(min) <= dayWithoutTime && dayWithoutTime <= new Date(max));
+  // Parsed by hand: Safari cannot read '1-5-2024' as a date, which left every
+  // range filter empty there. The ends may come in either order (shift-tapping
+  // an earlier day).
+  const time = getDateFromFilterString(dayDate).getTime();
+  const a = getDateFromFilterString(min).getTime();
+  const b = getDateFromFilterString(max).getTime();
+  return Math.min(a, b) <= time && time <= Math.max(a, b);
 }

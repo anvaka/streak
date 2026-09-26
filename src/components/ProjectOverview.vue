@@ -15,7 +15,7 @@
       </p>
     </div>
 
-    <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='projectId'></selected-filters>
+    <selected-filters :from='$route.query.from' :to='$route.query.to' :year='$route.query.year' :project-id='projectId'></selected-filters>
 
     <div v-if='noRecordsWithThisFilter' class='vertical-padding'>
       There is nothing recorded {{getFilterPeriodMessage()}}.

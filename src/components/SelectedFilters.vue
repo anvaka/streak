@@ -1,7 +1,7 @@
 <template>
   <div v-if='hasFilters' class='filter-message'>
    {{filterMessage}}
-    <router-link class='action' :to='{name: "project-overview", params: {projectId}}'>reset</router-link>
+    <router-link class='action' :to='{name: "project-overview", params: {projectId}, query: year ? {year} : {}}'>reset</router-link>
   </div>
 </template>
 
@@ -9,7 +9,7 @@
 import { getDateFromFilterString, formatDateOnly } from 'src/lib/dateUtils';
 
 export default {
-  props: ['from', 'to', 'projectId'],
+  props: ['from', 'to', 'projectId', 'year'],
   computed: {
     hasFilters() {
       return this.from || this.to;

@@ -35,7 +35,10 @@ export default {
     };
   },
   watch: {
-    $route(/* to, from */) {
+    $route(to, from) {
+      // Switching the heatmap to another year changes nothing that was loaded,
+      // so don't fetch the sheet again.
+      if (isOnlyYearChange(to, from)) return;
       this.loadCurrentProject();
     },
     project() {
@@ -76,6 +79,15 @@ export default {
     }
   }
 };
+
+export function isOnlyYearChange(to, from) {
+  const keys = new Set(Object.keys(to.query).concat(Object.keys(from.query)));
+  keys.delete('year');
+  return to.name === from.name &&
+    to.params.projectId === from.params.projectId &&
+    to.query.year !== from.query.year &&
+    Array.from(keys).every(key => to.query[key] === from.query[key]);
+}
 </script>
 
 <style lang='stylus'>

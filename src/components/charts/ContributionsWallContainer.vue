@@ -1,6 +1,7 @@
 <template>
   <contributions-wall :dates='projectContributions'
      @filter='filterContributions'
+     @show-year='showYear'
      :categories='project.projectHistory.categories'
      :settings='settings'>
   </contributions-wall>
@@ -26,6 +27,22 @@ export default {
       if (to !== from) {
         query.to = to;
       }
+      // Stay on the year being explored.
+      const { year } = this.$route.query;
+      if (year) query.year = year;
+      this.showOverview(query);
+    },
+    showYear(year) {
+      // Only what the heatmap shows changes; the filter, if any, stays.
+      const query = Object.assign({}, this.$route.query);
+      if (year) {
+        query.year = String(year);
+      } else {
+        delete query.year;
+      }
+      this.showOverview(query);
+    },
+    showOverview(query) {
       this.$router.push({
         name: 'project-overview',
         params: {
@@ -37,4 +54,3 @@ export default {
   }
 };
 </script>
-
