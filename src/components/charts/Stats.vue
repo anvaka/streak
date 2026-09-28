@@ -1,6 +1,6 @@
 <template>
   <div class='summary secondary small'>
-    <!-- The dates open the streak on the heatmap, in whichever year it happened. -->
+    <!-- The dates filter to the streak, and the heatmap scrolls to it. -->
     <div v-for='streak in streaks' :key='streak.name'>
       {{streak.name}}: <span>{{formatCount(streak.range)}}</span> <router-link v-if='streak.range.end' class='streak-range' :to='getStreakLink(streak.range)'>{{formatStreakRange(streak.range)}}</router-link>
     </div>
@@ -8,7 +8,6 @@
 </template>
 <script>
 import { formatDateOnly, getDateFromFilterString, getDateString } from 'src/lib/dateUtils.js';
-import { getYearToShow } from 'src/lib/heatmapPeriod';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 export default {
@@ -36,8 +35,6 @@ export default {
       const start = streakRange.start || streakRange.end;
       const query = { from: getDateString(start) };
       if (streakRange.end > start) query.to = getDateString(streakRange.end);
-      const year = getYearToShow(start);
-      if (year) query.year = String(year);
       return { name: 'project-overview', params: { projectId: this.project.id }, query };
     },
 

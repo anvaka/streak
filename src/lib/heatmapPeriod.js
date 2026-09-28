@@ -1,56 +1,35 @@
 /**
- * Which days the heatmap draws. By default it is the last twelve months:
- * this week and the 52 before it, ending today. Older records are reached one
- * calendar year at a time (`?year=2023`), January to December.
+ * Which days the heatmap spans: from the month of the earliest record to
+ * today, and never less than this week and the 52 before it.
  *
- * Columns are weeks, Sunday to Saturday. `start` is the Sunday of the first
- * column; days before `firstDay` or after `lastDay` are not drawn, so a year
- * starts and ends with a partly filled week. `labelsEnd` is the last day that
- * still gets a month name: for this year that is December, so the months
- * still to come are named above their empty columns.
+ * Columns are weeks, Sunday to Saturday; `start` is the Sunday of the first
+ * one. Days after `lastDay` (today) are not drawn.
  */
 const RECENT_WEEKS = 52;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function getPeriod(year, today = new Date()) {
-  const todayMidnight = startOfDay(today);
-
-  if (!year) {
-    const start = addDays(getSunday(todayMidnight), -7 * RECENT_WEEKS);
-    return {
-      key: 'recent',
-      start,
-      columns: RECENT_WEEKS + 1,
-      firstDay: start,
-      lastDay: todayMidnight,
-      labelsEnd: todayMidnight,
-    };
+export function getPeriod(earliest, today = new Date()) {
+  const lastDay = startOfDay(today);
+  let start = addDays(getSunday(lastDay), -7 * RECENT_WEEKS);
+  if (earliest && earliest < start) {
+    // From the 1st of that month, so the first month on the heatmap is named.
+    start = getSunday(new Date(earliest.getFullYear(), earliest.getMonth(), 1));
   }
-
-  const firstDay = new Date(year, 0, 1);
-  const lastOfYear = new Date(year, 11, 31);
-  const start = getSunday(firstDay);
   return {
-    key: String(year),
     start,
-    columns: daysBetween(start, getSunday(lastOfYear)) / 7 + 1,
-    firstDay,
-    lastDay: lastOfYear < todayMidnight ? lastOfYear : todayMidnight,
-    labelsEnd: lastOfYear,
+    lastDay,
+    columns: daysBetween(start, getSunday(lastDay)) / 7 + 1,
   };
-}
-
-/**
- * The `year` to show `date` in: none (the last twelve months) when it is
- * recent enough, otherwise its calendar year.
- */
-export function getYearToShow(date, today = new Date()) {
-  return date < getPeriod(null, today).firstDay ? date.getFullYear() : null;
 }
 
 /** Column (week) of `date` within `period`. */
 export function getColumn(period, date) {
   return Math.floor(daysBetween(period.start, startOfDay(date)) / 7);
+}
+
+/** The Sunday that starts `column`. */
+export function getColumnStart(period, column) {
+  return addDays(period.start, 7 * column);
 }
 
 function daysBetween(a, b) {

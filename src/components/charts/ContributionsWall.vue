@@ -1,18 +1,16 @@
 <template>
 <div>
-  <!-- Only offered once there are records older than a year: until then the
-       last twelve months already show everything. -->
-  <div v-if='yearChoices.length' class='cw-years' role='group' aria-label='Period shown'>
-    <button v-for='choice in yearChoices' :key='choice.label' type='button'
-            :aria-pressed='choice.year === shownYear ? "true" : "false"'
-            @click='showYear(choice.year)'>{{choice.label}}</button>
-  </div>
   <div class='contributions-wall' ref='wall'>
     <div class='dow-container' :style='{"width": layout.dowWidth + "px"}'>
+      <!-- The year scrolled to, so the months are never without one. -->
+      <div class='cw-corner-year' :style='{"line-height": layout.monthHeight + "px", "font-size": layout.fontSize + "px"}'>{{cornerYear}}</div>
       <div v-for='dow in daysOfTheWeek' :key='dow.name' :style='{"top": dow.y + "px", "line-height": layout.cell + "px", "font-size": layout.fontSize + "px"}' class='dow'>{{dow.name}}</div>
     </div>
-    <div class='days-container'>
-      <!-- Taps are resolved from coordinates on the whole svg (see dayAt) rather
+    <div class='days-container' @scroll='onScroll'>
+      <!-- The whole history is one wide svg, scrolled to the present. Only the
+           weeks near the part on screen are drawn (see updateRange), so years
+           of records - or a typo dating one to 1900 - stay cheap.
+           Taps are resolved from coordinates on the whole svg (see dayAt) rather
            than per-rect listeners, so the gaps between squares count too and a
            slightly-off finger still lands on the nearest day. -->
       <svg :width='layout.width' :height='layout.height' ref='contributions'
@@ -22,7 +20,11 @@
           <rect v-for='day in week.days' :key='day.dayNumber' :fill='day.fill' :width='layout.cell' :height='layout.cell' x='0' :y='day.dayNumber * layout.pitch'
             class='contribution-day' :class='{"is-selected": isSelected(day)}'></rect>
         </g>
-        <text v-for='month in wall.months' :key='month.x' :x='month.x' :font-size='layout.fontSize' :y='layout.monthHeight - 6'>{{month.name}}</text>
+        <!-- A new year is named instead of its January, and a line follows
+             the edge between December 31 and January 1. -->
+        <path v-for='boundary in wall.yearBoundaries' :key='boundary.year' :d='boundary.path' class='cw-year-boundary'></path>
+        <text v-for='month in wall.months' :key='month.x' :x='month.x' :font-size='layout.fontSize' :y='layout.monthHeight - 6'
+              :class='{"cw-year-label": month.isYear}'>{{month.name}}</text>
       </svg>
     </div>
   </div>
@@ -41,7 +43,7 @@
 import { getDateString, formatDowDate, getDateFromFilterString } from 'src/lib/dateUtils.js';
 
 import { assignCategoryColors, shade } from 'src/lib/color';
-import { getPeriod, getColumn } from 'src/lib/heatmapPeriod';
+import { getPeriod, getColumn, getColumnStart } from 'src/lib/heatmapPeriod';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const EMPTY_DAY_COLOR = 'rgb(235, 237, 240)';
@@ -58,10 +60,9 @@ const MAX_LIGHTEN = 0.25;
 const GAP = 3;
 const MIN_PITCH = 21;
 const MAX_PITCH = 24;
-// A calendar year can touch 54 weeks (a leap year starting on a Saturday).
-// Squares are sized for that, so they keep their size when switching between
-// the last twelve months and a year.
-const MAX_COLUMNS = 54;
+// Squares are sized so the last twelve months fit: this week and 52 before.
+// Anything older is further to the left.
+const YEAR_COLUMNS = 53;
 const MONTH_NAMES_HEIGHT = 22;
 const DAY_NAMES_WIDTH = 30;
 const FONT_SIZE = 11;
@@ -77,11 +78,15 @@ export default {
       tooltipStyle: {},
       // Measured on mount and on every resize; until then assume a phone.
       availableWidth: 0,
+      // Weeks drawn, by column. Moves in steps of RANGE_STEP columns as the
+      // wall scrolls, so scrolling redraws only now and then.
+      range: null,
+      cornerYear: null,
     };
   },
   computed: {
     layout() {
-      const fitted = Math.floor((this.availableWidth - DAY_NAMES_WIDTH - TRAILING_SPACE) / MAX_COLUMNS);
+      const fitted = Math.floor((this.availableWidth - DAY_NAMES_WIDTH - TRAILING_SPACE) / YEAR_COLUMNS);
       const pitch = Math.min(MAX_PITCH, Math.max(MIN_PITCH, fitted));
       return {
         pitch,
@@ -103,32 +108,20 @@ export default {
     palette() {
       return assignCategoryColors(this.categories || []);
     },
-    shownYear() {
-      const year = Number.parseInt(this.$route.query.year, 10);
-      return Number.isNaN(year) ? null : year;
-    },
-    period() {
-      return getPeriod(this.shownYear);
-    },
-    yearChoices() {
-      const recentStart = getPeriod(null).firstDay;
-      const years = new Set();
-      let hasOlderRecords = false;
+    earliest() {
+      let earliest;
       Object.keys(this.dates || {}).forEach(dayKey => {
         const day = getDateFromFilterString(dayKey);
-        if (Number.isNaN(day.getTime())) return;
-        years.add(day.getFullYear());
-        if (day < recentStart) hasOlderRecords = true;
+        if (!Number.isNaN(day.getTime()) && !(earliest <= day)) earliest = day;
       });
-      if (!hasOlderRecords && this.shownYear === null) return [];
-      if (this.shownYear !== null) years.add(this.shownYear);
-
-      return [{ year: null, label: 'Last 12 months' }].concat(
-        Array.from(years).sort((a, b) => b - a).map(year => ({ year, label: String(year) }))
-      );
+      return earliest;
+    },
+    period() {
+      return getPeriod(this.earliest);
     },
     wall() {
-      return buildWall(this.period, this.dates, this.layout.pitch, this.palette);
+      const range = this.range || getRange(this.period.columns, null, 0, this.layout.pitch);
+      return buildWall(this.period, range, this.dates, this.layout, this.palette);
     },
     hasRangeFilter() {
       return this.$route.query.from;
@@ -144,13 +137,9 @@ export default {
       return this.settings && this.settings.showStreakStats;
     }
   },
-  watch: {
-    'period.key'() {
-      this.$nextTick(() => this.scrollToFocus());
-    },
-  },
   mounted() {
     this.measure();
+    this.onScroll();
     if (typeof ResizeObserver === 'function') {
       this.resizeObserver = new ResizeObserver(() => this.measure());
       this.resizeObserver.observe(this.$refs.wall);
@@ -169,24 +158,36 @@ export default {
       this.$nextTick(() => this.scrollToFocus());
     },
     /**
-     * On a phone only part of the wall fits. Bring the filtered days into
-     * view, so tapping a day in March does not scroll it away; with no filter
-     * show the latest weeks, which are the ones people tap.
+     * Only part of the wall fits (on a phone, or once there is more than a
+     * year of records). Bring the filtered days into view, so tapping a day
+     * in March, or a streak years back, does not scroll it away; with no
+     * filter show the latest weeks, which are the ones people tap.
      */
     scrollToFocus() {
       const svg = this.$refs.contributions;
       if (!svg) return;
       const container = svg.parentElement;
-      const week = this.wall.weeks.find(w => w.days.some(day => this.isSelected(day)));
-      if (week) {
+      const column = this.selection && getColumn(this.period, new Date(this.selection.min));
+      if (this.selection && column >= 0 && column < this.period.columns) {
         const { pitch, cell } = this.layout;
-        container.scrollLeft = week.index * pitch + cell / 2 - container.clientWidth / 2;
+        container.scrollLeft = column * pitch + cell / 2 - container.clientWidth / 2;
       } else {
         container.scrollLeft = container.scrollWidth;
       }
+      this.onScroll();
     },
-    showYear(year) {
-      this.$emit('show-year', year);
+    onScroll() {
+      const svg = this.$refs.contributions;
+      if (!svg) return;
+      const { scrollLeft, clientWidth } = svg.parentElement;
+      const { pitch } = this.layout;
+      const range = getRange(this.period.columns, scrollLeft, clientWidth, pitch);
+      if (!this.range || range.first !== this.range.first || range.last !== this.range.last) {
+        this.range = range;
+      }
+      const leftColumn = Math.min(this.period.columns - 1, Math.floor(scrollLeft / pitch));
+      const year = getColumnStart(this.period, Math.max(0, leftColumn)).getFullYear();
+      if (year !== this.cornerYear) this.cornerYear = year;
     },
     onClick(e) {
       const day = this.dayAt(e);
@@ -226,8 +227,8 @@ export default {
     },
     /**
      * The day closest to the pointer, or undefined when the pointer is clearly
-     * off the grid (in the month labels, past the last week, or on a day
-     * that is not drawn: outside the year shown, or not here yet). Snapping to the nearest square centre means
+     * off the grid (in the month labels, past the current week, or on a day
+     * that has not happened yet). Snapping to the nearest square centre means
      * the gaps between squares belong to a day instead of swallowing the tap.
      */
     dayAt(e) {
@@ -254,38 +255,82 @@ export default {
   }
 };
 
-function buildWall(period, dates, pitch, palette) {
-  const first = period.firstDay.getTime();
-  const last = period.lastDay.getTime();
-  const weeks = [];
-  for (let i = 0; i < period.columns; ++i) {
-    const sunday = new Date(period.start);
-    sunday.setDate(sunday.getDate() + 7 * i);
-    const days = buildWeekDays(sunday, dates, i, palette)
-      .filter(day => day.time >= first && day.time <= last);
-    weeks.push({ index: i, days });
-  }
+// Columns are drawn a step at a time: everything on screen, plus at least
+// RANGE_STEP columns either side so a fling does not outrun the drawing.
+// Unmeasured (before mount, or without layout in tests) draw the last
+// RANGE_STEP * 3 columns, which is where the wall opens.
+const RANGE_STEP = 26;
 
+function getRange(columns, scrollLeft, clientWidth, pitch) {
+  if (scrollLeft === null || !clientWidth) {
+    return { first: Math.max(0, columns - RANGE_STEP * 3), last: columns - 1 };
+  }
+  const firstVisible = Math.floor(scrollLeft / pitch);
+  const lastVisible = Math.ceil((scrollLeft + clientWidth) / pitch);
   return {
-    weeks,
-    months: getMonths(period, pitch)
+    first: Math.max(0, (Math.floor(firstVisible / RANGE_STEP) - 1) * RANGE_STEP),
+    last: Math.min(columns - 1, (Math.ceil(lastVisible / RANGE_STEP) + 1) * RANGE_STEP),
   };
 }
 
-// Each month is named above the week holding its 1st. A month whose 1st is
-// not in the period (the partial month a year back) goes unnamed.
+function buildWall(period, range, dates, layout, palette) {
+  const last = period.lastDay.getTime();
+  const weeks = [];
+  for (let i = range.first; i <= range.last; ++i) {
+    const days = buildWeekDays(getColumnStart(period, i), dates, i, palette)
+      .filter(day => day.time <= last);
+    weeks.push({ index: i, days });
+  }
+
+  const inRange = column => column >= range.first && column <= range.last;
+  return {
+    weeks,
+    months: getMonths(period, layout.pitch).filter(month => inRange(month.column)),
+    yearBoundaries: getYearBoundaries(period, layout).filter(b => inRange(b.column)),
+  };
+}
+
+// Each month is named above the week holding its 1st, and January by its
+// year. A month whose 1st is not on the wall (the partial month a year back)
+// goes unnamed.
 function getMonths(period, pitch) {
   const months = [];
-  const month = new Date(period.firstDay.getFullYear(), period.firstDay.getMonth(), 1);
-  if (month < period.firstDay) month.setMonth(month.getMonth() + 1);
-  while (month <= period.labelsEnd) {
+  const month = new Date(period.start.getFullYear(), period.start.getMonth(), 1);
+  if (month < period.start) month.setMonth(month.getMonth() + 1);
+  while (month <= period.lastDay) {
+    const column = getColumn(period, month);
+    const isYear = month.getMonth() === 0;
     months.push({
-      name: MONTH_NAMES[month.getMonth()],
-      x: getColumn(period, month) * pitch
+      name: isYear ? String(month.getFullYear()) : MONTH_NAMES[month.getMonth()],
+      isYear,
+      column,
+      x: column * pitch
     });
     month.setMonth(month.getMonth() + 1);
   }
   return months;
+}
+
+// January 1 usually falls mid-week, so the edge between the years is a step:
+// down the gap after the column's December days, across, then down the gap
+// before its January days.
+function getYearBoundaries(period, { pitch, cell, monthHeight }) {
+  const half = (pitch - cell) / 2;
+  const top = monthHeight - half;
+  const bottom = monthHeight + 7 * pitch - half;
+  const boundaries = [];
+  for (let year = period.start.getFullYear() + 1; year <= period.lastDay.getFullYear(); ++year) {
+    const newYear = new Date(year, 0, 1);
+    if (newYear <= period.start) continue;
+    const column = getColumn(period, newYear);
+    const row = newYear.getDay();
+    const left = column * pitch - half;
+    const path = row === 0 ?
+      `M${left},${top}V${bottom}` :
+      `M${left + pitch},${top}V${monthHeight + row * pitch - half}H${left}V${bottom}`;
+    boundaries.push({ year, column, path });
+  }
+  return boundaries;
 }
 
 function buildWeekDays(sunday, dates, weekIndex, palette) {
@@ -351,28 +396,19 @@ function getFill(contributions, palette) {
     stroke: rgba(0, 0, 0, 0.7);
     stroke-width: 1.5;
   }
-}
-
-.cw-years {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 10px 0 8px;
-  button {
-    min-height: 32px;
-    padding: 0 12px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 16px;
-    background: white;
-    color: rgba(0, 0, 0, 0.72);
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
+  .cw-corner-year {
+    position: absolute;
+    top: 0;
+    font-weight: 600;
   }
-  button[aria-pressed='true'] {
-    background: rgba(0, 0, 0, 0.8);
-    border-color: transparent;
-    color: white;
+  .cw-year-label {
+    font-weight: 600;
+  }
+  .cw-year-boundary {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.6);
+    stroke-width: 1.5;
+    pointer-events: none;
   }
 }
 
