@@ -11,7 +11,11 @@ export default function extractHeaderTypesFromData(sheetData, settings) {
 
   if (settings && settings.fields) {
     // if we have settings, they should override type specification.
-    settings.fields.forEach(field => setHeaderType(field.title, field.type));
+    settings.fields.forEach(field => {
+      setHeaderType(field.title, field.type);
+      const header = findHeaderByName(field.title);
+      if (header && field.combine) header.combine = field.combine;
+    });
   }
 
   // iterate over each row, and remember values.
@@ -98,11 +102,14 @@ class HeaderCounter {
       valueType = (topCandidate && topCandidate[0]) || DEFAULT_TYPE;
     }
 
-    return {
+    const headerDef = {
       title,
       valueType,
       autocomplete: this.sortedValues(),
       hasMultiline: this.hasMultiline
     };
+    // How a number column's values combine - see ProjectHistoryViewModel.
+    if (this.combine) headerDef.combine = this.combine;
+    return headerDef;
   }
 }

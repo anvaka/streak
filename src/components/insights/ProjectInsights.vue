@@ -1,17 +1,22 @@
 <template>
   <div class='project-insights' v-if='project && project.projectHistory'>
     <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='project.id'></selected-filters>
+    <value-chips v-if='palette.legend.length > 1' :legend='palette.legend' :dates='allDays' :focus='focus'></value-chips>
 
     <p v-if='!insights' class='vertical-padding secondary'>{{emptyMessage}}</p>
     <template v-else>
+      <!-- The numbers themselves first: for a weight log they are the point. -->
+      <number-card v-for='column in project.projectHistory.numberColumns' :key='column.columnIndex'
+          :project='project' :column='column' :contributions='days' :note='quoted'></number-card>
+
       <div class='insight-tiles'>
         <section class='insight-tile'>
           <h3>{{insights.recent.title}}</h3>
-          <div class='insight-number'>{{insights.recent.count}} <span class='insight-unit'>of {{formatDays(insights.recent.days)}} active</span></div>
+          <div class='insight-number'>{{insights.recent.count}} <span class='insight-unit'>of {{formatDays(insights.recent.days)}} with {{focus === undefined ? 'a record' : quoted}}</span></div>
           <div class='secondary small' v-if='insights.recent.previousCount !== null'>{{insights.recent.previousCount}} in the {{formatDays(insights.recent.days)}} before</div>
         </section>
         <section class='insight-tile'>
-          <h3>Habit strength</h3>
+          <h3>Habit strength <span v-if='focus !== undefined' class='secondary'>{{quoted}}</span></h3>
           <div class='insight-number'>{{percent(insights.strength.score)}}</div>
           <svg v-if='sparkline' class='insight-sparkline' :viewBox='sparkline.viewBox' preserveAspectRatio='none' aria-hidden='true'>
             <polyline :points='sparkline.points'></polyline>
@@ -23,6 +28,16 @@
       <ul v-if='insights.sentences.length' class='insight-sentences'>
         <li v-for='sentence in insights.sentences' :key='sentence'>{{sentence}}</li>
       </ul>
+
+      <!-- Each value on its own row, on a common scale; a row focuses on it. -->
+      <section v-if='valueRows.length > 1' class='insight-card'>
+        <h3>{{project.projectHistory.facet.title}} <span class='secondary'>{{scopeNote}}</span></h3>
+        <router-link v-for='row in valueRows' :key='row.label' :to='row.link' class='insight-value' replace>
+          <span class='iv-name'><span class='vc-dot' :style='{background: row.color}'></span>{{row.label}}</span>
+          <span class='iv-bar'><span :style='{width: row.width, background: row.color}'></span></span>
+          <span class='iv-numbers'>{{row.summary}}</span>
+        </router-link>
+      </section>
 
       <section v-if='insights.weekdays.enough' class='insight-card'>
         <h3>Days of the week <span class='secondary'>{{scopeNote}}</span></h3>
@@ -51,7 +66,11 @@
 
 <script>
 import SelectedFilters from '../SelectedFilters.vue';
+import ValueChips from '../ValueChips.vue';
 import InsightBars from './InsightBars.vue';
+import NumberCard from './NumberCard.vue';
+import { assignCategoryColors } from 'src/lib/color.js';
+import { getFocus, keepFocus, focusContributions } from 'src/lib/facet.js';
 import { MONTH_NAMES, formatDateOnly, getDateString } from 'src/lib/dateUtils.js';
 import {
   getInsights, formatDays, formatHour, percent,
@@ -65,26 +84,87 @@ export default {
   props: ['project'],
   components: {
     SelectedFilters,
+    ValueChips,
     InsightBars,
+    NumberCard,
   },
   computed: {
-    insights() {
+    allDays() {
+      return this.project.projectHistory.contributionsByDay;
+    },
+    palette() {
+      return assignCategoryColors(this.project.projectHistory.categories || []);
+    },
+    focus() {
+      return getFocus(this.$route.query);
+    },
+    quoted() {
+      return this.focus === undefined ? '' : `\u201c${this.focus}\u201d`;
+    },
+    // The days, holding only their records with the focused value.
+    days() {
+      const { facet } = this.project.projectHistory;
+      return focusContributions(this.allDays, facet, this.focus);
+    },
+    // All records, whatever their value.
+    allInsights() {
       const { from, to } = this.$route.query;
-      return getInsights(this.project.projectHistory.contributionsByDay, { from, to });
+      return getInsights(this.allDays, { from, to });
+    },
+    // A value in focus is measured against how often anything is recorded:
+    // "Yes" on 5 of the 7 days you log is 5 of 7, not a perfect "Yes" pace.
+    insights() {
+      if (this.focus === undefined) return this.allInsights;
+      const { from, to } = this.$route.query;
+      const target = this.allInsights && this.allInsights.strength.target;
+      return getInsights(this.days, { from, to, focus: this.focus, target });
+    },
+    valueRows() {
+      if (this.focus !== undefined || !this.project.projectHistory.facet) return [];
+      const { from, to } = this.$route.query;
+      const logged = this.allInsights.consistency.activeDays;
+      const rows = this.palette.legend
+        .filter(entry => typeof entry.value === 'string')
+        .map(entry => {
+          const days = focusContributions(this.allDays, this.project.projectHistory.facet, entry.value);
+          const insights = getInsights(days, { from, to });
+          const c = insights && insights.consistency;
+          const count = c ? c.activeDays : 0;
+          const streaks = c ? [
+            c.current ? `${c.current.count} now` : null,
+            `${c.longest.count} best`,
+          ].filter(Boolean).join(', ') : '';
+          return {
+            label: entry.label,
+            color: entry.color,
+            count,
+            link: { name: this.$route.name, params: this.$route.params,
+              query: Object.assign({}, this.$route.query, { focus: entry.value }) },
+            summary: `${formatDays(count)} (${percent(count / logged)})` + (streaks ? `, streak ${streaks}` : ''),
+          };
+        });
+      const most = Math.max(...rows.map(row => row.count)) || 1;
+      rows.forEach(row => { row.width = (100 * row.count / most).toFixed(1) + '%'; });
+      return rows;
     },
     emptyMessage() {
-      if (this.$route.query.from) return 'Nothing was recorded in this period.';
+      const what = this.focus === undefined ? 'Nothing was' : `Nothing with ${this.quoted} was`;
+      if (this.$route.query.from) return `${what} recorded in this period.`;
+      if (this.focus !== undefined) return `${what} recorded yet.`;
       return 'There are no records yet. Insights appear here as you add them.';
     },
-    // Card titles say what they cover; a filter already says so above them.
+    // Card titles say what they cover: the focused value, and the days unless
+    // a filter already says so above them.
     scopeNote() {
       const { scope } = this.insights;
-      return scope.isAllTime ? 'since ' + formatDateOnly(scope.first) : '';
+      return [this.quoted, scope.isAllTime ? 'since ' + formatDateOnly(scope.first) : '']
+        .filter(Boolean).join(', ');
     },
     strengthTarget() {
       const { target, isYoung } = this.insights.strength;
-      const pace = target === 7 ? 'every day' :
-        `your usual ${target} ${target === 1 ? 'day' : 'days'} a week`;
+      const days = target === 7 ? 'every day' : `${target} ${target === 1 ? 'day' : 'days'} a week`;
+      const pace = this.focus === undefined ? (target === 7 ? days : `your usual ${days}`) :
+        `how often you record (${days})`;
       // The score starts at zero, so a new habit's is low however well it goes.
       if (isYoung) return `Starts low and builds up over weeks of ${pace}`;
       return `Measured against ${pace}`;
@@ -103,7 +183,8 @@ export default {
       return rates.map((rate, i) => ({
         value: rate,
         label: WEEKDAYS[i].slice(0, 3),
-        caption: `${WEEKDAYS[i]}s: ${counts[i]} of ${totals[i]} had a record (${percent(rate)})`,
+        caption: `${WEEKDAYS[i]}s: ${counts[i]} of ${totals[i]} had ` +
+          `${this.focus === undefined ? 'a record' : this.quoted} (${percent(rate)})`,
       }));
     },
     hourBars() {
@@ -119,7 +200,7 @@ export default {
       const c = this.insights.consistency;
       const { scope } = this.insights;
       const facts = [{
-        name: 'Active days',
+        name: `Days with ${this.focus === undefined ? 'a record' : this.quoted}`,
         value: `${c.activeDays.toLocaleString('en-US')} of ${formatDays(c.totalDays)} ` +
           `(${percent(c.activeDays / c.totalDays)}), ` +
           (c.recordCount === 1 ? '1 record' : `${c.recordCount.toLocaleString('en-US')} records`),
@@ -176,7 +257,11 @@ export default {
     getRangeLink(range) {
       const query = { from: getDateString(range.first) };
       if (range.count > 1) query.to = getDateString(range.last);
-      return { name: 'project-overview', params: { projectId: this.project.id }, query };
+      return {
+        name: 'project-overview',
+        params: { projectId: this.project.id },
+        query: keepFocus(query, this.$route.query)
+      };
     },
   },
 };
@@ -195,6 +280,7 @@ export default {
     }
   }
   .insight-tiles {
+    margin-top: 24px;
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
@@ -246,6 +332,45 @@ export default {
     dd {
       margin: 0;
     }
+  }
+  .insight-value {
+    display: grid;
+    grid-template-columns: minmax(0, 7em) 1fr;
+    gap: 2px 10px;
+    align-items: center;
+    padding: 6px 0;
+    color: inherit;
+    text-decoration: none;
+  }
+  .iv-name {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .vc-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 6px;
+  }
+  .iv-bar {
+    height: 8px;
+    background: header-background;
+    border-radius: 4px;
+    overflow: hidden;
+    span {
+      display: block;
+      height: 100%;
+      border-radius: 4px;
+    }
+  }
+  .iv-numbers {
+    grid-column: 2;
+    font-size: 13px;
+    color: secondary-text-color;
   }
   .insight-range {
     color: inherit;

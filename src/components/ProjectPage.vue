@@ -62,7 +62,7 @@ export default {
 
         const from = this.$route.query.from;
         const to = this.$route.query.to;
-        this.project.load(from, to).then(() => {
+        this.project.load(from, to, this.$route.query.focus).then(() => {
           this.loading = false;
         }).catch(err => {
           this.loading = false;

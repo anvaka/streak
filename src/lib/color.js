@@ -7,19 +7,16 @@
  * colors is as far as that holds: blue, vermillion, wine and bluish green pass
  * a colorblind-simulation check (protanopia/deuteranopia, Machado et al. 2009)
  * for every pair, and no fifth color we tried kept them all apart. Blue and
- * vermillion are the classic colorblind-safe pair (Okabe & Ito), which is why
- * yes/no answers are pinned to them.
+ * vermillion, the first two, are the classic colorblind-safe pair (Okabe & Ito).
+ *
+ * The colors never depend on what a value says: the app doesn't know that
+ * "Yes" is good or "No" is bad, so none of them is green or red for it.
  *
  * A fifth category onwards shares a neutral "Other" gray instead of reusing a
  * color, and the legend says what the colors mean.
  */
 export const CATEGORY_COLORS = ['#0072B2', '#D55E00', '#882255', '#1BAF7A'];
 export const OTHER_COLOR = '#7F7F7F';
-
-// Answers that mean yes or no get the same two colors in every project,
-// whatever order they first show up in.
-const POSITIVE = new Set(['yes', 'y', 'true', 'done']);
-const NEGATIVE = new Set(['no', 'n', 'false', 'skipped', 'skip', 'missed']);
 
 /**
  * Gives each category a color. `categories` must be in the order they first
@@ -34,16 +31,6 @@ export function assignCategoryColors(categories) {
   const free = CATEGORY_COLORS.slice();
   const named = categories.filter(c => c !== null && c !== undefined);
 
-  const pinned = [
-    [named.find(c => POSITIVE.has(normalize(c))), CATEGORY_COLORS[0]],
-    [named.find(c => NEGATIVE.has(normalize(c))), CATEGORY_COLORS[1]],
-  ];
-  pinned.forEach(([category, color]) => {
-    if (category === undefined) return;
-    colorByCategory.set(category, color);
-    free.splice(free.indexOf(color), 1);
-  });
-
   let hasOther = categories.length > named.length;
   named.forEach(category => {
     if (colorByCategory.has(category)) return;
@@ -57,7 +44,7 @@ export function assignCategoryColors(categories) {
   const legend = CATEGORY_COLORS
     .map(color => {
       const category = named.find(c => colorByCategory.get(c) === color);
-      return category === undefined ? null : { label: String(category), color };
+      return category === undefined ? null : { label: String(category), value: category, color };
     })
     .filter(Boolean);
   if (hasOther) {
@@ -71,10 +58,6 @@ export function assignCategoryColors(categories) {
     },
     legend,
   };
-}
-
-function normalize(category) {
-  return String(category).trim().toLowerCase();
 }
 
 /**

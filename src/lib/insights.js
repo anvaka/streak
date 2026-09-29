@@ -33,9 +33,12 @@ const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
 /**
  * Everything the Insights tab shows, for the records of `contributionsByDay`
  * inside the `from`/`to` filter (all of them when there is no filter).
+ * `focus` is the value the records were narrowed to, if any, for the words.
+ * `target`, days a week, is what habit strength is measured against; by
+ * default the usual pace of these records.
  * Returns null when that leaves no records.
  */
-export function getInsights(contributionsByDay, { from, to } = {}, today = new Date()) {
+export function getInsights(contributionsByDay, { from, to, focus, target } = {}, today = new Date()) {
   const records = collectRecords(contributionsByDay);
   if (records.length === 0) return null;
 
@@ -61,12 +64,12 @@ export function getInsights(contributionsByDay, { from, to } = {}, today = new D
       reachesToday: scope.reachesToday,
     },
     recent: getRecent(active, scope, firstDay),
-    strength: getHabitStrength(allDays, active, scope),
+    strength: getHabitStrength(allDays, active, scope, target),
     weekdays: getWeekdays(active, scope),
     hours: getHours(minutes),
     consistency: getConsistency(days, scope, todayNumber, scopedRecords.length),
   };
-  insights.sentences = getSentences(insights, scope);
+  insights.sentences = getSentences(insights, scope, focus === undefined ? null : `\u201c${focus}\u201d`);
   return insights;
 }
 
@@ -144,10 +147,10 @@ function getRecentTitle(scope, first, length) {
  * number of days with a record in the weeks that have any. Someone who runs
  * three days a week then scores 100% for keeping that up, not 43%.
  */
-function getHabitStrength(allDays, active, scope) {
+function getHabitStrength(allDays, active, scope, givenTarget) {
   const firstDay = allDays[0];
   const lastDay = scope.last;
-  const target = getUsualPace(allDays, lastDay);
+  const target = givenTarget || getUsualPace(allDays, lastDay);
   const multiplier = Math.pow(0.5, Math.sqrt(target / 7) / 13);
   // Like Loop, a target of fewer than 7 days a week is checked over two weeks,
   // which is kinder to a schedule that isn't the same every week.
@@ -292,31 +295,38 @@ function getConsistency(days, scope, today, recordCount) {
   };
 }
 
-function getSentences(insights, scope) {
+// `subject` names the focused value ("Yes" in quotes), or is null.
+function getSentences(insights, scope, subject) {
   const { consistency, recent, weekdays, hours } = insights;
   const sentences = [];
 
   if (consistency.current && consistency.isLongestCurrent && consistency.current.count >= 3) {
-    sentences.push(`You're on your longest streak so far: ${formatDays(consistency.current.count)}.`);
+    sentences.push(`You're on your longest ${subject ? subject + ' ' : ''}streak so far: ` +
+      `${formatDays(consistency.current.count)}.`);
   }
 
   if (scope.isAllTime && recent.days === RECENT_DAYS && recent.previousCount !== null) {
     const now = recent.count;
     const before = recent.previousCount;
     if (fisherExact(now, RECENT_DAYS, before, RECENT_DAYS) < ALPHA) {
-      sentences.push(now > before ?
-        `More active lately: ${now} of the last ${RECENT_DAYS} days, up from ${before} in the ${RECENT_DAYS} before.` :
-        `Less active lately: ${now} of the last ${RECENT_DAYS} days, down from ${before} in the ${RECENT_DAYS} before.`);
+      const counts = now > before ?
+        `${now} of the last ${RECENT_DAYS} days, up from ${before} in the ${RECENT_DAYS} before.` :
+        `${now} of the last ${RECENT_DAYS} days, down from ${before} in the ${RECENT_DAYS} before.`;
+      const lead = subject ?
+        `${subject} on ${now > before ? 'more' : 'fewer'} days lately: ` :
+        `${now > before ? 'More' : 'Less'} active lately: `;
+      sentences.push(lead + counts);
     }
   }
 
   const since = consistency.daysSinceLast;
   if (since >= 2 && consistency.gaps.length >= MIN_GAPS) {
     const sooner = consistency.gaps.filter(gap => gap < since).length / consistency.gaps.length;
+    const last = subject || 'record';
     if (sooner === 1) {
-      sentences.push(`It's been ${formatDays(since)} since the last record, the longest wait so far.`);
+      sentences.push(`It's been ${formatDays(since)} since the last ${last}, the longest wait so far.`);
     } else if (sooner >= 0.9) {
-      sentences.push(`It's been ${formatDays(since)} since the last record; 9 in 10 times the next one came sooner.`);
+      sentences.push(`It's been ${formatDays(since)} since the last ${last}; 9 in 10 times the next one came sooner.`);
     }
   }
 
@@ -325,14 +335,15 @@ function getSentences(insights, scope) {
     const best = rates.indexOf(Math.max(...rates));
     const worst = rates.indexOf(Math.min(...rates));
     if (rates[best] - rates[worst] >= 0.2) {
-      sentences.push(`You're most active on ${WEEKDAYS[best]}s (${percent(rates[best])} of them) ` +
+      sentences.push(`${subject ? subject + ' comes up' : "You're"} most ${subject ? '' : 'active '}` +
+        `on ${WEEKDAYS[best]}s (${percent(rates[best])} of them) ` +
         `and least on ${WEEKDAYS[worst]}s (${percent(rates[worst])}).`);
     }
   }
 
   // Half the records inside a quarter of the day is a habit, not chance.
   if (hours.count >= MIN_TIMED_FOR_CLAIM && hours.half.hours <= 6) {
-    sentences.push(`Half of the records are made between ${formatHour(hours.half.startHour)} ` +
+    sentences.push(`Half of the ${subject ? subject + ' ' : ''}records are made between ${formatHour(hours.half.startHour)} ` +
       `and ${formatHour(hours.half.endHour)}.`);
   }
 

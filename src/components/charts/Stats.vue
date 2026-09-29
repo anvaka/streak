@@ -8,24 +8,27 @@
 </template>
 <script>
 import { formatDateOnly, getDateFromFilterString, getDateString } from 'src/lib/dateUtils.js';
+import { getFocus, keepFocus, focusContributions } from 'src/lib/facet.js';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 export default {
   name: 'Stats',
   props: ['project', 'settings'],
-  data() {
-    const dates = this.project.projectHistory.contributionsByDay;
-    const streakStats = computeStreakStats(Object.keys(dates).map(getDateFromFilterString));
-    return {
-      streakStats
-    };
-  },
-
   computed: {
+    focus() {
+      return getFocus(this.$route.query);
+    },
+    // With a value in focus, a streak is days in a row that have it.
+    streakStats() {
+      const { contributionsByDay, facet } = this.project.projectHistory;
+      const dates = focusContributions(contributionsByDay, facet, this.focus);
+      return computeStreakStats(Object.keys(dates).map(getDateFromFilterString));
+    },
     streaks() {
+      const of = this.focus === undefined ? '' : ` (${this.focus})`;
       return [
-        { name: 'Longest streak', range: this.streakStats.longestStreak },
-        { name: 'Current streak', range: this.streakStats.currentStreak },
+        { name: 'Longest streak' + of, range: this.streakStats.longestStreak },
+        { name: 'Current streak' + of, range: this.streakStats.currentStreak },
       ];
     },
   },
@@ -35,7 +38,11 @@ export default {
       const start = streakRange.start || streakRange.end;
       const query = { from: getDateString(start) };
       if (streakRange.end > start) query.to = getDateString(streakRange.end);
-      return { name: 'project-overview', params: { projectId: this.project.id }, query };
+      return {
+        name: 'project-overview',
+        params: { projectId: this.project.id },
+        query: keepFocus(query, this.$route.query)
+      };
     },
 
     formatStreakRange(streakRange) {

@@ -26,7 +26,7 @@ export default class Project {
     this.sheetData = [];
   }
 
-  load(from, to) {
+  load(from, to, focus) {
     this.loading = true;
 
     return loadProject(this.id).then(vm => {
@@ -39,7 +39,7 @@ export default class Project {
       this.headers = vm.headers;
       this.sheetData = vm.sheetData;
 
-      vm.projectHistory.filter(from, to);
+      vm.projectHistory.filter(from, to, focus);
 
       this.projectHistory = vm.projectHistory;
 

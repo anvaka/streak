@@ -8,6 +8,7 @@
 
 <script>
 import ContributionsWall from './ContributionsWall';
+import { keepFocus } from 'src/lib/facet.js';
 
 export default {
   name: 'ContributionWallContainer',
@@ -31,7 +32,7 @@ export default {
         params: {
           projectId: this.project.id,
         },
-        query
+        query: keepFocus(query, this.$route.query)
       });
     },
   }

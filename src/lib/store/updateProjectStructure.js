@@ -41,10 +41,11 @@ export default function updateProjectStructure(project, newFields) {
 function updateSettings(project, newFields) {
   const streakSettings = clone(project.settings || {});
   // TODO: This is duplicate of the createProject
-  streakSettings.fields = newFields.map(c => ({
-    title: c.title,
-    type: c.type.value
-  }));
+  streakSettings.fields = newFields.map(c => {
+    const field = { title: c.title, type: c.type.value };
+    if (c.combine) field.combine = c.combine;
+    return field;
+  });
 
   const uploadMetadata = {
     name: 'streak-settings.json',

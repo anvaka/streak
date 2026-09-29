@@ -10,6 +10,8 @@ import { getDateString, isDayInside } from '../dateUtils.js';
 
 export default class ProjectHistoryViewModel {
   constructor(sheetData, headers) {
+    this.facet = null;
+    this.numberColumns = [];
     if (headers.length === 0) {
       this.groups = [];
       this.contributionsByDay = {};
@@ -23,15 +25,24 @@ export default class ProjectHistoryViewModel {
     if (dateIndex >= 0) {
       this.groups = groupBy(dateIndex, typedRows);
 
-      const numericColumn = getColumnIndex(
-        headers,
-        header => header.valueType === InputTypes.NUMBER
-      );
-      const categoricalColumn = getColumnIndex(
-        headers, header => header.valueType === InputTypes.TEXT
-      );
+      this.numberColumns = headers
+        .map((header, columnIndex) => ({ header, columnIndex }))
+        .filter(({ header }) => header.valueType === InputTypes.NUMBER)
+        .map(({ header, columnIndex }) => ({
+          columnIndex,
+          title: header.title,
+          combine: header.combine === 'sum' ? 'sum' : 'average',
+        }));
+      const facetColumn = getFacetColumnIndex(headers, typedRows);
+      if (facetColumn >= 0) {
+        this.facet = { columnIndex: facetColumn, title: headers[facetColumn].title };
+      }
+      const numericColumn = this.numberColumns[0];
       this.contributionsByDay = makeContributionsByDayIndex(
-        dateIndex, typedRows, makeCellGetter(numericColumn), makeCellGetter(categoricalColumn)
+        dateIndex, typedRows,
+        makeCellGetter(numericColumn ? numericColumn.columnIndex : -1),
+        numericColumn && numericColumn.combine === 'average',
+        makeCellGetter(facetColumn)
       );
       this.categories = getCategoriesInOrderOfAppearance(this.contributionsByDay);
     } else {
@@ -43,24 +54,62 @@ export default class ProjectHistoryViewModel {
     this.recordsCount = typedRows.length;
   }
 
-  filter(from, to) {
-    if (!from) {
-      // If `from is not set, the filter below will always return true, so
-      // there is no need in iterating this all.
-      return;
+  /**
+   * Keeps the records between `from` and `to`, and with `focus` - one value
+   * of the facet column, picked above the heatmap - when that is set.
+   */
+  filter(from, to, focus) {
+    if (from) {
+      this.groups = this.groups.filter(group => {
+        // TODO: this will not work only for date groups
+        if (group.group.valueType !== InputTypes.DATE) {
+          return true;
+        }
+        return isDayInside(group.key, from, to);
+      });
     }
-    this.groups = this.groups.filter(group => {
-      // TODO: this will not work only for date groups
-      if (group.group.valueType !== InputTypes.DATE) {
-        return true;
-      }
-      return isDayInside(group.key, from, to);
-    });
+    if (focus !== undefined && this.facet) {
+      const { columnIndex } = this.facet;
+      const hasFocus = cells => cells.some(cell => (
+        cell.columnIndex === columnIndex && toCategory(cell.value) === focus
+      ));
+      this.groups = this.groups
+        .map(group => {
+          const items = group.items.filter(hasFocus);
+          if (items.length === group.items.length) return group;
+          return Object.assign({}, group, { items });
+        })
+        .filter(group => group.items.length > 0);
+    }
   }
 }
 
+/**
+ * The column whose values the heatmap colors by and the chips above it
+ * offer: the first text column whose values repeat - yes/no, or a handful of
+ * activities - rather than free-form notes, where most values are new.
+ * What the values mean never matters, only that they come back.
+ */
+function getFacetColumnIndex(headers, typedRows) {
+  return headers.findIndex((header, columnIndex) => {
+    if (header.valueType !== InputTypes.TEXT && header.valueType !== InputTypes.SINGLE_LINE_TEXT) {
+      return false;
+    }
+    let filled = 0;
+    const distinct = new Set();
+    typedRows.forEach(row => {
+      const value = toCategory(row.cells[columnIndex].value);
+      if (value === null) return;
+      filled += 1;
+      distinct.add(value);
+    });
+    // A few records can't tell the two apart yet, so up to four values count.
+    return filled > 0 && distinct.size <= Math.max(4, filled / 2);
+  });
+}
+
 function makeContributionsByDayIndex(
-  dateIndex, typedRows, getNumericCellValue, getCategoricalValue
+  dateIndex, typedRows, getNumericCellValue, isAveraged, getCategoricalValue
 ) {
   const contributionsByDay = {};
 
@@ -92,16 +141,26 @@ function makeContributionsByDayIndex(
     const contributions = Object.keys(contributionsByDay).map(day => contributionsByDay[day]);
     contributions.forEach((dayContributions) => {
       let dayTotalValue = 0;
+      let valueCount = 0;
+      const values = new Set();
       dayContributions.rows.forEach(row => {
-        let value = getNumericCellValue(row.cells);
-        if (Number.isNaN(value)) value = 0;
-        dayTotalValue += value;
+        const value = getNumericCellValue(row.cells);
+        if (!Number.isNaN(value)) {
+          dayTotalValue += value;
+          valueCount += 1;
+        }
 
         // TODO: what if it's multiple different groups?
         dayContributions.groupKey = toCategory(getCategoricalValue(row.cells));
+        values.add(dayContributions.groupKey);
       });
 
+      // Two weigh-ins in a day are one weight, not twice it: a column adds up
+      // only when the owner said so (see numberColumns).
+      if (isAveraged) dayTotalValue = valueCount ? dayTotalValue / valueCount : 0;
       dayContributions.value = dayTotalValue;
+      // Every facet value the day has, for focusing on one of them.
+      dayContributions.values = Array.from(values);
       if (dayTotalValue < minValue) minValue = dayTotalValue;
       if (dayTotalValue > maxValue) maxValue = dayTotalValue;
     });
@@ -145,7 +204,7 @@ function timeOf(date) {
  * Cells are compared as trimmed text, so 'Yes' and 'Yes ' are one category.
  * A blank cell has no category (null).
  */
-function toCategory(value) {
+export function toCategory(value) {
   if (typeof value !== 'string') return value === undefined ? null : value;
   const trimmed = value.trim();
   return trimmed ? trimmed : null;

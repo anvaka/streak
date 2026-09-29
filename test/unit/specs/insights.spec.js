@@ -251,7 +251,7 @@ describe('Insights tab', () => {
     const dates = days(84, { hour: 19 }).filter(d => d.getDay() !== 0 && d.getDay() !== 6);
     const w = mountInsights(dates);
     expect(w.find('.insight-tile h3').text()).toBe('Last 30 days');
-    expect(w.find('.insight-number').text()).toBe('21 of 30 days active');
+    expect(w.find('.insight-number').text()).toBe('21 of 30 days with a record');
     expect(w.findAll('.insight-sentences li').length).toBeGreaterThan(0);
     expect(w.findAll('.insight-bars').length).toBe(2);
     expect(w.find('.insight-sparkline polyline').exists()).toBe(true);

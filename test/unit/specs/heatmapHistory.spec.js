@@ -148,7 +148,7 @@ describe('streak links', () => {
     dates.forEach(d => { contributionsByDay[d] = day(); });
     const w = mount(Stats, {
       props: { project: { id: 'p1', projectHistory: { contributionsByDay } }, settings: {} },
-      global: { stubs: { RouterLink: RouterLinkStub } }
+      global: { stubs: { RouterLink: RouterLinkStub }, mocks: { $route: { query: {} } } }
     });
     return w.findAllComponents(RouterLinkStub).map(link => link.props('to').query);
   }
@@ -166,7 +166,7 @@ describe('streaks', () => {
     dates.forEach(d => { contributionsByDay[d] = day(); });
     return mount(Stats, {
       props: { project: { id: 'p1', projectHistory: { contributionsByDay } }, settings: {} },
-      global: { stubs: { RouterLink: RouterLinkStub } }
+      global: { stubs: { RouterLink: RouterLinkStub }, mocks: { $route: { query: {} } } }
     }).text();
   }
 
