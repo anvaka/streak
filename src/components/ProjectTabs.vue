@@ -1,6 +1,9 @@
 <template>
   <div class='tabs' v-if='project'>
-    <router-link :to='{name: "project-overview"}' :class='{current: isCurrentPage("project-overview")}' class='tab-link'>Overview</router-link>
+    <!-- Overview and Insights keep the date filter, so switching between
+         them shows the same days. -->
+    <router-link :to='{name: "project-overview", query: filterQuery}' :class='{current: isCurrentPage("project-overview")}' class='tab-link'>Overview</router-link>
+    <router-link :to='{name: "project-insights", query: filterQuery}' :class='{current: isCurrentPage("project-insights")}' class='tab-link'>Insights</router-link>
     <!--router-link :to='{name: "project-discussion"}' :class='{current: isCurrentPage("project-discussion")}' class='tab-link'>Discuss</router-link-->
     <router-link :to='{name: "project-settings"}' :class='{current: isCurrentPage("project-settings")}' class='tab-link' v-if='canEdit'>Settings</router-link>
   </div>
@@ -23,6 +26,13 @@ export default {
     }
   },
   computed: {
+    filterQuery() {
+      const { from, to } = this.$route.query;
+      const query = {};
+      if (from) query.from = from;
+      if (to) query.to = to;
+      return query;
+    },
     canEdit() {
       return this.project && this.project.canEdit;
     }
