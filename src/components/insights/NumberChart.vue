@@ -37,6 +37,7 @@
 
 <script>
 import { fromDayNumber } from 'src/lib/insights.js';
+import { formatShortDate } from 'src/lib/dateUtils.js';
 import { formatNumber, splitAtBreaks } from 'src/lib/numberStats.js';
 import { getValueScale, getDateTicks, getLabelWidth } from 'src/lib/chartScale.js';
 
@@ -46,7 +47,6 @@ const DATE_SPACE = 22;
 const LEFT = 3;
 const MIN_HEIGHT = 180;
 const MAX_HEIGHT = 260;
-const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default {
   name: 'NumberChart',
@@ -96,8 +96,10 @@ export default {
       return this.width - (getLabelWidth(widest) - 6);
     },
     valueTicks() {
-      return this.scale.ticks.map((value, i) => ({
-        value, base: i === 0, y: this.getY(value), label: this.formatTick(value)
+      // The line bars stand on, or the bottom of the plot, is drawn darker.
+      const base = this.bars ? 0 : this.scale.min;
+      return this.scale.ticks.map(value => ({
+        value, base: value === base, y: this.getY(value), label: this.formatTick(value)
       }));
     },
     dateTicks() {
@@ -155,14 +157,16 @@ export default {
     drawnBars() {
       const step = this.barStep;
       const barWidth = Math.max(1, step - Math.min(2, step / 4));
+      // From zero, up or down: a total can be negative.
+      const zero = this.getY(0);
       return this.bars.map((bar, i) => {
         const y = this.getY(bar.total);
         return {
           day: bar.day,
           x: LEFT + i * step,
-          y,
+          y: Math.min(y, zero),
           width: barWidth,
-          height: Math.max(bar.total ? 1 : 0, this.plotBottom - y),
+          height: Math.max(bar.total ? 1 : 0, Math.abs(zero - y)),
         };
       });
     },
@@ -277,8 +281,7 @@ export default {
       return formatNumber(value, this.scale.decimals);
     },
     formatDay(day) {
-      const date = fromDayNumber(day);
-      return `${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+      return formatShortDate(fromDayNumber(day));
     },
   },
 };

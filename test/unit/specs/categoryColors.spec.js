@@ -147,4 +147,15 @@ describe('ContributionsWall value chips', () => {
     expect(fills.filter(f => f === otherValue).length).toBe(1);
     expect(fills).toContain('rgb(235, 237, 240)');
   });
+
+  it('draws a focused value without a color of its own dark, apart from the gray of the rest', () => {
+    const five = ['A', 'B', 'C', 'D', 'E'];
+    const fills = fillsOf(mountWith(five, {
+      [getDateString(today)]: { groupKey: 'E', values: ['E'], scaledValue: 1 },
+      [getDateString(yesterday)]: { groupKey: 'A', values: ['A'], scaledValue: 1 },
+    }, { focus: 'E' }));
+    expect(fills).toContain('#3f3f3f');
+    expect(fills).toContain(shade(OTHER_COLOR, 0.5).toLowerCase());
+    expect(fills).not.toContain(OTHER_COLOR.toLowerCase());
+  });
 });

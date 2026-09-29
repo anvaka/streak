@@ -5,6 +5,7 @@
  * URL as `focus`, and the heatmap, streaks, records and Insights all follow it.
  */
 import { toCategory } from './project-list/ProjectHistoryViewModel.js';
+import { isDayInside } from './dateUtils.js';
 
 /** The focused value in `query`, or undefined for all records. */
 export function getFocus(query) {
@@ -16,6 +17,16 @@ export function getFocus(query) {
 export function keepFocus(query, currentQuery) {
   const focus = getFocus(currentQuery);
   return focus === undefined ? query : Object.assign({}, query, { focus });
+}
+
+/** The days of `contributionsByDay` between `from` and `to`, or all without `from`. */
+export function daysBetween(contributionsByDay, from, to) {
+  if (!from) return contributionsByDay;
+  const days = {};
+  Object.keys(contributionsByDay || {}).forEach(key => {
+    if (isDayInside(key, from, to)) days[key] = contributionsByDay[key];
+  });
+  return days;
 }
 
 /** How many days have a record with each value. */

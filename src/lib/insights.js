@@ -11,7 +11,7 @@
  * has a minimum count, and the two that compare groups need a significance
  * test to pass as well.
  */
-import { formatDateOnly, getDateFromFilterString } from './dateUtils.js';
+import { formatDateOnly, getDateFromFilterString, WEEKDAY_NAMES as WEEKDAYS } from './dateUtils.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RECENT_DAYS = 30;
@@ -27,8 +27,6 @@ export const MIN_GAPS = 10;
 // each gets half of the usual 5% (Bonferroni).
 const ALPHA = 0.025;
 const MAX_SENTENCES = 3;
-
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /**
  * Everything the Insights tab shows, for the records of `contributionsByDay`
@@ -101,7 +99,11 @@ function getMinuteOfDay(row) {
   return minute;
 }
 
-function getScope(from, to, firstDay, today) {
+/**
+ * The days (day numbers) the date filter covers - `from` to `to`, in either
+ * order and no later than `today` - or `firstDay` to `today` without one.
+ */
+export function getScope(from, to, firstDay, today) {
   const a = from && toDayNumber(getDateFromFilterString(from));
   const b = to ? toDayNumber(getDateFromFilterString(to)) : a;
   if (!Number.isFinite(a) || !Number.isFinite(b)) {
@@ -257,10 +259,7 @@ function getBusiestHalf(minutes) {
 }
 
 function getConsistency(days, scope, today, recordCount) {
-  const streaks = getRuns(days);
-  const longest = maxBy(streaks);
-  const lastStreak = streaks[streaks.length - 1];
-  const current = scope.reachesToday && lastStreak.last >= today - 1 ? lastStreak : null;
+  const { streaks, longest, current } = getStreaks(days, scope, today);
 
   const weekRuns = getRuns(uniqueSorted(days.map(weekOf)));
   const lastWeeks = weekRuns[weekRuns.length - 1];
@@ -293,6 +292,35 @@ function getConsistency(days, scope, today, recordCount) {
     lastDay: fromDayNumber(days[days.length - 1]),
     daysSinceLast: scope.reachesToday ? today - days[days.length - 1] : null,
   };
+}
+
+// Runs of days in a row; the current one ends today or yesterday.
+function getStreaks(days, scope, today) {
+  const streaks = getRuns(days);
+  const lastStreak = streaks[streaks.length - 1];
+  return {
+    streaks,
+    longest: maxBy(streaks),
+    current: scope.reachesToday && lastStreak.last >= today - 1 ? lastStreak : null,
+  };
+}
+
+/**
+ * The days with a record and the streaks - of what getInsights works out -
+ * for setting several values side by side: `{activeDays, longest, current}`,
+ * the streaks' lengths in days. Null when no day is in the filter.
+ */
+export function getDayCounts(contributionsByDay, { from, to } = {}, today = new Date()) {
+  const allDays = uniqueSorted(Object.keys(contributionsByDay || {})
+    .map(key => toDayNumber(getDateFromFilterString(key)))
+    .filter(day => !Number.isNaN(day)));
+  if (allDays.length === 0) return null;
+  const todayNumber = toDayNumber(today);
+  const scope = getScope(from, to, allDays[0], todayNumber);
+  const days = allDays.filter(day => scope.first <= day && day <= scope.last);
+  if (days.length === 0) return null;
+  const { longest, current } = getStreaks(days, scope, todayNumber);
+  return { activeDays: days.length, longest: longest.count, current: current ? current.count : 0 };
 }
 
 // `subject` names the focused value ("Yes" in quotes), or is null.
@@ -397,7 +425,8 @@ function logFactorial(n) {
   return sum;
 }
 
-function median(values) {
+/** The middle value; the lower one of the two middle ones. */
+export function median(values) {
   return quantile(values.slice().sort((a, b) => a - b), 0.5);
 }
 
@@ -418,12 +447,12 @@ export function fromDayNumber(day) {
 }
 
 // January 1, 1970 was a Thursday; 0 is Sunday, as in Date.getDay().
-function weekdayOf(day) {
+export function weekdayOf(day) {
   return (((day + 4) % 7) + 7) % 7;
 }
 
 // Weeks run Sunday to Saturday, as on the heatmap.
-function weekOf(day) {
+export function weekOf(day) {
   return Math.floor((day + 4) / 7);
 }
 

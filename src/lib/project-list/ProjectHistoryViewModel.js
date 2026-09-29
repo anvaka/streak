@@ -53,47 +53,52 @@ export default class ProjectHistoryViewModel {
 
     this.recordsCount = typedRows.length;
   }
+}
 
-  /**
-   * Keeps the records between `from` and `to`, and with `focus` - one value
-   * of the facet column, picked above the heatmap - when that is set.
-   */
-  filter(from, to, focus) {
-    if (from) {
-      this.groups = this.groups.filter(group => {
-        // TODO: this will not work only for date groups
-        if (group.group.valueType !== InputTypes.DATE) {
-          return true;
-        }
-        return isDayInside(group.key, from, to);
-      });
-    }
-    if (focus !== undefined && this.facet) {
-      const { columnIndex } = this.facet;
-      const hasFocus = cells => cells.some(cell => (
-        cell.columnIndex === columnIndex && toCategory(cell.value) === focus
-      ));
-      this.groups = this.groups
-        .map(group => {
-          const items = group.items.filter(hasFocus);
-          if (items.length === group.items.length) return group;
-          return Object.assign({}, group, { items });
-        })
-        .filter(group => group.items.length > 0);
-    }
+/**
+ * The record groups (days) to list: those between `from` and `to`, holding
+ * only their records with `focus` - one value of the `facet` column, picked
+ * above the heatmap - when that is set.
+ */
+export function filterGroups(groups, facet, from, to, focus) {
+  let filtered = groups;
+  if (from) {
+    filtered = filtered.filter(group => {
+      // TODO: this will not work only for date groups
+      if (group.group.valueType !== InputTypes.DATE) {
+        return true;
+      }
+      return isDayInside(group.key, from, to);
+    });
   }
+  if (focus !== undefined && facet) {
+    const { columnIndex } = facet;
+    const hasFocus = cells => cells.some(cell => (
+      cell.columnIndex === columnIndex && toCategory(cell.value) === focus
+    ));
+    filtered = filtered
+      .map(group => {
+        const items = group.items.filter(hasFocus);
+        if (items.length === group.items.length) return group;
+        return Object.assign({}, group, { items });
+      })
+      .filter(group => group.items.length > 0);
+  }
+  return filtered;
 }
 
 /**
  * The column whose values the heatmap colors by and the chips above it
- * offer: the first text column whose values repeat - yes/no, or a handful of
- * activities - rather than free-form notes, where most values are new.
+ * offer: the text column whose values repeat the most - yes/no, or a handful
+ * of activities - rather than free-form notes, where most values are new.
  * What the values mean never matters, only that they come back.
  */
 function getFacetColumnIndex(headers, typedRows) {
-  return headers.findIndex((header, columnIndex) => {
+  let best = -1;
+  let bestShare = Infinity;
+  headers.forEach((header, columnIndex) => {
     if (header.valueType !== InputTypes.TEXT && header.valueType !== InputTypes.SINGLE_LINE_TEXT) {
-      return false;
+      return;
     }
     let filled = 0;
     const distinct = new Set();
@@ -103,9 +108,17 @@ function getFacetColumnIndex(headers, typedRows) {
       filled += 1;
       distinct.add(value);
     });
-    // A few records can't tell the two apart yet, so up to four values count.
-    return filled > 0 && distinct.size <= Math.max(4, filled / 2);
+    // A few records can't tell the two apart yet, so up to four values count;
+    // of the columns that could be it, the most repetitive wins, so a notes
+    // column that happens to qualify early loses to a real yes/no.
+    if (filled === 0 || distinct.size > Math.max(4, filled / 2)) return;
+    const share = distinct.size / filled;
+    if (share < bestShare) {
+      best = columnIndex;
+      bestShare = share;
+    }
   });
+  return best;
 }
 
 function makeContributionsByDayIndex(
@@ -176,7 +189,7 @@ function makeContributionsByDayIndex(
 }
 
 /**
- * The category each day was colored by, earliest day first. The heatmap hands
+ * The categories the days have, earliest day first. The heatmap hands
  * out colors in this order, so a category keeps its color as records are
  * added - a new category can only ever be later than the existing ones.
  */
@@ -190,8 +203,10 @@ function getCategoriesInOrderOfAppearance(contributionsByDay) {
       return x === y ? 0 : (x < y ? -1 : 1);
     });
 
+  // Every value of a day, not only the one it is colored by: a value that is
+  // never a day's last record still gets a chip to focus on.
   const seen = new Set();
-  days.forEach(day => seen.add(day.groupKey));
+  days.forEach(day => (day.values || [day.groupKey]).forEach(value => seen.add(value)));
   return Array.from(seen);
 }
 

@@ -7,7 +7,7 @@
  * week) is right only for some, so that is the owner's choice: the column's
  * `combine` setting, 'sum' or 'average'.
  */
-import { toDayNumber, fromDayNumber } from './insights.js';
+import { toDayNumber, fromDayNumber, weekdayOf, median } from './insights.js';
 
 // The trend moves 10% of the way to each day's value, as in John Walker's
 // Hacker's Diet: day-to-day noise mostly cancels, and a real change shows
@@ -86,20 +86,13 @@ export function getTrend(entries) {
 export function splitAtBreaks(trend) {
   const gaps = [];
   for (let i = 1; i < trend.length; ++i) gaps.push(trend[i].day - trend[i - 1].day);
-  const longest = Math.max(MIN_BREAK, 3 * median(gaps));
+  const longest = gaps.length ? Math.max(MIN_BREAK, 3 * median(gaps)) : MIN_BREAK;
   const pieces = [];
   trend.forEach((point, i) => {
     if (i === 0 || point.day - trend[i - 1].day > longest) pieces.push([]);
     pieces[pieces.length - 1].push(point);
   });
   return pieces;
-}
-
-function median(values) {
-  if (!values.length) return 0;
-  const sorted = values.slice().sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
 /**
@@ -187,10 +180,6 @@ function nextBucket(day, unit) {
 
 function firstOfMonth(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function weekdayOf(day) {
-  return (((day + 4) % 7) + 7) % 7;
 }
 
 // Least-squares slope, per day.

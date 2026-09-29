@@ -15,6 +15,8 @@ export function convertDateToSheetsDateString(str) {
 
 export const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; // eslint-disable-line
+export const SHORT_MONTH_NAMES = MONTH_NAMES.map(name => name.slice(0, 3));
+export const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function formatDowDate(d) {
   // return day, month date, year
@@ -30,6 +32,11 @@ export function formatDateOnly(d) {
   const date = d.getDate();
   const year = d.getFullYear();
   return `${month} ${date}, ${year}`;
+}
+
+/** "Sep 26, 2026" */
+export function formatShortDate(d) {
+  return `${SHORT_MONTH_NAMES[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
 export function formatHoursOnly(d) {

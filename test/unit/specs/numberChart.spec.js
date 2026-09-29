@@ -43,6 +43,10 @@ describe('value gridlines', () => {
     expect(getValueScale([0, 0]).ticks).toEqual([0, 0.5, 1]);
   });
 
+  it('include zero for bars below it', () => {
+    expect(getValueScale([-5, -3, -10], { fromZero: true }).ticks).toEqual([-10, -5, 0]);
+  });
+
   it('are three to six', () => {
     [[1, 2], [70, 90], [0, 1000], [0.01, 0.05], [5, 5], [1234, 1300], [-40, 60]].forEach(values => {
       const n = getValueScale(values).ticks.length;
@@ -181,6 +185,18 @@ describe('picking a day on the chart', () => {
     expect(w.find('.insight-number').text()).toBe('60 total');
     expect(w.find('.nc-subline').text()).toBe('Sat, Sep 26, 2026');
     w.unmount();
+  });
+
+  it('draws totals from zero, up or down', () => {
+    const w = mountCard(numbers([[2, -10], [1, 5], [0, 0]]), 'sum');
+    const zero = w.findAll('.nc-grid line').find(l => l.classes('base'));
+    const zeroY = Number(zero.attributes('y1'));
+    const bars = w.findAll('rect.nc-bar').slice(-3).map(r => ({
+      top: Number(r.attributes('y')), bottom: Number(r.attributes('y')) + Number(r.attributes('height')),
+    }));
+    expect(bars[0].top).toBeCloseTo(zeroY, 6); // -10 hangs below the line
+    expect(bars[1].bottom).toBeCloseTo(zeroY, 6); // 5 stands on it
+    expect(bars[2].bottom - bars[2].top).toBe(0); // nothing: no bar at all
   });
 
   it('forgets the pick when the owner switches to entries', async () => {

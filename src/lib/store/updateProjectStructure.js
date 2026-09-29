@@ -1,8 +1,7 @@
 import constructSheetUpdateDiff from '../sheets/constructSheetUpdateDiff.js';
 import { batchUpdate } from './sheetOperations.js';
-import { clone } from '../utils.js';
 import { resetProjectFileCache, resetSettings, resetSheetDataCache } from './cachingDocs.js';
-import uploadJsonFile from '../gapi/uploadJsonFile.js';
+import saveSettings from './saveSettings.js';
 
 export default function updateProjectStructure(project, newFields) {
   const pendingRequests = [];
@@ -39,34 +38,12 @@ export default function updateProjectStructure(project, newFields) {
 
 
 function updateSettings(project, newFields) {
-  const streakSettings = clone(project.settings || {});
-  // TODO: This is duplicate of the createProject
-  streakSettings.fields = newFields.map(c => {
-    const field = { title: c.title, type: c.type.value };
-    if (c.combine) field.combine = c.combine;
-    return field;
-  });
-
-  const uploadMetadata = {
-    name: 'streak-settings.json',
-    mimeType: 'application/json',
-  };
-
-  if (!project.settingsFileId) {
-    uploadMetadata.parents = [project.id];
-  }
-
-  return uploadJsonFile(
-    uploadMetadata,
-    JSON.stringify(streakSettings, null, 2),
-    project.settingsFileId
-  ).then(response => {
-    // Kept on the loaded project, so a second change made without reloading
-    // updates this file instead of creating another.
-    project.settings = streakSettings;
-    const created = response && response.result && response.result.id;
-    if (!project.settingsFileId && created) project.settingsFileId = created;
-    return response;
+  return saveSettings(project, streakSettings => {
+    // TODO: This is duplicate of the createProject
+    streakSettings.fields = newFields.map(c => {
+      const field = { title: c.title, type: c.type.value };
+      if (c.combine) field.combine = c.combine;
+      return field;
+    });
   });
 }
-

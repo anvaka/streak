@@ -12,6 +12,7 @@ export default function extractHeaderTypesFromData(sheetData, settings) {
   if (settings && settings.fields) {
     // if we have settings, they should override type specification.
     settings.fields.forEach(field => {
+      // A field saved only for its `combine` has no type, and is still guessed.
       setHeaderType(field.title, field.type);
       const header = findHeaderByName(field.title);
       if (header && field.combine) header.combine = field.combine;

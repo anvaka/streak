@@ -2,9 +2,8 @@
  * Axes for the number charts on the Insights tab: a few gridlines on round
  * values, and dates where weeks, months or years begin.
  */
-import { fromDayNumber } from './insights.js';
-
-const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+import { toDayNumber, fromDayNumber, weekdayOf, weekOf } from './insights.js';
+import { SHORT_MONTH_NAMES } from './dateUtils.js';
 
 // About four gridlines: two tell too little, seven are clutter. A step of at
 // least a quarter of the values' span gives three to six of them.
@@ -18,7 +17,7 @@ const PADDING = 0.08;
 /**
  * Gridlines for `values`: `{min, max, ticks}` with `ticks` on round steps
  * (1, 2 or 5 times a power of ten) and `min`/`max` the first and last of them.
- * `fromZero` for bars, which always start at zero.
+ * `fromZero` for bars, which always start at zero - below or above it.
  */
 export function getValueScale(values, { fromZero = false } = {}) {
   let min = Math.min(...values);
@@ -26,6 +25,7 @@ export function getValueScale(values, { fromZero = false } = {}) {
   const neverNegative = min >= 0;
   if (fromZero) {
     min = Math.min(0, min);
+    max = Math.max(0, max);
   } else {
     const minSpan = MIN_SPAN_SHARE * Math.max(Math.abs(min), Math.abs(max));
     if (max - min < minSpan) {
@@ -94,24 +94,38 @@ export function getLabelWidth(chars) {
   return chars * 6.5 + 14;
 }
 
+// Steps straight from one boundary to the next, so ten years of months are
+// a hundred and twenty steps, not three and a half thousand days.
 function datesOf({ unit, every }, first, last) {
   const ticks = [];
-  for (let day = first; day <= last; ++day) {
-    const date = fromDayNumber(day);
-    const month = date.getMonth();
-    if (unit === 'day') {
-      if ((day - first) % every === 0) ticks.push(dayTick(day, date));
-    } else if (unit === 'week') {
-      if (date.getDay() === 0 && Math.floor((day + 4) / 7) % every === 0) ticks.push(dayTick(day, date));
-    } else if (date.getDate() === 1) {
-      if (unit === 'month' && month % every === 0) {
-        ticks.push(month === 0 ?
-          { day, label: String(date.getFullYear()), strong: true } :
-          { day, label: SHORT_MONTHS[month], strong: false });
-      } else if (unit === 'year' && month === 0 && date.getFullYear() % every === 0) {
-        ticks.push({ day, label: String(date.getFullYear()), strong: false });
-      }
+  if (unit === 'day' || unit === 'week') {
+    const start = unit === 'day' ? first : first + (7 - weekdayOf(first)) % 7;
+    const step = unit === 'day' ? every : 7;
+    for (let day = start; day <= last; day += step) {
+      if (unit === 'week' && weekOf(day) % every !== 0) continue;
+      ticks.push(dayTick(day, fromDayNumber(day)));
     }
+    return ticks;
+  }
+  const start = fromDayNumber(first);
+  const months = unit === 'month' ? every : 12 * every;
+  // The first month (or year) that starts on or after `first`, on a multiple of `every`.
+  let year = start.getFullYear();
+  let month = start.getDate() === 1 ? start.getMonth() : start.getMonth() + 1;
+  if (unit === 'year') {
+    if (month > 0) year += 1;
+    month = 0;
+    year = Math.ceil(year / every) * every;
+  } else {
+    month = Math.ceil(month / every) * every;
+  }
+  for (let date = new Date(year, month, 1); ; date = new Date(date.getFullYear(), date.getMonth() + months, 1)) {
+    const day = toDayNumber(date);
+    if (day > last) break;
+    const isYear = date.getMonth() === 0;
+    ticks.push(isYear ?
+      { day, label: String(date.getFullYear()), strong: unit === 'month' } :
+      { day, label: SHORT_MONTH_NAMES[date.getMonth()], strong: false });
   }
   return ticks;
 }
@@ -120,5 +134,5 @@ function dayTick(day, date) {
   const newYear = date.getMonth() === 0 && date.getDate() === 1;
   return newYear ?
     { day, label: String(date.getFullYear()), strong: true } :
-    { day, label: `${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`, strong: false };
+    { day, label: `${SHORT_MONTH_NAMES[date.getMonth()]} ${date.getDate()}`, strong: false };
 }

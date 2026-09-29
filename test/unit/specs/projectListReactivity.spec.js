@@ -74,7 +74,7 @@ describe('ProjectList reactivity through async load', () => {
     resolveProject({
       description: 'Read 30+ minutes', spreadsheetId: 's1', settings: {},
       settingsFileId: 'f1', headers: [], sheetData: [],
-      projectHistory: { filter() {} }
+      projectHistory: {}
     });
     await flush();
     await nextTick();

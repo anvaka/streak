@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import uploadJsonFile from 'src/lib/gapi/uploadJsonFile';
 import getErrorMessage from 'src/lib/gapi/getErrorMessage';
-import updateProjectStructure from 'src/lib/store/updateProjectStructure';
+import saveSettings from 'src/lib/store/saveSettings';
 import setColumnCombine from 'src/lib/store/setColumnCombine';
 import NumberCard from 'src/components/insights/NumberCard.vue';
 
@@ -45,7 +45,7 @@ describe('uploading the settings file', () => {
       id: 'p1', headers: [{ title: 'Date', valueType: 'date' }, { title: 'Minutes', valueType: 'number' }],
       settings: null, settingsFileId: null, projectHistory: { numberColumns: [{ columnIndex: 1, combine: 'average' }] },
     };
-    project.updateStructure = fields => updateProjectStructure(project, fields);
+    project.saveSettings = change => saveSettings(project, change);
 
     await setColumnCombine(project, 1, 'sum');
     expect(project.settingsFileId).toBe('new-file');
@@ -55,6 +55,58 @@ describe('uploading the settings file', () => {
     await setColumnCombine(project, 1, undefined);
     expect(request.mock.calls.map(([options]) => options.method)).toEqual(['POST', 'PATCH']);
     expect(request.mock.calls[1][0].body).not.toContain('"combine"');
+  });
+});
+
+describe('saving whether a column adds up', () => {
+  function project() {
+    const p = {
+      id: 'p1', spreadsheetId: 's1',
+      headers: [{ title: 'Date', valueType: 'date' }, { title: 'Weight', valueType: 'number' },
+        { title: '', valueType: 'text' }, { title: 'Minutes', valueType: 'number' }],
+      settings: null, settingsFileId: null,
+      projectHistory: { numberColumns: [{ columnIndex: 1, combine: 'average' }, { columnIndex: 3, combine: 'average' }] },
+    };
+    p.saveSettings = change => saveSettings(p, change);
+    return p;
+  }
+
+  it('changes only the settings file, never the sheet or the other columns', async () => {
+    const request = fakeGapi([{ result: { id: 'f1' } }]);
+    const p = project();
+    await setColumnCombine(p, 3, 'sum');
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0][0].path).toBe('/upload/drive/v3/files');
+    expect(p.settings).toEqual({ fields: [{ title: 'Minutes', combine: 'sum' }] });
+  });
+
+  it('keeps both of two changes made at once, in one file', async () => {
+    let answer;
+    const request = vi.fn(() => new Promise(resolve => { answer = resolve; }));
+    globalThis.gapi = { client: { request } };
+    const p = project();
+    const first = setColumnCombine(p, 1, 'sum');
+    const second = setColumnCombine(p, 3, 'sum');
+    await new Promise(r => setTimeout(r));
+    expect(request).toHaveBeenCalledTimes(1); // the second waits for the first
+    answer({ result: { id: 'f1' } });
+    await new Promise(r => setTimeout(r));
+    answer({ result: { id: 'f1' } });
+    await Promise.all([first, second]);
+    expect(request.mock.calls.map(([options]) => options.method)).toEqual(['POST', 'PATCH']);
+    expect(JSON.parse(request.mock.calls[1][0].body.split('\r\n\r\n')[2].split('\r\n--')[0]))
+      .toEqual({ fields: [{ title: 'Weight', combine: 'sum' }, { title: 'Minutes', combine: 'sum' }] });
+    expect(p.projectHistory.numberColumns.map(c => c.combine)).toEqual(['sum', 'sum']);
+  });
+
+  it('leaves the loaded settings alone when saving fails, and later saves still go', async () => {
+    fakeGapi([{ status: 500, statusText: 'Server Error' }, { result: { id: 'f1' } }]);
+    const p = project();
+    await expect(setColumnCombine(p, 1, 'sum')).rejects.toBeTruthy();
+    expect(p.settings).toBe(null);
+    expect(p.projectHistory.numberColumns[0].combine).toBe('average');
+    await setColumnCombine(p, 3, 'sum');
+    expect(p.settings).toEqual({ fields: [{ title: 'Minutes', combine: 'sum' }] });
   });
 });
 
@@ -68,12 +120,12 @@ describe('a failed call', () => {
 });
 
 describe('switching a number card between entries and totals', () => {
-  function mountCard(updateStructure) {
+  function mountCard(save) {
     const project = {
       canEdit: true,
       headers: [{ title: 'Date', valueType: 'date' }, { title: 'Minutes', valueType: 'number' }],
       projectHistory: { numberColumns: [] },
-      updateStructure,
+      saveSettings: save,
     };
     const today = new Date();
     const contributions = {

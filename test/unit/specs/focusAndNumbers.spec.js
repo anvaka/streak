@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, RouterLinkStub } from '@vue/test-utils';
-import ProjectHistoryViewModel from 'src/lib/project-list/ProjectHistoryViewModel';
+import ProjectHistoryViewModel, { filterGroups } from 'src/lib/project-list/ProjectHistoryViewModel';
 import extractHeaderTypesFromData from 'src/lib/project-list/utils/extractHeaderTypesFromData';
 import { focusContributions, countDaysByValue, keepFocus } from 'src/lib/facet';
 import { getEntries, getTrend, getNumberSummary, formatChange } from 'src/lib/numberStats';
@@ -81,11 +81,13 @@ describe('numbers on the heatmap', () => {
     );
     expect(headers[1].combine).toBe('sum');
 
-    const updateStructure = vi.fn(() => Promise.resolve());
-    setColumnCombine({ headers, updateStructure }, 1, undefined);
-    const fields = updateStructure.mock.calls[0][0];
-    expect(fields.map(f => [f.title, f.originalTitle, f.type.value, f.combine]))
-      .toEqual([['Date', 'Date', 'date', undefined], ['Minutes', 'Minutes', 'number', undefined]]);
+    const saved = { fields: [{ title: 'Date', type: 'date' }, { title: 'Minutes', type: 'number', combine: 'sum' }] };
+    const saveSettings = vi.fn(change => {
+      change(saved);
+      return Promise.resolve();
+    });
+    setColumnCombine({ headers, saveSettings }, 1, undefined);
+    expect(saved).toEqual({ fields: [{ title: 'Date', type: 'date' }, { title: 'Minutes', type: 'number' }] });
   });
 });
 
@@ -96,9 +98,10 @@ describe('focus', () => {
 
   it('keeps only the records with that value on the overview', () => {
     const history = new ProjectHistoryViewModel(rows, [DATE, ATE_WELL]);
-    history.filter(undefined, undefined, 'No');
-    expect(history.groups.length).toBe(1);
-    expect(history.groups[0].key).toBe('9-25-2026');
+    const groups = filterGroups(history.groups, history.facet, undefined, undefined, 'No');
+    expect(groups.length).toBe(1);
+    expect(groups[0].key).toBe('9-25-2026');
+    expect(history.groups.length).toBe(4);
   });
 
   it('narrows the days to that value, so streaks count only it', () => {

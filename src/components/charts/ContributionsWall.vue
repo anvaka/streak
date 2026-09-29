@@ -37,18 +37,23 @@
 </template>
 
 <script>
-import { getDateString, formatDowDate, getDateFromFilterString } from 'src/lib/dateUtils.js';
+import {
+  getDateString, formatDowDate, getDateFromFilterString, SHORT_MONTH_NAMES, DAY_NAMES
+} from 'src/lib/dateUtils.js';
 
 import { assignCategoryColors, shade, OTHER_COLOR } from 'src/lib/color';
 import { getFocus } from 'src/lib/facet.js';
 import ValueChips from '../ValueChips.vue';
 import { getPeriod, getColumn, getColumnStart } from 'src/lib/heatmapPeriod';
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_NAMES = SHORT_MONTH_NAMES;
 const EMPTY_DAY_COLOR = 'rgb(235, 237, 240)';
 // With one value in focus, a day with only other values is gray: darker than
 // a day with no record at all, which is a different thing (nothing logged).
 const OTHER_VALUE_COLOR = shade(OTHER_COLOR, 0.5);
+// A focused value without a color of its own (the fifth one onwards) is drawn
+// dark, so it stands out from the light gray of the days without it.
+const FOCUSED_OTHER_COLOR = '#3F3F3F';
 // How far towards white the smallest day is drawn. Kept modest: shading says
 // "less", but lighten a color far enough and it starts to pass for another
 // category.
@@ -109,7 +114,7 @@ export default {
     daysOfTheWeek() {
       const { monthHeight, pitch } = this.layout;
       return [1, 3, 5].map(dayIndex => ({
-        name: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayIndex],
+        name: DAY_NAMES[dayIndex],
         y: dayIndex * pitch + monthHeight
       }));
     },
@@ -370,7 +375,9 @@ function getFill(contributions, palette, focus) {
   if (!contributions) return EMPTY_DAY_COLOR;
   if (focus !== undefined) {
     const hasFocus = (contributions.values || []).indexOf(focus) >= 0;
-    return hasFocus ? palette.colorOf(focus) : OTHER_VALUE_COLOR;
+    if (!hasFocus) return OTHER_VALUE_COLOR;
+    const color = palette.colorOf(focus);
+    return color === OTHER_COLOR ? FOCUSED_OTHER_COLOR : color;
   }
 
   const color = palette.colorOf(contributions.groupKey);

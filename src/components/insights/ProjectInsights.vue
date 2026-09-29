@@ -1,7 +1,7 @@
 <template>
   <div class='project-insights' v-if='project && project.projectHistory'>
     <selected-filters :from='$route.query.from' :to='$route.query.to' :project-id='project.id'></selected-filters>
-    <value-chips v-if='palette.legend.length > 1' :legend='palette.legend' :dates='allDays' :focus='focus'></value-chips>
+    <value-chips v-if='palette.legend.length > 1' :legend='palette.legend' :dates='daysInFilter' :focus='focus'></value-chips>
 
     <p v-if='!insights' class='vertical-padding secondary'>{{emptyMessage}}</p>
     <template v-else>
@@ -70,14 +70,13 @@ import ValueChips from '../ValueChips.vue';
 import InsightBars from './InsightBars.vue';
 import NumberCard from './NumberCard.vue';
 import { assignCategoryColors } from 'src/lib/color.js';
-import { getFocus, keepFocus, focusContributions } from 'src/lib/facet.js';
-import { MONTH_NAMES, formatDateOnly, getDateString } from 'src/lib/dateUtils.js';
+import { getFocus, keepFocus, focusContributions, daysBetween } from 'src/lib/facet.js';
+import { MONTH_NAMES, WEEKDAY_NAMES as WEEKDAYS, formatDateOnly, getDateString } from 'src/lib/dateUtils.js';
 import {
-  getInsights, formatDays, formatHour, percent,
+  getInsights, getDayCounts, formatDays, formatHour, percent,
   MIN_WEEKS_FOR_CHART, MIN_TIMED_FOR_CHART, MIN_GAPS
 } from 'src/lib/insights.js';
-
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+import now from 'src/lib/today.js';
 
 export default {
   name: 'ProjectInsights',
@@ -91,6 +90,11 @@ export default {
   computed: {
     allDays() {
       return this.project.projectHistory.contributionsByDay;
+    },
+    // The chips count the days in the date filter, as everything below does.
+    daysInFilter() {
+      const { from, to } = this.$route.query;
+      return daysBetween(this.allDays, from, to);
     },
     palette() {
       return assignCategoryColors(this.project.projectHistory.categories || []);
@@ -109,7 +113,7 @@ export default {
     // All records, whatever their value.
     allInsights() {
       const { from, to } = this.$route.query;
-      return getInsights(this.allDays, { from, to });
+      return getInsights(this.allDays, { from, to }, now());
     },
     // A value in focus is measured against how often anything is recorded:
     // "Yes" on 5 of the 7 days you log is 5 of 7, not a perfect "Yes" pace.
@@ -117,7 +121,7 @@ export default {
       if (this.focus === undefined) return this.allInsights;
       const { from, to } = this.$route.query;
       const target = this.allInsights && this.allInsights.strength.target;
-      return getInsights(this.days, { from, to, focus: this.focus, target });
+      return getInsights(this.days, { from, to, focus: this.focus, target }, now());
     },
     valueRows() {
       if (this.focus !== undefined || !this.project.projectHistory.facet) return [];
@@ -127,12 +131,11 @@ export default {
         .filter(entry => typeof entry.value === 'string')
         .map(entry => {
           const days = focusContributions(this.allDays, this.project.projectHistory.facet, entry.value);
-          const insights = getInsights(days, { from, to });
-          const c = insights && insights.consistency;
+          const c = getDayCounts(days, { from, to }, now());
           const count = c ? c.activeDays : 0;
           const streaks = c ? [
-            c.current ? `${c.current.count} now` : null,
-            `${c.longest.count} best`,
+            c.current ? `${c.current} now` : null,
+            `${c.longest} best`,
           ].filter(Boolean).join(', ') : '';
           return {
             label: entry.label,

@@ -35,17 +35,17 @@
 
 <script>
 import NumberChart from './NumberChart.vue';
-import { formatDateOnly, getDateFromFilterString } from 'src/lib/dateUtils.js';
-import { toDayNumber, fromDayNumber, formatDays } from 'src/lib/insights.js';
+import { formatShortDate, DAY_NAMES } from 'src/lib/dateUtils.js';
+import { toDayNumber, fromDayNumber, formatDays, getScope } from 'src/lib/insights.js';
 import {
   RANGES, getEntries, getNumberSummary, formatNumber, formatChange
 } from 'src/lib/numberStats.js';
 import setColumnCombine from 'src/lib/store/setColumnCombine.js';
 import getErrorMessage from 'src/lib/gapi/getErrorMessage.js';
+import now from 'src/lib/today.js';
 
 const DEFAULT_RANGE = '3M';
 const RANGE_KEY = 'streak.numberRange';
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default {
   name: 'NumberCard',
@@ -85,19 +85,15 @@ export default {
       return getEntries(this.contributions, this.column.columnIndex);
     },
     today() {
-      return toDayNumber(new Date());
+      return toDayNumber(now());
     },
     // The date filter decides the days when there is one; otherwise the
     // chosen range, ending today and starting no earlier than the first entry.
     bounds() {
       const { from, to } = this.$route.query;
-      if (from) {
-        const a = toDayNumber(getDateFromFilterString(from));
-        const b = to ? toDayNumber(getDateFromFilterString(to)) : a;
-        return { first: Math.min(a, b), last: Math.min(Math.max(a, b), this.today) };
-      }
-      const range = RANGES.find(r => r.name === this.rangeName);
       const firstEntry = this.entries.length ? this.entries[0].day : this.today;
+      if (from) return getScope(from, to, firstEntry, this.today);
+      const range = RANGES.find(r => r.name === this.rangeName);
       return { first: Math.max(firstEntry, this.today - range.days + 1), last: this.today };
     },
     first() {
@@ -143,7 +139,7 @@ export default {
       }
       const parts = [];
       if (summary.change !== null) {
-        parts.push(`${formatChange(summary.change, decimals)} since ${formatShort(summary.changeSince)}`);
+        parts.push(`${formatChange(summary.change, decimals)} since ${formatShortDate(summary.changeSince)}`);
       }
       if (summary.perWeek !== null) {
         parts.push(`about ${formatChange(summary.perWeek, Math.max(1, decimals))} a week lately`);
@@ -155,12 +151,12 @@ export default {
       const { decimals } = summary;
       const entries = summary.count === 1 ? '1 entry' : `${summary.count.toLocaleString('en-US')} entries`;
       if (this.isSum) {
-        const when = summary.unit === 'week' ? `week of ${formatShort(fromDayNumber(summary.best.day))}` :
+        const when = summary.unit === 'week' ? `week of ${formatShortDate(fromDayNumber(summary.best.day))}` :
           this.formatBucket(summary.best.day);
         return `Most in a ${summary.unit}: ${formatNumber(summary.best.total, decimals)} (${when}) · ${entries}`;
       }
-      return `Lowest ${formatNumber(summary.lowest.value, decimals)} (${formatShort(fromDayNumber(summary.lowest.day))}) · ` +
-        `highest ${formatNumber(summary.highest.value, decimals)} (${formatShort(fromDayNumber(summary.highest.day))}) · ` +
+      return `Lowest ${formatNumber(summary.lowest.value, decimals)} (${formatShortDate(fromDayNumber(summary.lowest.day))}) · ` +
+        `highest ${formatNumber(summary.highest.value, decimals)} (${formatShortDate(fromDayNumber(summary.highest.day))}) · ` +
         entries;
     },
   },
@@ -175,8 +171,8 @@ export default {
     },
     formatBucket(day) {
       const date = fromDayNumber(day);
-      if (this.summary.unit === 'month') return formatShort(date).replace(/ \d+,/, '');
-      if (this.summary.unit === 'week') return 'Week of ' + formatShort(date);
+      if (this.summary.unit === 'month') return formatShortDate(date).replace(/ \d+,/, '');
+      if (this.summary.unit === 'week') return 'Week of ' + formatShortDate(date);
       return formatLong(date);
     },
     setCombine(isSum) {
@@ -198,13 +194,9 @@ export default {
   },
 };
 
-function formatShort(date) {
-  return formatDateOnly(date).replace(/^(\w{3})\w*/, '$1');
-}
-
 // "Sat, Sep 26, 2026"
 function formatLong(date) {
-  return `${WEEKDAYS[date.getDay()]}, ${formatShort(date)}`;
+  return `${DAY_NAMES[date.getDay()]}, ${formatShortDate(date)}`;
 }
 
 // The range picked last time, on any card: someone who looks at a year

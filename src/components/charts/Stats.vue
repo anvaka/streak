@@ -9,6 +9,7 @@
 <script>
 import { formatDateOnly, getDateFromFilterString, getDateString } from 'src/lib/dateUtils.js';
 import { getFocus, keepFocus, focusContributions } from 'src/lib/facet.js';
+import now from 'src/lib/today.js';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 export default {
@@ -22,7 +23,7 @@ export default {
     streakStats() {
       const { contributionsByDay, facet } = this.project.projectHistory;
       const dates = focusContributions(contributionsByDay, facet, this.focus);
-      return computeStreakStats(Object.keys(dates).map(getDateFromFilterString));
+      return computeStreakStats(Object.keys(dates).map(getDateFromFilterString), now());
     },
     streaks() {
       const of = this.focus === undefined ? '' : ` (${this.focus})`;
@@ -60,7 +61,7 @@ export default {
   }
 };
 
-function computeStreakStats(dates) {
+function computeStreakStats(dates, currentTime) {
   dates.sort((y, x) => y - x);
 
   const longestStreak = {
@@ -92,9 +93,7 @@ function computeStreakStats(dates) {
     // last streak). Maybe I'll optimize it in future. For now, keeping it simple.
     const lastContributedDay = dates[dates.length - 1];
     currentStreak.end = lastContributedDay;
-    const now = new Date();
-
-    if (moreThanOneDay(now, lastContributedDay)) {
+    if (moreThanOneDay(currentTime, lastContributedDay)) {
       return currentStreak;
     }
     // means we have contributed something today or yesterday.

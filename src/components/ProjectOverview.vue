@@ -27,7 +27,7 @@
     <router-link class='add-record-link action vertical-padding' :to='{name: "add-record", params: {projectId}, query: {date: getFromDate()}}' v-if='hasSomethingOnTheWall && project.canEdit'>Add record</router-link>
 
     <div v-if='project && project.projectHistory' class='project-details list'>
-      <div v-for='(groupRecord, groupIndex) in project.projectHistory.groups' :key='groupIndex' class='group-record'>
+      <div v-for='(groupRecord, groupIndex) in groups' :key='groupIndex' class='group-record'>
         <h4>{{getUICellValue(groupRecord.group, /* isHeader =*/ true)}}</h4>
         <div v-for='(row, rowIndex) in groupRecord.items' :key='rowIndex' class='subgroup'>
           <!-- v-if has to sit on an inner element, not alongside v-for: in Vue 3
@@ -62,6 +62,8 @@ import renderMakrdown from '../lib/markdown/index.js';
 import ContributionsWallContainer from './charts/ContributionsWallContainer.vue';
 import ContributionStats from './charts/Stats.vue';
 import SelectedFilters from './SelectedFilters.vue';
+import { filterGroups } from '../lib/project-list/ProjectHistoryViewModel.js';
+import { getFocus } from '../lib/facet.js';
 
 export default {
   name: 'ProjectOverview',
@@ -84,8 +86,18 @@ export default {
       return this.hasValidProject() && this.project.settings.charts;
     },
 
+    // The records in the date filter and with the focused value, if any.
+    // Worked out here rather than when the project loads, so changing the
+    // filter doesn't fetch the sheet again.
+    groups() {
+      const { projectHistory } = this.project;
+      if (!projectHistory || !projectHistory.groups) return [];
+      const { from, to } = this.$route.query;
+      return filterGroups(projectHistory.groups, projectHistory.facet, from, to, getFocus(this.$route.query));
+    },
+
     hasSomethingOnTheWall() {
-      return this.hasValidProject() && this.project.projectHistory.groups.length > 0;
+      return this.hasValidProject() && this.groups.length > 0;
     },
 
     noRecordsAtAll() {
@@ -95,7 +107,7 @@ export default {
       if (!this.hasValidProject()) return false;
       const { projectHistory } = this.project;
 
-      return projectHistory.recordsCount > 0 && projectHistory.groups.length === 0;
+      return projectHistory.recordsCount > 0 && this.groups.length === 0;
     },
     projectId() {
       return this.project.id;
