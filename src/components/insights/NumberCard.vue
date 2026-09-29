@@ -32,13 +32,13 @@
 
 <script>
 import NumberChart from './NumberChart.vue';
-import bus from 'src/lib/bus.js';
 import { formatDateOnly, getDateFromFilterString } from 'src/lib/dateUtils.js';
 import { toDayNumber, fromDayNumber, formatDays } from 'src/lib/insights.js';
 import {
   RANGES, getEntries, getNumberSummary, formatNumber, formatChange
 } from 'src/lib/numberStats.js';
 import setColumnCombine from 'src/lib/store/setColumnCombine.js';
+import getErrorMessage from 'src/lib/gapi/getErrorMessage.js';
 
 const DEFAULT_RANGE = '3M';
 
@@ -51,14 +51,21 @@ export default {
     NumberChart,
   },
   data() {
-    return { rangeName: DEFAULT_RANGE, saving: false, saveError: '' };
+    // `combine` is shown at once when the owner switches it, and saved
+    // behind it; it goes back if saving fails.
+    return { rangeName: DEFAULT_RANGE, combine: this.column.combine, saving: false, saveError: '' };
+  },
+  watch: {
+    'column.combine'(combine) {
+      this.combine = combine;
+    },
   },
   computed: {
     ranges() {
       return RANGES;
     },
     isSum() {
-      return this.column.combine === 'sum';
+      return this.combine === 'sum';
     },
     filtered() {
       return !!this.$route.query.from;
@@ -90,7 +97,7 @@ export default {
     },
     summary() {
       return getNumberSummary(this.entries, {
-        first: this.first, last: this.last, combine: this.column.combine
+        first: this.first, last: this.last, combine: this.combine
       });
     },
     headline() {
@@ -134,16 +141,18 @@ export default {
   methods: {
     setCombine(isSum) {
       if (isSum === this.isSum || this.saving) return;
+      const previous = this.combine;
+      this.combine = isSum ? 'sum' : 'average';
       this.saving = true;
       this.saveError = '';
       setColumnCombine(this.project, this.column.columnIndex, isSum ? 'sum' : undefined)
         .then(() => {
           this.saving = false;
-          bus.fire('reload-project');
         })
         .catch(err => {
           this.saving = false;
-          this.saveError = (err && err.message) || String(err);
+          this.combine = previous;
+          this.saveError = getErrorMessage(err);
         });
     },
   },

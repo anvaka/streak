@@ -60,6 +60,13 @@ function updateSettings(project, newFields) {
     uploadMetadata,
     JSON.stringify(streakSettings, null, 2),
     project.settingsFileId
-  );
+  ).then(response => {
+    // Kept on the loaded project, so a second change made without reloading
+    // updates this file instead of creating another.
+    project.settings = streakSettings;
+    const created = response && response.result && response.result.id;
+    if (!project.settingsFileId && created) project.settingsFileId = created;
+    return response;
+  });
 }
 

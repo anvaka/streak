@@ -37,7 +37,10 @@ export default function uploadJsonFile(fileMetadata, jsonContent, fileId) {
       },
       body
     }).then(resolve, handleAuthError(() => {
-      return uploadJsonFile(name, jsonContent);
+      // The same upload again once sign-in is renewed. This used to pass
+      // `name` (window.name) and no file id, so an expired token turned a
+      // settings update into a new untitled file, and the save never finished.
+      return uploadJsonFile(fileMetadata, jsonContent, fileId).then(resolve, reject);
     }, reject));
   });
 }
