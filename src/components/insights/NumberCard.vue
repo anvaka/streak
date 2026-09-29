@@ -4,17 +4,20 @@
       <h3>{{column.title}} <span class='secondary'>{{note}}</span></h3>
       <div v-if='!filtered' class='nc-ranges' role='group' aria-label='Period'>
         <button v-for='range in ranges' :key='range.name' type='button' :class='{selected: range.name === rangeName}'
-            :aria-pressed='range.name === rangeName ? "true" : "false"' @click='rangeName = range.name'>{{range.name}}</button>
+            :aria-pressed='range.name === rangeName ? "true" : "false"' @click='setRange(range.name)'>{{range.name}}</button>
       </div>
     </div>
 
     <p v-if='!summary' class='secondary'>Nothing recorded in this period.</p>
     <template v-else>
-      <!-- The number says what it is: a trend or a total, never a bare value. -->
-      <div class='insight-number'>{{headline}} <span class='insight-unit'>{{headlineUnit}}</span></div>
-      <div class='secondary small'>{{changeLine}}</div>
+      <!-- The number says what it is: a trend, an entry or a total, never a
+           bare value. It reads out the day picked on the chart, if any. -->
+      <div aria-live='polite'>
+        <div class='insight-number'>{{headline}} <span class='insight-unit'>{{headlineUnit}}</span></div>
+        <div class='secondary small nc-subline'>{{changeLine}}</div>
+      </div>
       <number-chart :entries='summary.entries' :trend='summary.trend' :bars='summary.buckets' :unit='summary.unit'
-          :first='first' :last='last' :decimals='summary.decimals'></number-chart>
+          :first='first' :last='last' :decimals='summary.decimals' @pick='picked = $event'></number-chart>
       <div class='secondary small'>{{statsLine}}</div>
     </template>
 
@@ -41,6 +44,8 @@ import setColumnCombine from 'src/lib/store/setColumnCombine.js';
 import getErrorMessage from 'src/lib/gapi/getErrorMessage.js';
 
 const DEFAULT_RANGE = '3M';
+const RANGE_KEY = 'streak.numberRange';
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default {
   name: 'NumberCard',
@@ -53,12 +58,18 @@ export default {
   data() {
     // `combine` is shown at once when the owner switches it, and saved
     // behind it; it goes back if saving fails.
-    return { rangeName: DEFAULT_RANGE, combine: this.column.combine, saving: false, saveError: '' };
+    return {
+      rangeName: getSavedRange(), combine: this.column.combine, saving: false, saveError: '', picked: null
+    };
   },
   watch: {
     'column.combine'(combine) {
       this.combine = combine;
     },
+    // A pick belongs to the chart as it was.
+    combine() { this.picked = null; },
+    first() { this.picked = null; },
+    last() { this.picked = null; },
   },
   computed: {
     ranges() {
@@ -101,16 +112,30 @@ export default {
       });
     },
     headline() {
-      const { summary } = this;
+      const { summary, picked } = this;
+      if (picked) {
+        const value = this.isSum ? picked.total : picked.values.reduce((a, b) => a + b, 0) / picked.values.length;
+        return formatNumber(value, summary.decimals);
+      }
       return formatNumber(this.isSum ? summary.total : summary.current, summary.decimals);
     },
     headlineUnit() {
-      return this.isSum ? 'total' : 'trend';
+      const { picked } = this;
+      if (this.isSum) return 'total';
+      if (!picked) return 'trend';
+      return picked.values.length === 1 ? 'entered' : `average of ${picked.values.length}`;
     },
     // Neutral on purpose: the app can't know whether up is good.
     changeLine() {
-      const { summary } = this;
+      const { summary, picked } = this;
       const { decimals } = summary;
+      if (picked) {
+        if (this.isSum) return this.formatBucket(picked.day);
+        const parts = [formatLong(fromDayNumber(picked.day))];
+        if (picked.values.length > 1) parts.push(picked.values.map(v => formatNumber(v, decimals)).join(', '));
+        if (picked.trend !== null) parts.push(`trend ${formatNumber(picked.trend, decimals)}`);
+        return parts.join(' · ');
+      }
       if (this.isSum) {
         if (summary.previousTotal === null) return '';
         return `${formatNumber(summary.previousTotal, decimals)} in the ` +
@@ -130,8 +155,9 @@ export default {
       const { decimals } = summary;
       const entries = summary.count === 1 ? '1 entry' : `${summary.count.toLocaleString('en-US')} entries`;
       if (this.isSum) {
-        return `Most in a ${summary.unit}: ${formatNumber(summary.best.total, decimals)} ` +
-          `(${formatShort(fromDayNumber(summary.best.day))}) · ${entries}`;
+        const when = summary.unit === 'week' ? `week of ${formatShort(fromDayNumber(summary.best.day))}` :
+          this.formatBucket(summary.best.day);
+        return `Most in a ${summary.unit}: ${formatNumber(summary.best.total, decimals)} (${when}) · ${entries}`;
       }
       return `Lowest ${formatNumber(summary.lowest.value, decimals)} (${formatShort(fromDayNumber(summary.lowest.day))}) · ` +
         `highest ${formatNumber(summary.highest.value, decimals)} (${formatShort(fromDayNumber(summary.highest.day))}) · ` +
@@ -139,6 +165,20 @@ export default {
     },
   },
   methods: {
+    setRange(name) {
+      this.rangeName = name;
+      try {
+        localStorage.setItem(RANGE_KEY, name);
+      } catch (err) {
+        // Only a convenience: the range just isn't remembered.
+      }
+    },
+    formatBucket(day) {
+      const date = fromDayNumber(day);
+      if (this.summary.unit === 'month') return formatShort(date).replace(/ \d+,/, '');
+      if (this.summary.unit === 'week') return 'Week of ' + formatShort(date);
+      return formatLong(date);
+    },
     setCombine(isSum) {
       if (isSum === this.isSum || this.saving) return;
       const previous = this.combine;
@@ -160,6 +200,23 @@ export default {
 
 function formatShort(date) {
   return formatDateOnly(date).replace(/^(\w{3})\w*/, '$1');
+}
+
+// "Sat, Sep 26, 2026"
+function formatLong(date) {
+  return `${WEEKDAYS[date.getDay()]}, ${formatShort(date)}`;
+}
+
+// The range picked last time, on any card: someone who looks at a year
+// once probably wants a year next time too.
+function getSavedRange() {
+  try {
+    const name = localStorage.getItem(RANGE_KEY);
+    if (RANGES.some(range => range.name === name)) return name;
+  } catch (err) {
+    // Storage can be off; the default will do.
+  }
+  return DEFAULT_RANGE;
 }
 </script>
 
@@ -194,8 +251,11 @@ function formatShort(date) {
       color: base-text-color;
     }
   }
+  .nc-subline {
+    min-height: 1.5em;
+  }
   .number-chart {
-    margin: 10px 0 4px;
+    margin: 12px 0 8px;
   }
   .nc-combine {
     margin-top: 8px;

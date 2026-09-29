@@ -194,6 +194,7 @@ describe('number totals', () => {
 });
 
 describe('number card', () => {
+  beforeEach(() => localStorage.clear());
   const column = { columnIndex: 1, title: 'Weight', combine: 'average' };
   function mountCard(contributions, { query = {}, canEdit = false, col = column } = {}) {
     return mount(NumberCard, {
@@ -208,13 +209,13 @@ describe('number card', () => {
     expect(w.text()).toContain('Lowest 72.1 (Sep 26, 2026)');
     expect(w.text()).toContain('highest 74.0 (Aug 17, 2026)');
     expect(w.text()).toContain('−1.5 since Aug 17, 2026');
-    expect(w.findAll('circle').length).toBe(4);
+    expect(w.findAll('circle.nc-dot').length).toBe(4);
   });
 
   it('narrows to a month and back', async () => {
     const w = mountCard(numbers([[40, 74], [20, 73.5], [10, 72.9], [0, 72.1]]));
     await w.findAll('.nc-ranges button').find(b => b.text() === '1M').trigger('click');
-    expect(w.findAll('circle').length).toBe(3);
+    expect(w.findAll('circle.nc-dot').length).toBe(3);
   });
 
   it('shows totals as bars for a column that adds up', () => {

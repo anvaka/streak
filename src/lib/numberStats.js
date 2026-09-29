@@ -17,10 +17,13 @@ const SMOOTHING = 0.1;
 const RATE_DAYS = 28;
 const MIN_RATE_POINTS = 4;
 const MIN_RATE_SPAN = 14;
+// The trend line breaks over a gap this long, or three times the usual one.
+const MIN_BREAK = 14;
 
 export const RANGES = [
   { name: '1M', days: 30 },
   { name: '3M', days: 91 },
+  { name: '6M', days: 182 },
   { name: '1Y', days: 365 },
   { name: 'All', days: Infinity },
 ];
@@ -74,6 +77,29 @@ export function getTrend(entries) {
     trend.push({ day: point.day, value: previous.value + weight * (value - previous.value) });
   });
   return trend;
+}
+
+/**
+ * `trend` in pieces, cut where the entries stop for a while: the line isn't
+ * drawn across days nobody measured.
+ */
+export function splitAtBreaks(trend) {
+  const gaps = [];
+  for (let i = 1; i < trend.length; ++i) gaps.push(trend[i].day - trend[i - 1].day);
+  const longest = Math.max(MIN_BREAK, 3 * median(gaps));
+  const pieces = [];
+  trend.forEach((point, i) => {
+    if (i === 0 || point.day - trend[i - 1].day > longest) pieces.push([]);
+    pieces[pieces.length - 1].push(point);
+  });
+  return pieces;
+}
+
+function median(values) {
+  if (!values.length) return 0;
+  const sorted = values.slice().sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
 /**
