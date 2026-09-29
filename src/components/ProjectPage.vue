@@ -20,6 +20,9 @@ import Loading from './Loading.vue';
 import bus from '../lib/bus.js';
 import setPageTitle from '../lib/setPageTitle.js';
 
+// Tabs that show the loaded records without changing them.
+const VIEWS = ['project-overview', 'project-insights'];
+
 export default {
   name: 'ProjectPage',
   props: ['project'],
@@ -35,7 +38,12 @@ export default {
     };
   },
   watch: {
-    $route(/* to, from */) {
+    // Coming back from adding or editing a record needs the sheet again;
+    // changing the date filter or the focus, or going between the overview
+    // and Insights, only looks at it differently.
+    $route(to, from) {
+      if (to.path === from.path) return;
+      if (VIEWS.includes(to.name) && VIEWS.includes(from.name)) return;
       this.loadCurrentProject();
     },
     project() {
@@ -60,9 +68,7 @@ export default {
 
         setPageTitle(this.project.title);
 
-        const from = this.$route.query.from;
-        const to = this.$route.query.to;
-        this.project.load(from, to).then(() => {
+        this.project.load().then(() => {
           this.loading = false;
         }).catch(err => {
           this.loading = false;

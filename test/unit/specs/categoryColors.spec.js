@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { mount, RouterLinkStub } from '@vue/test-utils';
 import { assignCategoryColors, shade, hexToOklab, CATEGORY_COLORS, OTHER_COLOR } from 'src/lib/color';
 import ProjectHistoryViewModel from 'src/lib/project-list/ProjectHistoryViewModel';
 import ContributionsWall from 'src/components/charts/ContributionsWall.vue';
@@ -20,12 +20,11 @@ describe('assignCategoryColors', () => {
     expect(after.colorOf('Swim')).toBe(before.colorOf('Swim'));
   });
 
-  it('pins yes to blue and no to vermillion, whichever came first', () => {
-    // The case that prompted this: yes/no landing on the palette's red and pink.
+  it('gives yes and no no special colors: what a value says never matters', () => {
     const { colorOf } = assignCategoryColors(['Gym', 'no', 'Yes']);
-    expect(colorOf('Yes')).toBe(BLUE);
+    expect(colorOf('Gym')).toBe(BLUE);
     expect(colorOf('no')).toBe(VERMILLION);
-    expect(colorOf('Gym')).toBe(WINE);
+    expect(colorOf('Yes')).toBe(WINE);
   });
 
   it('folds a fifth category into Other instead of reusing a color', () => {
@@ -100,29 +99,63 @@ describe('ProjectHistoryViewModel categories', () => {
   });
 });
 
-describe('ContributionsWall legend', () => {
-  function mountWith(categories, dates = {}) {
+describe('ContributionsWall value chips', () => {
+  function mountWith(categories, dates = {}, query = {}) {
     return mount(ContributionsWall, {
       props: { dates, categories, settings: {} },
-      global: { mocks: { $route: { query: {} } } },
+      global: {
+        mocks: { $route: { name: 'project-overview', params: { projectId: 'p1' }, query } },
+        stubs: { RouterLink: RouterLinkStub },
+      },
     });
   }
+  const today = new Date();
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  const dates = {
+    [getDateString(today)]: { groupKey: 'No', values: ['No'], scaledValue: 1 },
+    [getDateString(yesterday)]: { groupKey: 'Yes', values: ['Yes'], scaledValue: 1 },
+  };
+  const fillsOf = w => w.findAll('rect').map(r => r.attributes('fill').toLowerCase());
 
-  it('names the colors when there is more than one category', () => {
-    const w = mountWith(['Yes', 'No']);
-    expect(w.findAll('.cw-legend li').map(li => li.text())).toEqual(['Yes', 'No']);
+  it('names the colors, with how many days have each', () => {
+    const w = mountWith(['Yes', 'No'], dates);
+    expect(w.findAll('.value-chip').map(c => c.text().replace(/\s+/g, ' '))).toEqual(['All', 'Yes 1', 'No 1']);
   });
 
-  it('shows no legend for a single category', () => {
-    expect(mountWith(['Run']).find('.cw-legend').exists()).toBe(false);
+  it('shows no chips for a single category', () => {
+    expect(mountWith(['Run']).find('.value-chips').exists()).toBe(false);
   });
 
   it('paints a day in its category color', () => {
-    const today = new Date();
-    const w = mountWith(['Yes', 'No'], {
-      [getDateString(today)]: { groupKey: 'No', scaledValue: 1 },
-    });
-    const fills = w.findAll('rect').map(r => r.attributes('fill').toLowerCase());
-    expect(fills).toContain(VERMILLION.toLowerCase());
+    expect(fillsOf(mountWith(['Yes', 'No'], dates))).toContain(VERMILLION.toLowerCase());
+  });
+
+  it('links each chip to a focus on its value, and the focused one back to all', () => {
+    const w = mountWith(['Yes', 'No'], dates, { from: '1-1-2026', focus: 'Yes' });
+    const [all, yes, no] = w.findAllComponents(RouterLinkStub).map(l => l.props('to').query);
+    expect(all).toEqual({ from: '1-1-2026' });
+    expect(yes).toEqual({ from: '1-1-2026' });
+    expect(no).toEqual({ from: '1-1-2026', focus: 'No' });
+    expect(w.find('.value-chip.selected').text()).toMatch(/^Yes/);
+  });
+
+  it('grays days with other values when focused, and keeps empty days empty', () => {
+    const fills = fillsOf(mountWith(['Yes', 'No'], dates, { focus: 'Yes' }));
+    expect(fills).toContain(BLUE.toLowerCase());
+    expect(fills).not.toContain(VERMILLION.toLowerCase());
+    const otherValue = shade(OTHER_COLOR, 0.5).toLowerCase();
+    expect(fills.filter(f => f === otherValue).length).toBe(1);
+    expect(fills).toContain('rgb(235, 237, 240)');
+  });
+
+  it('draws a focused value without a color of its own dark, apart from the gray of the rest', () => {
+    const five = ['A', 'B', 'C', 'D', 'E'];
+    const fills = fillsOf(mountWith(five, {
+      [getDateString(today)]: { groupKey: 'E', values: ['E'], scaledValue: 1 },
+      [getDateString(yesterday)]: { groupKey: 'A', values: ['A'], scaledValue: 1 },
+    }, { focus: 'E' }));
+    expect(fills).toContain('#3f3f3f');
+    expect(fills).toContain(shade(OTHER_COLOR, 0.5).toLowerCase());
+    expect(fills).not.toContain(OTHER_COLOR.toLowerCase());
   });
 });

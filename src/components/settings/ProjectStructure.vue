@@ -142,6 +142,8 @@ function cloneFields(fields) {
     originalTitle: f.title,
     error: false,
     type: getFieldByType(f.valueType),
+    // Kept through a structure edit; set from a number's card on Insights.
+    combine: f.combine,
     columnIndex: idx
   }));
 }

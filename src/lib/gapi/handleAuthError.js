@@ -6,7 +6,7 @@ function handleAuthError(retryCallback, rejectCallback) {
   return err => {
     // TODO: should I give up at some point?
     const isInvalidCredentials = (err.status === 401) &&
-      err.result && (
+      err.result && err.result.error && (
         // Google drive returns one error message
         (err.result.error.status === 'UNAUTHENTICATED') ||
         // while google sheets another

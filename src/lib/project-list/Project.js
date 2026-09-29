@@ -1,6 +1,7 @@
 import loadProject from './loadProject.js';
 import updateProjectInfo from '../store/updateProjectInfo.js';
 import updateProjectStructure from '../store/updateProjectStructure.js';
+import saveSettings from '../store/saveSettings.js';
 import moveProjectToTrash from '../store/moveProjectToTrash.js';
 import { updateRow, deleteRow } from '../store/sheetOperations.js';
 
@@ -26,7 +27,7 @@ export default class Project {
     this.sheetData = [];
   }
 
-  load(from, to) {
+  load() {
     this.loading = true;
 
     return loadProject(this.id).then(vm => {
@@ -38,8 +39,6 @@ export default class Project {
       this.settingsFileId = vm.settingsFileId;
       this.headers = vm.headers;
       this.sheetData = vm.sheetData;
-
-      vm.projectHistory.filter(from, to);
 
       this.projectHistory = vm.projectHistory;
 
@@ -67,6 +66,10 @@ export default class Project {
 
   updateStructure(newProjectStructure) {
     return updateProjectStructure(this, newProjectStructure);
+  }
+
+  saveSettings(change) {
+    return saveSettings(this, change);
   }
 
   moveToTrash() {

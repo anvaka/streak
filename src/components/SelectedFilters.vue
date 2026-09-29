@@ -1,15 +1,19 @@
 <template>
   <div v-if='hasFilters' class='filter-message'>
    {{filterMessage}}
-    <router-link class='action' :to='{name: "project-overview", params: {projectId}}'>reset</router-link>
+    <router-link class='action' :to='{name: $route.name, params: {projectId}, query: keepFocus({}, $route.query)}'>reset</router-link>
   </div>
 </template>
 
 <script>
 import { getDateFromFilterString, formatDateOnly } from 'src/lib/dateUtils';
+import { keepFocus } from 'src/lib/facet.js';
 
 export default {
   props: ['from', 'to', 'projectId'],
+  methods: {
+    keepFocus,
+  },
   computed: {
     hasFilters() {
       return this.from || this.to;

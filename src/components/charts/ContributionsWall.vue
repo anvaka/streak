@@ -1,5 +1,9 @@
 <template>
 <div>
+  <!-- Color alone never says which value a square is, so name them - as chips
+       that also focus on one. A single value needs no key: the project title
+       already names it. -->
+  <value-chips v-if='palette.legend.length > 1' :legend='palette.legend' :dates='dates' :focus='focus'></value-chips>
   <div class='contributions-wall' ref='wall'>
     <div class='dow-container' :style='{"width": layout.dowWidth + "px"}'>
       <!-- The year scrolled to, so the months are never without one. -->
@@ -28,25 +32,28 @@
       </svg>
     </div>
   </div>
-  <!-- Color alone never says which category a square is, so name them. A
-       single category needs no key - the project title already names it. -->
-  <ul v-if='palette.legend.length > 1' class='cw-legend' :style='{"padding-left": layout.dowWidth + "px"}'>
-    <li v-for='entry in palette.legend' :key='entry.color'>
-      <span class='cw-swatch' :style='{"background": entry.color}'></span><span class='cw-label'>{{entry.label}}</span>
-    </li>
-  </ul>
   <div v-if='tooltipText' class='cw-tooltip' :style='tooltipStyle'>{{tooltipText}}</div>
 </div>
 </template>
 
 <script>
-import { getDateString, formatDowDate, getDateFromFilterString } from 'src/lib/dateUtils.js';
+import {
+  getDateString, formatDowDate, getDateFromFilterString, SHORT_MONTH_NAMES, DAY_NAMES
+} from 'src/lib/dateUtils.js';
 
-import { assignCategoryColors, shade } from 'src/lib/color';
+import { assignCategoryColors, shade, OTHER_COLOR } from 'src/lib/color';
+import { getFocus } from 'src/lib/facet.js';
+import ValueChips from '../ValueChips.vue';
 import { getPeriod, getColumn, getColumnStart } from 'src/lib/heatmapPeriod';
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_NAMES = SHORT_MONTH_NAMES;
 const EMPTY_DAY_COLOR = 'rgb(235, 237, 240)';
+// With one value in focus, a day with only other values is gray: darker than
+// a day with no record at all, which is a different thing (nothing logged).
+const OTHER_VALUE_COLOR = shade(OTHER_COLOR, 0.5);
+// A focused value without a color of its own (the fifth one onwards) is drawn
+// dark, so it stands out from the light gray of the days without it.
+const FOCUSED_OTHER_COLOR = '#3F3F3F';
 // How far towards white the smallest day is drawn. Kept modest: shading says
 // "less", but lighten a color far enough and it starts to pass for another
 // category.
@@ -72,6 +79,9 @@ const TRAILING_SPACE = 10;
 export default {
   name: 'ContributionsWall',
   props: ['dates', 'categories', 'settings'],
+  components: {
+    ValueChips,
+  },
   data() {
     return {
       tooltipText: '',
@@ -85,6 +95,9 @@ export default {
     };
   },
   computed: {
+    focus() {
+      return getFocus(this.$route.query);
+    },
     layout() {
       const fitted = Math.floor((this.availableWidth - DAY_NAMES_WIDTH - TRAILING_SPACE) / YEAR_COLUMNS);
       const pitch = Math.min(MAX_PITCH, Math.max(MIN_PITCH, fitted));
@@ -101,7 +114,7 @@ export default {
     daysOfTheWeek() {
       const { monthHeight, pitch } = this.layout;
       return [1, 3, 5].map(dayIndex => ({
-        name: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayIndex],
+        name: DAY_NAMES[dayIndex],
         y: dayIndex * pitch + monthHeight
       }));
     },
@@ -121,7 +134,7 @@ export default {
     },
     wall() {
       const range = this.range || getRange(this.period.columns, null, 0, this.layout.pitch);
-      return buildWall(this.period, range, this.dates, this.layout, this.palette);
+      return buildWall(this.period, range, this.dates, this.layout, this.palette, this.focus);
     },
     hasRangeFilter() {
       return this.$route.query.from;
@@ -273,11 +286,11 @@ function getRange(columns, scrollLeft, clientWidth, pitch) {
   };
 }
 
-function buildWall(period, range, dates, layout, palette) {
+function buildWall(period, range, dates, layout, palette, focus) {
   const last = period.lastDay.getTime();
   const weeks = [];
   for (let i = range.first; i <= range.last; ++i) {
-    const days = buildWeekDays(getColumnStart(period, i), dates, i, palette)
+    const days = buildWeekDays(getColumnStart(period, i), dates, i, palette, focus)
       .filter(day => day.time <= last);
     weeks.push({ index: i, days });
   }
@@ -333,7 +346,7 @@ function getYearBoundaries(period, { pitch, cell, monthHeight }) {
   return boundaries;
 }
 
-function buildWeekDays(sunday, dates, weekIndex, palette) {
+function buildWeekDays(sunday, dates, weekIndex, palette, focus) {
   const weekDays = [];
   for (let i = 0; i < 7; ++i) {
     const day = new Date(sunday);
@@ -351,15 +364,21 @@ function buildWeekDays(sunday, dates, weekIndex, palette) {
       dayNumber: i,
       hasRecords: !!contributions,
       category: contributions ? contributions.groupKey : null,
-      fill: getFill(contributions, palette)
+      fill: getFill(contributions, palette, focus)
     });
   }
 
   return weekDays;
 }
 
-function getFill(contributions, palette) {
+function getFill(contributions, palette, focus) {
   if (!contributions) return EMPTY_DAY_COLOR;
+  if (focus !== undefined) {
+    const hasFocus = (contributions.values || []).indexOf(focus) >= 0;
+    if (!hasFocus) return OTHER_VALUE_COLOR;
+    const color = palette.colorOf(focus);
+    return color === OTHER_COLOR ? FOCUSED_OTHER_COLOR : color;
+  }
 
   const color = palette.colorOf(contributions.groupKey);
   return shade(color, MAX_LIGHTEN * (1 - contributions.scaledValue));
@@ -409,33 +428,6 @@ function getFill(contributions, palette) {
     stroke: rgba(0, 0, 0, 0.6);
     stroke-width: 1.5;
     pointer-events: none;
-  }
-}
-
-.cw-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  list-style: none;
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.64);
-  li {
-    display: flex;
-    align-items: center;
-    max-width: 100%;
-  }
-  .cw-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .cw-swatch {
-    flex: none;
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    margin-right: 5px;
   }
 }
 

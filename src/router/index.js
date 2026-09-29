@@ -8,6 +8,7 @@ import NewProject from '../components/NewProject.vue';
 import ProjectPage from '../components/ProjectPage.vue';
 import AboutPage from '../components/AboutPage.vue';
 import ProjectOverview from '../components/ProjectOverview.vue';
+import ProjectInsights from '../components/insights/ProjectInsights.vue';
 import ProjectSettings from '../components/settings/ProjectSettings.vue';
 import ExplorerPage from '../components/ExplorerPage.vue';
 import ProjectDiscussions from '../components/comments/ProjectDiscussions.vue';
@@ -51,6 +52,10 @@ export default createRouter({
         name: 'project-overview',
         props: true,
         component: ProjectOverview
+      }, {
+        path: 'insights',
+        name: 'project-insights',
+        component: ProjectInsights
       }, {
         path: 'settings',
         name: 'project-settings',

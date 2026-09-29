@@ -8,24 +8,28 @@
 </template>
 <script>
 import { formatDateOnly, getDateFromFilterString, getDateString } from 'src/lib/dateUtils.js';
+import { getFocus, keepFocus, focusContributions } from 'src/lib/facet.js';
+import now from 'src/lib/today.js';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 export default {
   name: 'Stats',
   props: ['project', 'settings'],
-  data() {
-    const dates = this.project.projectHistory.contributionsByDay;
-    const streakStats = computeStreakStats(Object.keys(dates).map(getDateFromFilterString));
-    return {
-      streakStats
-    };
-  },
-
   computed: {
+    focus() {
+      return getFocus(this.$route.query);
+    },
+    // With a value in focus, a streak is days in a row that have it.
+    streakStats() {
+      const { contributionsByDay, facet } = this.project.projectHistory;
+      const dates = focusContributions(contributionsByDay, facet, this.focus);
+      return computeStreakStats(Object.keys(dates).map(getDateFromFilterString), now());
+    },
     streaks() {
+      const of = this.focus === undefined ? '' : ` (${this.focus})`;
       return [
-        { name: 'Longest streak', range: this.streakStats.longestStreak },
-        { name: 'Current streak', range: this.streakStats.currentStreak },
+        { name: 'Longest streak' + of, range: this.streakStats.longestStreak },
+        { name: 'Current streak' + of, range: this.streakStats.currentStreak },
       ];
     },
   },
@@ -35,7 +39,11 @@ export default {
       const start = streakRange.start || streakRange.end;
       const query = { from: getDateString(start) };
       if (streakRange.end > start) query.to = getDateString(streakRange.end);
-      return { name: 'project-overview', params: { projectId: this.project.id }, query };
+      return {
+        name: 'project-overview',
+        params: { projectId: this.project.id },
+        query: keepFocus(query, this.$route.query)
+      };
     },
 
     formatStreakRange(streakRange) {
@@ -53,7 +61,7 @@ export default {
   }
 };
 
-function computeStreakStats(dates) {
+function computeStreakStats(dates, currentTime) {
   dates.sort((y, x) => y - x);
 
   const longestStreak = {
@@ -85,9 +93,7 @@ function computeStreakStats(dates) {
     // last streak). Maybe I'll optimize it in future. For now, keeping it simple.
     const lastContributedDay = dates[dates.length - 1];
     currentStreak.end = lastContributedDay;
-    const now = new Date();
-
-    if (moreThanOneDay(now, lastContributedDay)) {
+    if (moreThanOneDay(currentTime, lastContributedDay)) {
       return currentStreak;
     }
     // means we have contributed something today or yesterday.
