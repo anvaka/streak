@@ -19,7 +19,8 @@
            slightly-off finger still lands on the nearest day. -->
       <svg :width='layout.width' :height='layout.height' ref='contributions'
            :class='{"has-range-filter": hasRangeFilter}'
-           @click='onClick' @pointermove='onPointerMove' @pointerleave='hideTooltip'>
+           @pointerdown='onPointerDown' @pointerup='onPointerUp' @pointercancel='press = null'
+           @pointermove='onPointerMove' @pointerleave='hideTooltip'>
         <g v-for='week in wall.weeks' :key='week.index' :transform='getWeekTransform(week)'>
           <rect v-for='day in week.days' :key='day.dayNumber' :fill='day.fill' :width='layout.cell' :height='layout.cell' x='0' :y='day.dayNumber * layout.pitch'
             class='contribution-day' :class='{"is-selected": isSelected(day)}'></rect>
@@ -75,6 +76,9 @@ const DAY_NAMES_WIDTH = 30;
 const FONT_SIZE = 11;
 // Room after the last column so its month label is not clipped.
 const TRAILING_SPACE = 10;
+// How far a finger may move between down and up and still be a tap. Further
+// than that it is a scroll, which the browser cancels the press for anyway.
+const TAP_SLOP = 10;
 
 export default {
   name: 'ContributionsWall',
@@ -92,6 +96,8 @@ export default {
       // wall scrolls, so scrolling redraws only now and then.
       range: null,
       cornerYear: null,
+      // Where the pointer went down, until it comes up.
+      press: null,
     };
   },
   computed: {
@@ -202,15 +208,25 @@ export default {
       const year = getColumnStart(this.period, Math.max(0, leftColumn)).getFullYear();
       if (year !== this.cornerYear) this.cornerYear = year;
     },
-    onClick(e) {
+    // A day is picked when the pointer comes up, not on `click`: a phone
+    // sometimes answers a tap with only its tap highlight and no click (when
+    // the tap stops the wall gliding sideways, say), and the day then took a
+    // second tap.
+    onPointerDown(e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      this.press = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    },
+    onPointerUp(e) {
+      const { press } = this;
+      this.press = null;
+      if (!press || press.id !== e.pointerId) return;
+      if (Math.hypot(e.clientX - press.x, e.clientY - press.y) > TAP_SLOP) return;
       const day = this.dayAt(e);
       if (!day) return;
       let from = day.dayKey;
       let to = from;
       if (e.shiftKey) {
-        to = from;
         from = this.$route.query.from || from;
-        e.preventDefault();
       }
       this.hideTooltip();
       this.$emit('filter', from, to);
@@ -407,6 +423,9 @@ function getFill(contributions, palette, focus) {
     cursor: pointer;
     // No 300ms double-tap-to-zoom wait before a tap registers.
     touch-action: pan-x pan-y;
+    // The outline on the picked day says what was tapped; a gray flash over
+    // the whole wall only says something was.
+    -webkit-tap-highlight-color: transparent;
   }
   .has-range-filter .contribution-day:not(.is-selected) {
     opacity: 0.35;

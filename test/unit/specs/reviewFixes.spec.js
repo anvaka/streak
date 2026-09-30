@@ -5,6 +5,7 @@ import ProjectHistoryViewModel from 'src/lib/project-list/ProjectHistoryViewMode
 import extractHeaderTypesFromData from 'src/lib/project-list/utils/extractHeaderTypesFromData';
 import ContributionsWallContainer from 'src/components/charts/ContributionsWallContainer.vue';
 import ProjectPage from 'src/components/ProjectPage.vue';
+import UserPage from 'src/components/UserPage.vue';
 import ProjectOverview from 'src/components/ProjectOverview.vue';
 import ProjectInsights from 'src/components/insights/ProjectInsights.vue';
 import now from 'src/lib/today';
@@ -103,6 +104,24 @@ describe('the project page', () => {
   it('does after adding a record, or leaving the settings', () => {
     expect(reloads(route('project-overview', '/u/project/p1'), route('add-record', '/u/project/p1/add'))).toBe(true);
     expect(reloads(route('project-overview', '/u/project/p1'), route('project-settings', '/u/project/p1/settings'))).toBe(true);
+  });
+});
+
+describe('the scroll position', () => {
+  const scrollAfter = (to, from) => {
+    const mainContent = { scrollTop: 300 };
+    UserPage.watch.$route.call({ $refs: { mainContent } }, to, from);
+    return mainContent.scrollTop;
+  };
+  const route = (path, query = {}) => ({ path, query, params: { userId: 'u', projectId: 'p1' } });
+
+  it('stays put when a tapped day or value filters the page', () => {
+    expect(scrollAfter(route('/u/project/p1', { from: '9-25-2026' }), route('/u/project/p1'))).toBe(300);
+    expect(scrollAfter(route('/u/project/p1', { focus: 'Yes' }), route('/u/project/p1', { from: '9-25-2026' }))).toBe(300);
+  });
+
+  it('goes back to the top on another page', () => {
+    expect(scrollAfter(route('/u/project/p1/insights'), route('/u/project/p1'))).toBe(0);
   });
 });
 

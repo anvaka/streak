@@ -4,7 +4,7 @@ import ContributionsWall from 'src/components/charts/ContributionsWall.vue';
 import { getDateString } from 'src/lib/dateUtils';
 
 // jsdom lays nothing out, so the svg's bounding rect sits at (0, 0) and a
-// click's clientX/Y are svg coordinates. With no measurable width the wall
+// tap's clientX/Y are svg coordinates. With no measurable width the wall
 // falls back to its smallest squares: 18px every 21px, below a 22px band of
 // month names. Week 52 is the current week.
 const MONTH_BAND = 22;
@@ -24,8 +24,10 @@ function mountWall(query = {}) {
   });
 }
 
-async function tapAt(w, x, y) {
-  await w.find('svg').trigger('click', { clientX: x, clientY: y });
+async function tapAt(w, x, y, options = {}) {
+  const svg = w.find('svg');
+  await svg.trigger('pointerdown', { clientX: x, clientY: y, button: 0 });
+  await svg.trigger('pointerup', Object.assign({ clientX: x, clientY: y }, options));
 }
 
 const realClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth');
@@ -59,8 +61,48 @@ describe('ContributionsWall', () => {
   it('shift-tap still extends from the current filter', async () => {
     const from = sundayOfWeeksAgo(3);
     const w = mountWall({ from });
-    await w.find('svg').trigger('click', { clientX: 52 * PITCH + 5, clientY: MONTH_BAND + 5, shiftKey: true });
+    await tapAt(w, 52 * PITCH + 5, MONTH_BAND + 5, { shiftKey: true });
     expect(w.emitted('filter')).toEqual([[from, sundayOfWeeksAgo(0)]]);
+  });
+
+  it('picks the day when the finger lifts, without waiting for a click', async () => {
+    const w = mountWall();
+    await tapAt(w, 52 * PITCH + 5, MONTH_BAND + 5);
+    expect(w.emitted('filter')).toEqual([[sundayOfWeeksAgo(0), sundayOfWeeksAgo(0)]]);
+    // The click a browser may send after it, or a stray up, picks nothing a second time.
+    await w.find('svg').trigger('click', { clientX: 52 * PITCH + 5, clientY: MONTH_BAND + 5 });
+    await w.find('svg').trigger('pointerup', { clientX: 52 * PITCH + 5, clientY: MONTH_BAND + 5 });
+    expect(w.emitted('filter').length).toBe(1);
+  });
+
+  it('a finger that moved or was taken for a scroll picks nothing', async () => {
+    const w = mountWall();
+    const svg = w.find('svg');
+    const x = 52 * PITCH + 5;
+    const y = MONTH_BAND + 5;
+    await svg.trigger('pointerdown', { clientX: x, clientY: y });
+    await svg.trigger('pointerup', { clientX: x - 30, clientY: y });
+    await svg.trigger('pointerdown', { clientX: x, clientY: y });
+    await svg.trigger('pointercancel');
+    await svg.trigger('pointerup', { clientX: x, clientY: y });
+    // An up with no down on the wall (the press began elsewhere).
+    await svg.trigger('pointerup', { clientX: x, clientY: y });
+    // A second finger lifting, while the first is still down.
+    await svg.trigger('pointerdown', { clientX: x, clientY: y, pointerId: 1 });
+    await svg.trigger('pointerup', { clientX: x, clientY: y, pointerId: 2 });
+    expect(w.emitted('filter')).toBeUndefined();
+    // A small wobble is still a tap.
+    await svg.trigger('pointerdown', { clientX: x, clientY: y });
+    await svg.trigger('pointerup', { clientX: x + 4, clientY: y + 3 });
+    expect(w.emitted('filter').length).toBe(1);
+  });
+
+  it('a right-click picks nothing', async () => {
+    const w = mountWall();
+    const svg = w.find('svg');
+    await svg.trigger('pointerdown', { clientX: 52 * PITCH + 5, clientY: MONTH_BAND + 5, button: 2, pointerType: 'mouse' });
+    await svg.trigger('pointerup', { clientX: 52 * PITCH + 5, clientY: MONTH_BAND + 5, button: 2, pointerType: 'mouse' });
+    expect(w.emitted('filter')).toBeUndefined();
   });
 
   it('fits a whole year into a wide container', async () => {

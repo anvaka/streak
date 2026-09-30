@@ -69,13 +69,12 @@ async function scrollTo(w, left) {
   scroller(w).element.scrollLeft = left;
   await scroller(w).trigger('scroll');
 }
-function tapCell(w, column, row) {
+async function tapCell(w, column, row) {
   // jsdom keeps the svg's bounding rect at (0, 0) however far it is
   // scrolled, so svg coordinates are client coordinates.
-  return w.find('svg').trigger('click', {
-    clientX: column * PITCH + 5,
-    clientY: MONTH_BAND + row * PITCH + 5,
-  });
+  const at = { clientX: column * PITCH + 5, clientY: MONTH_BAND + row * PITCH + 5 };
+  await w.find('svg').trigger('pointerdown', at);
+  await w.find('svg').trigger('pointerup', at);
 }
 const rendered = w => w.findAll('rect').length;
 const labels = w => w.findAll('svg text').map(t => t.text());

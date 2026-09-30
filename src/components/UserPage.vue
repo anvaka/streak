@@ -52,7 +52,9 @@ export default {
     $route(to, from) {
       const { mainContent } = this.$refs;
 
-      if (mainContent) {
+      // A new page starts at the top; tapping a day or a value only filters
+      // this one, and should leave it where it is.
+      if (mainContent && to.path !== from.path) {
         mainContent.scrollTop = 0;
       }
 
