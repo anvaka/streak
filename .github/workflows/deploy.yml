@@ -1,6 +1,6 @@
 name: Deploy to GitHub Pages
 
-# Production deploy. On every push to master, build and publish ./dist to the
+# Production deploy. On every push to main, build and publish ./dist to the
 # ROOT of the gh-pages branch (which GitHub Pages serves). Per-PR previews live
 # under pr-preview/ in the same branch (see preview.yml); clean-exclude keeps
 # this production deploy from wiping them, and force:false appends instead of
@@ -16,7 +16,7 @@ name: Deploy to GitHub Pages
 #
 on:
   push:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
