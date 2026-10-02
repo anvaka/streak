@@ -32,4 +32,4 @@ Run dev server
 $ npm run dev 
 ```
 
-See other runnable scripts in [package.json](https://github.com/anvaka/streak/blob/master/package.json).
+See other runnable scripts in [package.json](https://github.com/anvaka/streak/blob/main/package.json).

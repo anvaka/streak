@@ -48,7 +48,7 @@ jobs:
       - run: npm ci
         if: github.event.action != 'closed'
       # Runs before the build so a red PR is visible here first - this is the
-      # lane where a broken change gets caught, ahead of master.
+      # lane where a broken change gets caught, ahead of main.
       - run: npm test
         if: github.event.action != 'closed'
       - run: npm run build
