@@ -15,7 +15,9 @@
            otherwise the days on screen. -->
       <div aria-live='polite'>
         <div v-if='summary || picked' class='insight-number'>{{headline}} <span class='insight-unit'>{{headlineUnit}}</span></div>
-        <div v-else class='insight-number secondary'>&ndash;</div>
+        <!-- The smaller unit makes the line a little taller; an empty one
+             keeps it as tall, so the chart doesn't jump while scrolling. -->
+        <div v-else class='insight-number secondary'>&ndash; <span class='insight-unit'>&nbsp;</span></div>
         <div class='secondary small nc-subline'>{{changeLine}}</div>
       </div>
       <number-chart :entries='chartData.entries' :trend='chartData.trend' :bars='chartData.buckets' :unit='chartData.unit'

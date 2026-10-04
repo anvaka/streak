@@ -273,6 +273,17 @@ describe('scrolling through the days', () => {
     w.unmount();
   });
 
+  it('shows a dash for days without entries, on a line as tall as the trend', async () => {
+    const w = mountCard(numbers([[300, 75], [299, 75.2], [1, 74], [0, 73.8]]));
+    await oneMonth(w);
+    await scrollTo(w, 0.5);
+    const headline = w.find('.insight-number');
+    expect(headline.text()).toBe('–');
+    expect(headline.find('.insight-unit').exists()).toBe(true);
+    expect(w.text()).toContain('Nothing recorded on these days');
+    w.unmount();
+  });
+
   it('comes back to the latest days for another range', async () => {
     const w = mountCard(year());
     await oneMonth(w);
