@@ -222,6 +222,114 @@ describe('picking a day on the chart', () => {
   });
 });
 
+describe('scrolling through the days', () => {
+  // Every day for a year, the weight falling a tenth a week.
+  function year() {
+    const pairs = [];
+    for (let i = 364; i >= 0; --i) pairs.push([i, (80 - (364 - i) / 70).toFixed(1)]);
+    return numbers(pairs);
+  }
+  async function scrollTo(w, fraction) {
+    const scroller = w.find('.nc-scroll').element;
+    const svg = w.find('svg.nc-plot');
+    scroller.scrollLeft = fraction * (Number(svg.attributes('width')) - 320);
+    await w.find('.nc-scroll').trigger('scroll');
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    await w.vm.$nextTick();
+  }
+  const oneMonth = async w => w.findAll('.nc-ranges button').find(b => b.text() === '1M').trigger('click');
+
+  it('draws every entry, a month to a screen', async () => {
+    const w = mountCard(year());
+    await oneMonth(w);
+    expect(w.findAll('circle.nc-dot').length).toBe(365);
+    // Twelve screens of days, and the value labels outside them.
+    const width = Number(w.find('svg.nc-plot').attributes('width'));
+    expect(width).toBeGreaterThan(11 * 280);
+    expect(w.text()).toContain('30 entries');
+    expect(w.find('.insight-number').text()).toMatch(/trend$/);
+    w.unmount();
+  });
+
+  it('reads out the days on screen as it scrolls back', async () => {
+    const w = mountCard(year());
+    await oneMonth(w);
+    await scrollTo(w, 0);
+    expect(w.find('.insight-number').text()).toBe('79.7 trend on Oct 26, 2025');
+    expect(w.find('.nc-subline').text()).toBe('−0.3 since Sep 27, 2025');
+    expect(w.text()).toContain('highest 80.0 (Sep 27, 2025)');
+    expect(w.text()).toContain('30 entries');
+    w.unmount();
+  });
+
+  it('keeps one scale, so a value is as high on any day', async () => {
+    const w = mountCard(year());
+    await oneMonth(w);
+    const labels = () => w.findAll('.nc-axis text').map(t => t.text());
+    const before = labels();
+    await scrollTo(w, 0);
+    expect(labels()).toEqual(before);
+    expect(before[0]).toBe('74');
+    w.unmount();
+  });
+
+  it('comes back to the latest days for another range', async () => {
+    const w = mountCard(year());
+    await oneMonth(w);
+    await scrollTo(w, 0);
+    await w.findAll('.nc-ranges button').find(b => b.text() === '3M').trigger('click');
+    await w.vm.$nextTick();
+    expect(w.find('.insight-number').text()).toMatch(/trend$/);
+    w.unmount();
+  });
+});
+
+describe('picking a day by touch', () => {
+  const weight = () => numbers([[40, 74], [20, 73.5], [10, 72.9], [10, 73.3], [0, 72.1]]);
+  const touch = (w, type, clientX, clientY = 50) =>
+    w.find('svg').trigger(type, { clientX, clientY, button: 0, pointerType: 'touch', pointerId: 7 });
+
+  it('picks on a tap', async () => {
+    const w = mountCard(weight());
+    await touch(w, 'pointerdown', 0);
+    expect(w.find('.insight-number').text()).toMatch(/trend$/);
+    await touch(w, 'pointerup', 2);
+    expect(w.find('.insight-number').text()).toBe('74.0 entered');
+    w.unmount();
+  });
+
+  it('leaves a swipe to scroll', async () => {
+    const w = mountCard(weight());
+    await touch(w, 'pointerdown', 100);
+    await touch(w, 'pointermove', 60);
+    await touch(w, 'pointerup', 30);
+    expect(w.find('.insight-number').text()).toMatch(/trend$/);
+    await touch(w, 'pointerdown', 100);
+    await touch(w, 'pointercancel', 100);
+    expect(w.find('.insight-number').text()).toMatch(/trend$/);
+    w.unmount();
+  });
+
+  it('picks on a held press, and then follows the drag instead of scrolling', async () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+    vi.setSystemTime(TODAY);
+    const w = mountCard(weight());
+    await touch(w, 'pointerdown', 0);
+    vi.advanceTimersByTime(400);
+    await w.vm.$nextTick();
+    expect(w.find('.insight-number').text()).toBe('74.0 entered');
+
+    const move = new Event('touchmove', { cancelable: true });
+    w.find('.nc-scroll').element.dispatchEvent(move);
+    expect(move.defaultPrevented).toBe(true);
+    await touch(w, 'pointermove', 320);
+    expect(w.find('.insight-number').text()).toBe('72.1 entered');
+    await touch(w, 'pointerup', 320);
+    expect(w.find('.insight-number').text()).toBe('72.1 entered');
+    w.unmount();
+  });
+});
+
 describe('the number card', () => {
   it('labels round values and dates, and breaks the trend over a long gap', () => {
     const pairs = [];
@@ -230,7 +338,7 @@ describe('the number card', () => {
     const w = mountCard(numbers(pairs));
     const labels = w.findAll('text.nc-label').map(t => t.text());
     // The chart starts at the first entry, July 8.
-    expect(labels).toEqual(['73', '74', '75', '76', 'Aug', 'Sep']);
+    expect(labels).toEqual(['Aug', 'Sep', '73', '74', '75', '76']);
     expect(w.findAll('polyline.nc-trend').length).toBe(2);
     expect(w.find('svg').attributes('aria-label')).toMatch(/^27 entries from Jul 8, 2026 to Sep 26, 2026, between 74 and 75/);
     w.unmount();

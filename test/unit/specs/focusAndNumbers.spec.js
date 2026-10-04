@@ -3,7 +3,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils';
 import ProjectHistoryViewModel, { filterGroups } from 'src/lib/project-list/ProjectHistoryViewModel';
 import extractHeaderTypesFromData from 'src/lib/project-list/utils/extractHeaderTypesFromData';
 import { focusContributions, countDaysByValue, keepFocus } from 'src/lib/facet';
-import { getEntries, getTrend, getNumberSummary, formatChange } from 'src/lib/numberStats';
+import { getEntries, getTrend, getNumberSummary, getBucketUnit, formatChange } from 'src/lib/numberStats';
 import { getInsights, toDayNumber } from 'src/lib/insights';
 import NumberCard from 'src/components/insights/NumberCard.vue';
 import ProjectInsights from 'src/components/insights/ProjectInsights.vue';
@@ -196,6 +196,18 @@ describe('number totals', () => {
   });
 });
 
+describe('bar length', () => {
+  it('follows the days on screen, not all the days drawn', () => {
+    expect(getBucketUnit(30)).toBe('day');
+    expect(getBucketUnit(91)).toBe('week');
+    expect(getBucketUnit(500)).toBe('month');
+    const entries = getEntries(numbers([[0, 10], [400, 1]]), 1);
+    const s = getNumberSummary(entries, { first: today - 400, last: today, combine: 'sum', unit: 'day' });
+    expect(s.unit).toBe('day');
+    expect(s.buckets.length).toBe(401);
+  });
+});
+
 describe('number card', () => {
   beforeEach(() => localStorage.clear());
   const column = { columnIndex: 1, title: 'Weight', combine: 'average' };
@@ -215,10 +227,11 @@ describe('number card', () => {
     expect(w.findAll('circle.nc-dot').length).toBe(4);
   });
 
-  it('narrows to a month and back', async () => {
+  it('narrows to a month, with the earlier entries a scroll away', async () => {
     const w = mountCard(numbers([[40, 74], [20, 73.5], [10, 72.9], [0, 72.1]]));
     await w.findAll('.nc-ranges button').find(b => b.text() === '1M').trigger('click');
-    expect(w.findAll('circle.nc-dot').length).toBe(3);
+    expect(w.text()).toContain('3 entries');
+    expect(w.findAll('circle.nc-dot').length).toBe(4);
   });
 
   it('shows totals as bars for a column that adds up', () => {

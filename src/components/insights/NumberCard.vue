@@ -8,16 +8,19 @@
       </div>
     </div>
 
-    <p v-if='!summary' class='secondary'>Nothing recorded in this period.</p>
+    <p v-if='!chartData' class='secondary'>Nothing recorded in this period.</p>
     <template v-else>
       <!-- The number says what it is: a trend, an entry or a total, never a
-           bare value. It reads out the day picked on the chart, if any. -->
+           bare value. It reads out the day picked on the chart, if any, and
+           otherwise the days on screen. -->
       <div aria-live='polite'>
-        <div class='insight-number'>{{headline}} <span class='insight-unit'>{{headlineUnit}}</span></div>
+        <div v-if='summary || picked' class='insight-number'>{{headline}} <span class='insight-unit'>{{headlineUnit}}</span></div>
+        <div v-else class='insight-number secondary'>&ndash;</div>
         <div class='secondary small nc-subline'>{{changeLine}}</div>
       </div>
-      <number-chart :entries='summary.entries' :trend='summary.trend' :bars='summary.buckets' :unit='summary.unit'
-          :first='first' :last='last' :decimals='summary.decimals' @pick='picked = $event'></number-chart>
+      <number-chart :entries='chartData.entries' :trend='chartData.trend' :bars='chartData.buckets' :unit='chartData.unit'
+          :first='extent.first' :last='extent.last' :visible='visibleDays' :decimals='chartData.decimals'
+          @pick='picked = $event' @view='view = $event'></number-chart>
       <div class='secondary small'>{{statsLine}}</div>
     </template>
 
@@ -38,7 +41,7 @@ import NumberChart from './NumberChart.vue';
 import { formatShortDate, DAY_NAMES } from 'src/lib/dateUtils.js';
 import { toDayNumber, fromDayNumber, formatDays, getScope } from 'src/lib/insights.js';
 import {
-  RANGES, getEntries, getNumberSummary, formatNumber, formatChange
+  RANGES, getEntries, getNumberSummary, getBucketUnit, formatNumber, formatChange
 } from 'src/lib/numberStats.js';
 import setColumnCombine from 'src/lib/store/setColumnCombine.js';
 import getErrorMessage from 'src/lib/gapi/getErrorMessage.js';
@@ -59,17 +62,19 @@ export default {
     // `combine` is shown at once when the owner switches it, and saved
     // behind it; it goes back if saving fails.
     return {
-      rangeName: getSavedRange(), combine: this.column.combine, saving: false, saveError: '', picked: null
+      rangeName: getSavedRange(), combine: this.column.combine, saving: false, saveError: '', picked: null,
+      // The days on screen, from the chart, while it's scrolled.
+      view: null,
     };
   },
   watch: {
     'column.combine'(combine) {
       this.combine = combine;
     },
-    // A pick belongs to the chart as it was.
+    // A pick belongs to the chart as it was; scrolling keeps it.
     combine() { this.picked = null; },
-    first() { this.picked = null; },
-    last() { this.picked = null; },
+    extent() { this.picked = null; },
+    visibleDays() { this.picked = null; },
   },
   computed: {
     ranges() {
@@ -87,14 +92,27 @@ export default {
     today() {
       return toDayNumber(now());
     },
-    // The date filter decides the days when there is one; otherwise the
-    // chosen range, ending today and starting no earlier than the first entry.
-    bounds() {
+    // The days the chart draws: the date filter's when there is one, and
+    // otherwise from the first entry to today.
+    extent() {
       const { from, to } = this.$route.query;
       const firstEntry = this.entries.length ? this.entries[0].day : this.today;
-      if (from) return getScope(from, to, firstEntry, this.today);
+      const { first, last } = getScope(from, to, firstEntry, this.today);
+      return { first, last };
+    },
+    // How many of them fit on screen: the chosen range, or all the
+    // filtered days. The rest are a scroll away.
+    visibleDays() {
+      const length = this.extent.last - this.extent.first + 1;
+      if (this.filtered) return length;
       const range = RANGES.find(r => r.name === this.rangeName);
-      return { first: Math.max(firstEntry, this.today - range.days + 1), last: this.today };
+      return Math.min(length, range.days);
+    },
+    // The days on screen: the latest ones until the chart scrolls.
+    bounds() {
+      const { view, extent } = this;
+      if (view && extent.first <= view.first && view.last <= extent.last) return view;
+      return { first: Math.max(extent.first, extent.last - this.visibleDays + 1), last: extent.last };
     },
     first() {
       return this.bounds.first;
@@ -102,29 +120,43 @@ export default {
     last() {
       return this.bounds.last;
     },
+    scrolledBack() {
+      return this.last < this.extent.last;
+    },
+    // Bars as long as suit the days on screen, wherever it scrolls.
+    unit() {
+      return getBucketUnit(this.visibleDays);
+    },
+    chartData() {
+      return getNumberSummary(this.entries, {
+        first: this.extent.first, last: this.extent.last, combine: this.combine, unit: this.unit
+      });
+    },
     summary() {
       return getNumberSummary(this.entries, {
-        first: this.first, last: this.last, combine: this.combine
+        first: this.first, last: this.last, combine: this.combine, unit: this.unit
       });
     },
     headline() {
       const { summary, picked } = this;
+      const decimals = this.chartData.decimals;
       if (picked) {
         const value = this.isSum ? picked.total : picked.values.reduce((a, b) => a + b, 0) / picked.values.length;
-        return formatNumber(value, summary.decimals);
+        return formatNumber(value, decimals);
       }
-      return formatNumber(this.isSum ? summary.total : summary.current, summary.decimals);
+      return formatNumber(this.isSum ? summary.total : summary.current, decimals);
     },
     headlineUnit() {
-      const { picked } = this;
+      const { picked, summary } = this;
       if (this.isSum) return 'total';
-      if (!picked) return 'trend';
+      if (!picked) return this.scrolledBack ? `trend on ${formatShortDate(fromDayNumber(summary.trend[summary.trend.length - 1].day))}` : 'trend';
       return picked.values.length === 1 ? 'entered' : `average of ${picked.values.length}`;
     },
     // Neutral on purpose: the app can't know whether up is good.
     changeLine() {
       const { summary, picked } = this;
-      const { decimals } = summary;
+      const { decimals } = this.chartData;
+      if (!picked && !summary) return this.formatSpan();
       if (picked) {
         if (this.isSum) return this.formatBucket(picked.day);
         const parts = [formatLong(fromDayNumber(picked.day))];
@@ -133,22 +165,27 @@ export default {
         return parts.join(' · ');
       }
       if (this.isSum) {
-        if (summary.previousTotal === null) return '';
-        return `${formatNumber(summary.previousTotal, decimals)} in the ` +
-          `${formatDays(this.last - this.first + 1)} before`;
+        const parts = this.scrolledBack ? [this.formatSpan()] : [];
+        if (summary.previousTotal !== null) {
+          parts.push(`${formatNumber(summary.previousTotal, decimals)} in the ` +
+            `${formatDays(this.last - this.first + 1)} before`);
+        }
+        return parts.join(' · ');
       }
       const parts = [];
       if (summary.change !== null) {
         parts.push(`${formatChange(summary.change, decimals)} since ${formatShortDate(summary.changeSince)}`);
       }
-      if (summary.perWeek !== null) {
+      // "Lately" only for the latest days.
+      if (summary.perWeek !== null && !this.scrolledBack) {
         parts.push(`about ${formatChange(summary.perWeek, Math.max(1, decimals))} a week lately`);
       }
       return parts.join(' · ');
     },
     statsLine() {
       const { summary } = this;
-      const { decimals } = summary;
+      if (!summary) return 'Nothing recorded on these days';
+      const { decimals } = this.chartData;
       const entries = summary.count === 1 ? '1 entry' : `${summary.count.toLocaleString('en-US')} entries`;
       if (this.isSum) {
         const when = summary.unit === 'week' ? `week of ${formatShortDate(fromDayNumber(summary.best.day))}` :
@@ -169,10 +206,14 @@ export default {
         // Only a convenience: the range just isn't remembered.
       }
     },
+    // "Jun 3, 2025 – Sep 1, 2025": the days on screen.
+    formatSpan() {
+      return `${formatShortDate(fromDayNumber(this.first))} – ${formatShortDate(fromDayNumber(this.last))}`;
+    },
     formatBucket(day) {
       const date = fromDayNumber(day);
-      if (this.summary.unit === 'month') return formatShortDate(date).replace(/ \d+,/, '');
-      if (this.summary.unit === 'week') return 'Week of ' + formatShortDate(date);
+      if (this.unit === 'month') return formatShortDate(date).replace(/ \d+,/, '');
+      if (this.unit === 'week') return 'Week of ' + formatShortDate(date);
       return formatLong(date);
     },
     setCombine(isSum) {
