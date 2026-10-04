@@ -96,10 +96,20 @@ export function splitAtBreaks(trend) {
 }
 
 /**
- * What a number card shows for the days `first` to `last` (day numbers):
- * the entries and trend inside them, or their totals when the column adds up.
+ * How long a bar is when `days` are on screen at once: a day for a month or
+ * less, a week (Sunday to Saturday) up to a year, and a month beyond that -
+ * about 30 to 50 bars.
  */
-export function getNumberSummary(entries, { first, last, combine }) {
+export function getBucketUnit(days) {
+  return days <= 45 ? 'day' : days <= 400 ? 'week' : 'month';
+}
+
+/**
+ * What a number card shows for the days `first` to `last` (day numbers):
+ * the entries and trend inside them, or their totals when the column adds up,
+ * per `unit` (by default the one that suits that many days).
+ */
+export function getNumberSummary(entries, { first, last, combine, unit }) {
   const inRange = entries.filter(entry => first <= entry.day && entry.day <= last);
   if (inRange.length === 0) return null;
   const summary = {
@@ -111,7 +121,7 @@ export function getNumberSummary(entries, { first, last, combine }) {
     decimals: getDecimals(inRange),
   };
   return combine === 'sum' ?
-    Object.assign(summary, getTotals(entries, inRange, first, last)) :
+    Object.assign(summary, getTotals(entries, inRange, first, last, unit || getBucketUnit(last - first + 1))) :
     Object.assign(summary, getTrendSummary(entries, first, last));
 }
 
@@ -137,16 +147,12 @@ function getTrendSummary(entries, first, last) {
   };
 }
 
-/**
- * Totals per day for a month or less, per week (Sunday to Saturday) up to a
- * year, and per month beyond that - about 30 to 50 bars.
- */
-function getTotals(entries, inRange, first, last) {
+// Totals per `unit`: 'day', 'week' or 'month'.
+function getTotals(entries, inRange, first, last, unit) {
   const length = last - first + 1;
-  const bucketOf = length <= 45 ? day => day :
-    length <= 400 ? day => day - weekdayOf(day) :
+  const bucketOf = unit === 'day' ? day => day :
+    unit === 'week' ? day => day - weekdayOf(day) :
       day => toDayNumber(firstOfMonth(fromDayNumber(day)));
-  const unit = length <= 45 ? 'day' : length <= 400 ? 'week' : 'month';
 
   const totals = new Map();
   for (let day = bucketOf(first); day <= last; day = nextBucket(day, unit)) totals.set(day, 0);

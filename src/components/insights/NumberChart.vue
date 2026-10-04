@@ -1,36 +1,45 @@
 <template>
   <div class='number-chart' ref='chart'>
     <!-- Every entry as a dot and the trend through them; or a bar per day,
-         week or month when the column adds up. Pressing or dragging anywhere
-         picks the closest day, and the card's header reads it out. -->
-    <svg :width='width' :height='height' role='img' :aria-label='description' tabindex='0'
-        @pointerdown='onPointerDown' @pointermove='onPointerMove' @pointerup='onPointerUp'
-        @pointercancel='onPointerCancel' @keydown='onKeyDown'>
-      <g class='nc-grid'>
-        <template v-for='tick in valueTicks' :key='tick.value'>
-          <line :x1='plotLeft' :x2='plotRight' :y1='tick.y' :y2='tick.y' :class='{base: tick.base}'></line>
-          <text class='nc-label' :x='plotRight + 6' :y='tick.y + 4'>{{tick.label}}</text>
-        </template>
-        <template v-for='tick in dateTicks' :key='tick.day'>
-          <line :x1='tick.x' :x2='tick.x' :y1='plotBottom' :y2='plotBottom + 4'></line>
-          <text class='nc-label' :class='{strong: tick.strong}' :x='tick.labelX' :y='plotBottom + 16'>{{tick.label}}</text>
-        </template>
-      </g>
+         week or month when the column adds up. All of them are drawn, as
+         wide as `visible` days per screen asks, and the chart scrolls
+         sideways through the rest; it opens on the latest days. A tap picks
+         the closest day, and the card's header reads it out; so does a
+         press, held, then a drag. A mouse picks with a press and a drag. -->
+    <div class='nc-scroll' ref='scroller' :style='{marginRight: axisWidth + "px"}' @scroll='onScroll'>
+      <svg class='nc-plot' ref='plot' :width='contentWidth' :height='height' role='img' :aria-label='description' tabindex='0'
+          @pointerdown='onPointerDown' @pointermove='onPointerMove' @pointerup='onPointerUp'
+          @pointercancel='onPointerCancel' @keydown='onKeyDown' @contextmenu='onContextMenu'>
+        <g class='nc-grid'>
+          <line v-for='tick in valueTicks' :key='tick.value' x1='0' :x2='contentWidth' :y1='tick.y' :y2='tick.y'
+              :class='{base: tick.base}'></line>
+          <template v-for='tick in dateTicks' :key='tick.day'>
+            <line :x1='tick.x' :x2='tick.x' :y1='plotBottom' :y2='plotBottom + 4'></line>
+            <text class='nc-label' :class='{strong: tick.strong}' :x='tick.labelX' :y='plotBottom + 16'>{{tick.label}}</text>
+          </template>
+        </g>
 
-      <template v-if='bars'>
-        <rect v-for='(bar, i) in drawnBars' :key='bar.day' :x='bar.x' :y='bar.y' :width='bar.width' :height='bar.height'
-            class='nc-bar' :class='{selected: i === picked, faded: picked !== null && i !== picked}'></rect>
-      </template>
-      <template v-else>
-        <line v-if='selected' class='nc-rule' :x1='selected.x' :x2='selected.x' :y1='TOP' :y2='plotBottom'></line>
-        <circle v-for='(dot, i) in drawnDots' :key='i' :cx='dot.x' :cy='dot.y' :r='dotRadius' class='nc-dot'></circle>
-        <polyline v-for='(line, i) in trendLines' :key='"t" + i' :points='line' class='nc-trend'></polyline>
-        <template v-if='selected'>
-          <circle v-for='(y, i) in selected.ys' :key='"s" + i' :cx='selected.x' :cy='y' r='4' class='nc-dot selected'></circle>
-          <circle v-if='selected.trendY !== null' :cx='selected.x' :cy='selected.trendY' r='3.5' class='nc-trend-mark'></circle>
+        <template v-if='bars'>
+          <rect v-for='(bar, i) in drawnBars' :key='bar.day' :x='bar.x' :y='bar.y' :width='bar.width' :height='bar.height'
+              class='nc-bar' :class='{selected: i === picked, faded: picked !== null && i !== picked}'></rect>
         </template>
-        <circle v-else-if='trendEnd' :cx='trendEnd.x' :cy='trendEnd.y' r='3.5' class='nc-trend-end'></circle>
-      </template>
+        <template v-else>
+          <line v-if='selected' class='nc-rule' :x1='selected.x' :x2='selected.x' :y1='TOP' :y2='plotBottom'></line>
+          <circle v-for='(dot, i) in drawnDots' :key='i' :cx='dot.x' :cy='dot.y' :r='dotRadius' class='nc-dot'></circle>
+          <polyline v-for='(line, i) in trendLines' :key='"t" + i' :points='line' class='nc-trend'></polyline>
+          <template v-if='selected'>
+            <circle v-for='(y, i) in selected.ys' :key='"s" + i' :cx='selected.x' :cy='y' r='4' class='nc-dot selected'></circle>
+            <circle v-if='selected.trendY !== null' :cx='selected.x' :cy='selected.trendY' r='3.5' class='nc-trend-mark'></circle>
+          </template>
+          <circle v-else-if='trendEnd' :cx='trendEnd.x' :cy='trendEnd.y' r='3.5' class='nc-trend-end'></circle>
+        </template>
+      </svg>
+    </div>
+    <!-- The values are labelled right of the plot, as in Apple Health: the
+         latest days, which matter most, stay clear of them. They stay put
+         while the days scroll. -->
+    <svg class='nc-axis' :width='axisWidth' :height='height' aria-hidden='true'>
+      <text v-for='tick in valueTicks' :key='tick.value' class='nc-label' x='6' :y='tick.y + 4'>{{tick.label}}</text>
     </svg>
   </div>
 </template>
@@ -43,21 +52,35 @@ import { getValueScale, getDateTicks, getLabelWidth } from 'src/lib/chartScale.j
 
 const TOP = 8;
 const DATE_SPACE = 22;
-// Wide enough for a dot at the very first day.
-const LEFT = 3;
+// Room at either end, so a dot on the first or last day isn't cut off.
+const EDGE = 4;
 const MIN_HEIGHT = 180;
 const MAX_HEIGHT = 260;
+// A touch held this long without moving picks a day, and dragging then
+// moves the pick instead of scrolling.
+const HOLD_MS = 350;
+// A touch that moves further than this is a swipe, not a tap.
+const SLOP = 10;
 
 export default {
   name: 'NumberChart',
   // `entries` and `trend`: [{day, value}]; `bars`: [{day, total}] instead,
-  // `unit` naming their length. `first`/`last` are the days shown.
+  // `unit` naming their length. `first`/`last` are the days drawn, and
+  // `visible` how many of them fit on screen at once.
   // Emits `pick` with the picked day - `{day, values, trend}`, or
-  // `{day, total}` for a bar - and with null when nothing is picked.
-  props: ['entries', 'trend', 'bars', 'unit', 'first', 'last', 'decimals'],
-  emits: ['pick'],
+  // `{day, total}` for a bar - and with null when nothing is picked; and
+  // `view` with `{first, last}`, the days on screen, as they scroll.
+  props: ['entries', 'trend', 'bars', 'unit', 'first', 'last', 'visible', 'decimals'],
+  emits: ['pick', 'view'],
   data() {
-    return { width: 320, picked: null, TOP, plotLeft: LEFT };
+    return { width: 320, picked: null, TOP };
+  },
+  created() {
+    // The first day on screen, or null to stay at the latest days. Not
+    // reactive: nothing drawn depends on it, so scrolling redraws nothing.
+    this.viewFirst = null;
+    this.emitted = null;
+    this.touch = null;
   },
   mounted() {
     this.measure();
@@ -66,15 +89,24 @@ export default {
       this.resizeObserver.observe(this.$refs.chart);
     }
     document.addEventListener('pointerdown', this.onPointerDownOutside);
+    // Not passive: once a held touch picks a day, its drag mustn't scroll.
+    this.$refs.scroller.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    this.$nextTick(this.placeScroll);
   },
   beforeUnmount() {
     if (this.resizeObserver) this.resizeObserver.disconnect();
     document.removeEventListener('pointerdown', this.onPointerDownOutside);
+    this.$refs.scroller.removeEventListener('touchmove', this.onTouchMove);
+    this.endTouch();
   },
   watch: {
-    first() { this.picked = null; },
-    last() { this.picked = null; },
+    // New days, or a new zoom: back to the latest days.
+    first() { this.reset(); },
+    last() { this.reset(); },
+    visible() { this.reset(); },
     bars() { this.picked = null; },
+    // Resized: the same days stay on screen.
+    dayWidth() { this.$nextTick(this.placeScroll); },
     pickedItem(item) { this.$emit('pick', item); },
   },
   computed: {
@@ -85,15 +117,28 @@ export default {
     plotBottom() {
       return this.height - DATE_SPACE;
     },
+    // The scale fits all the days, not just those on screen, so it holds
+    // still while they scroll and a value is as high wherever it is.
     scale() {
       if (this.bars) return getValueScale(this.bars.map(bar => bar.total), { fromZero: true });
       return getValueScale(this.entries.map(e => e.value).concat(this.trend.map(p => p.value)));
     },
-    // The values are labelled right of the plot, as in Apple Health: the
-    // latest days, which matter most, stay clear of them.
-    plotRight() {
+    axisWidth() {
       const widest = Math.max(...this.scale.ticks.map(v => this.formatTick(v).length));
-      return this.width - (getLabelWidth(widest) - 6);
+      return getLabelWidth(widest) - 6;
+    },
+    days() {
+      return this.last - this.first + 1;
+    },
+    shownDays() {
+      return Math.max(1, Math.min(this.days, this.visible || this.days));
+    },
+    // Each day gets the same width, and its dots are in the middle of it.
+    dayWidth() {
+      return Math.max(0, this.width - this.axisWidth - 2 * EDGE) / this.shownDays;
+    },
+    contentWidth() {
+      return 2 * EDGE + this.days * this.dayWidth;
     },
     valueTicks() {
       // The line bars stand on, or the bottom of the plot, is drawn darker.
@@ -103,13 +148,14 @@ export default {
       }));
     },
     dateTicks() {
-      const ticks = getDateTicks(this.first, this.last, this.plotRight - LEFT);
+      const ticks = getDateTicks(this.first, this.last, this.contentWidth - 2 * EDGE);
       let taken = -Infinity;
       return ticks.map(tick => {
-        const x = this.bars ? this.getBarX(tick.day) : this.getX(tick.day);
+        // A bar starts where its day does.
+        const x = this.bars ? this.getX(tick.day - 0.5) : this.getX(tick.day);
         const labelWidth = getLabelWidth(tick.label.length) - 14;
         // Centered under its tick, but kept inside the plot.
-        const labelX = Math.max(0, Math.min(this.plotRight - labelWidth, x - labelWidth / 2));
+        const labelX = Math.max(0, Math.min(this.contentWidth - labelWidth, x - labelWidth / 2));
         return { ...tick, x, labelX, labelWidth };
       }).filter(tick => {
         if (tick.labelX < taken + 6) return false;
@@ -119,7 +165,7 @@ export default {
     },
 
     // One mark per day with entries: all of its dots and the trend there.
-    days() {
+    dayMarks() {
       if (this.bars) return [];
       const trendByDay = new Map(this.trend.map(p => [p.day, p.value]));
       const days = [];
@@ -135,7 +181,7 @@ export default {
     },
     // Smaller dots when they crowd, so the trend stays on top.
     dotRadius() {
-      const perPixel = this.days.length / Math.max(1, this.plotRight - LEFT);
+      const perPixel = this.dayMarks.length / Math.max(1, this.contentWidth - 2 * EDGE);
       return perPixel > 0.5 ? 1.5 : perPixel > 0.2 ? 2 : 2.5;
     },
     trendLines() {
@@ -149,30 +195,37 @@ export default {
       return end ? { x: this.getX(end.day), y: this.getY(end.value) } : null;
     },
 
-    // One slot per bar: the first week or month may start before the period,
-    // and months differ in length, but each bar is one of them.
-    barStep() {
-      return (this.plotRight - LEFT) / this.bars.length;
-    },
+    // A bar is as wide as its days, cut to the days drawn: the first week
+    // or month may start before them, and months differ in length.
     drawnBars() {
-      const step = this.barStep;
-      const barWidth = Math.max(1, step - Math.min(2, step / 4));
+      const { bars } = this;
+      const left = this.getX(this.first - 0.5);
+      const right = this.getX(this.last + 0.5);
       // From zero, up or down: a total can be negative.
       const zero = this.getY(0);
-      return this.bars.map((bar, i) => {
+      return bars.map((bar, i) => {
+        const start = Math.max(left, this.getX(bar.day - 0.5));
+        const end = Math.min(right, i + 1 < bars.length ? this.getX(bars[i + 1].day - 0.5) : right);
+        const gap = Math.min(2, (end - start) / 4);
         const y = this.getY(bar.total);
         return {
           day: bar.day,
-          x: LEFT + i * step,
+          x: start + gap / 2,
           y: Math.min(y, zero),
-          width: barWidth,
+          width: Math.max(1, end - start - gap),
           height: Math.max(bar.total ? 1 : 0, Math.abs(zero - y)),
         };
       });
     },
 
     marks() {
-      return this.bars ? this.bars : this.days;
+      return this.bars ? this.bars : this.dayMarks;
+    },
+    // Where each mark is along the days, to pick the closest one.
+    centers() {
+      return this.bars ?
+        this.drawnBars.map(bar => bar.x + bar.width / 2) :
+        this.dayMarks.map(day => this.getX(day.day));
     },
     pickedItem() {
       if (this.picked === null || this.picked >= this.marks.length) return null;
@@ -189,14 +242,16 @@ export default {
     },
     description() {
       const span = `${this.formatDay(this.first)} to ${this.formatDay(this.last)}`;
+      const scroll = this.shownDays < this.days ?
+        ` The latest ${this.shownDays} days are on screen; scroll sideways for the rest.` : '';
       const { ticks } = this.scale;
       if (this.bars) {
-        return `Totals per ${this.unit}, ${span}. Press or drag across the chart, or use the arrow keys, to read each ${this.unit}.`;
+        return `Totals per ${this.unit}, ${span}.${scroll} Tap the chart, or use the arrow keys, to read each ${this.unit}.`;
       }
       const values = this.entries.map(e => e.value);
       return `${this.entries.length} entries from ${span}, between ${formatNumber(Math.min(...values), this.decimals)} ` +
         `and ${formatNumber(Math.max(...values), this.decimals)}; the scale runs from ${this.formatTick(ticks[0])} ` +
-        `to ${this.formatTick(ticks[ticks.length - 1])}. Press or drag across the chart, or use the arrow keys, to read each day.`;
+        `to ${this.formatTick(ticks[ticks.length - 1])}.${scroll} Tap the chart, or use the arrow keys, to read each day.`;
     },
   },
   methods: {
@@ -205,27 +260,73 @@ export default {
       if (width) this.width = width;
     },
     getX(day) {
-      if (this.last === this.first) return (LEFT + this.plotRight) / 2;
-      return LEFT + (day - this.first) / (this.last - this.first) * (this.plotRight - LEFT);
-    },
-    // Where `day` falls among the bars.
-    getBarX(day) {
-      const { bars } = this;
-      let i = bars.length - 1;
-      while (i > 0 && bars[i].day > day) i -= 1;
-      const end = i + 1 < bars.length ? bars[i + 1].day : this.last + 1;
-      return LEFT + (i + Math.min(1, Math.max(0, (day - bars[i].day) / Math.max(1, end - bars[i].day)))) * this.barStep;
+      return EDGE + (day - this.first + 0.5) * this.dayWidth;
     },
     getY(value) {
       const { min, max } = this.scale;
       return TOP + (1 - (value - min) / (max - min)) * (this.plotBottom - TOP);
     },
 
-    // Press to pick, drag to move along. Only sideways drags reach here:
-    // `touch-action: pan-y` leaves scrolling the page to the browser, which
-    // then cancels the press, and the earlier pick comes back.
+    reset() {
+      this.picked = null;
+      this.viewFirst = null;
+      this.$nextTick(this.placeScroll);
+    },
+    // The first day that can be on screen while the last one is.
+    latestFirst() {
+      return this.last - this.shownDays + 1;
+    },
+    // Scrolls to `viewFirst`, or to the latest days.
+    placeScroll() {
+      const { scroller } = this.$refs;
+      if (!scroller) return;
+      const first = this.viewFirst === null ? this.latestFirst() : Math.min(this.viewFirst, this.latestFirst());
+      scroller.scrollLeft = (first - this.first) * this.dayWidth;
+      this.updateView(first);
+    },
+    onScroll() {
+      if (this.scrollFrame) return;
+      const next = typeof requestAnimationFrame === 'undefined' ? fn => fn() : requestAnimationFrame;
+      this.scrollFrame = true;
+      next(() => {
+        this.scrollFrame = false;
+        const { scroller } = this.$refs;
+        if (!scroller || !this.dayWidth) return;
+        const first = Math.max(this.first, Math.min(this.latestFirst(),
+          this.first + Math.round(scroller.scrollLeft / this.dayWidth)));
+        this.viewFirst = first === this.latestFirst() ? null : first;
+        this.updateView(first);
+      });
+    },
+    updateView(first) {
+      const last = first + this.shownDays - 1;
+      if (this.emitted && this.emitted.first === first && this.emitted.last === last) return;
+      this.emitted = { first, last };
+      this.$emit('view', this.emitted);
+    },
+    // Scrolls just enough to show the picked mark.
+    showPicked() {
+      const { scroller } = this.$refs;
+      if (!scroller || this.picked === null) return;
+      const x = this.centers[this.picked];
+      const room = Math.min(20, scroller.clientWidth / 4);
+      if (x < scroller.scrollLeft + room) scroller.scrollLeft = x - room;
+      else if (x > scroller.scrollLeft + scroller.clientWidth - room) scroller.scrollLeft = x - scroller.clientWidth + room;
+    },
+
+    // A mouse picks on press and moves the pick while dragging. A finger
+    // scrolls: a tap picks, and so does a press held still, after which
+    // the drag moves the pick.
     onPointerDown(e) {
       if (e.button) return;
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') {
+        this.endTouch();
+        this.touch = {
+          id: e.pointerId, startX: e.clientX, startY: e.clientY, x: e.clientX, scrubbing: false,
+          timer: setTimeout(() => this.startScrub(), HOLD_MS),
+        };
+        return;
+      }
       this.pickedBefore = this.picked;
       this.dragging = true;
       if (e.currentTarget.setPointerCapture && e.pointerId !== undefined) {
@@ -238,14 +339,50 @@ export default {
       this.pickAt(e.clientX);
     },
     onPointerMove(e) {
+      const { touch } = this;
+      if (touch && touch.id === e.pointerId) {
+        touch.x = e.clientX;
+        if (touch.scrubbing) this.pickAt(e.clientX);
+        else if (movedFar(touch, e)) this.endTouch();
+        return;
+      }
       if (this.dragging) this.pickAt(e.clientX);
     },
-    onPointerUp() {
+    onPointerUp(e) {
+      const { touch } = this;
+      if (touch && touch.id === e.pointerId) {
+        if (!touch.scrubbing && !movedFar(touch, e)) this.pickAt(e.clientX);
+        this.endTouch();
+        return;
+      }
       this.dragging = false;
     },
-    onPointerCancel() {
+    // The browser took the pointer over to scroll: a touch was a swipe, and
+    // a mouse press gives back the earlier pick.
+    onPointerCancel(e) {
+      const { touch } = this;
+      if (touch && touch.id === e.pointerId) {
+        this.endTouch();
+        return;
+      }
+      if (this.dragging) this.picked = this.pickedBefore;
       this.dragging = false;
-      this.picked = this.pickedBefore;
+    },
+    startScrub() {
+      if (!this.touch) return;
+      this.touch.scrubbing = true;
+      this.pickAt(this.touch.x);
+    },
+    endTouch() {
+      if (this.touch) clearTimeout(this.touch.timer);
+      this.touch = null;
+    },
+    onTouchMove(e) {
+      if (this.touch && this.touch.scrubbing && e.cancelable) e.preventDefault();
+    },
+    // A long press would otherwise bring up a menu.
+    onContextMenu(e) {
+      if (this.touch) e.preventDefault();
     },
     onPointerDownOutside(e) {
       if (this.$refs.chart && !this.$refs.chart.contains(e.target)) this.picked = null;
@@ -253,28 +390,40 @@ export default {
     onKeyDown(e) {
       const count = this.marks.length;
       if (!count) return;
-      const current = this.picked === null ? count : this.picked;
       let next;
-      if (e.key === 'ArrowLeft') next = Math.max(0, current - 1);
-      else if (e.key === 'ArrowRight') next = this.picked === null ? count - 1 : Math.min(count - 1, current + 1);
-      else if (e.key === 'Home') next = 0;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        // Nothing picked: start from the latest day on screen.
+        if (this.picked === null) next = this.lastOnScreen();
+        else next = Math.max(0, Math.min(count - 1, this.picked + (e.key === 'ArrowLeft' ? -1 : 1)));
+      } else if (e.key === 'Home') next = 0;
       else if (e.key === 'End') next = count - 1;
       else if (e.key === 'Escape') next = null;
       else return;
       e.preventDefault();
       this.picked = next;
+      this.showPicked();
     },
-    // The mark closest to `clientX` along the time axis only.
+    lastOnScreen() {
+      const last = this.emitted ? this.emitted.last : this.last;
+      let i = this.marks.length - 1;
+      while (i > 0 && this.marks[i].day > last) i -= 1;
+      return i;
+    },
+    // The mark closest to `clientX` along the days only.
     pickAt(clientX) {
-      const x = clientX - this.$refs.chart.getBoundingClientRect().left;
-      const centers = this.bars ?
-        this.drawnBars.map(bar => bar.x + bar.width / 2) :
-        this.days.map(day => this.getX(day.day));
-      let best = null;
-      centers.forEach((center, i) => {
-        if (best === null || Math.abs(center - x) < Math.abs(centers[best] - x)) best = i;
-      });
-      this.picked = best;
+      const x = clientX - this.$refs.plot.getBoundingClientRect().left;
+      const { centers } = this;
+      // The centers go left to right: find the first one past `x`.
+      let low = 0;
+      let high = centers.length;
+      while (low < high) {
+        const middle = (low + high) >> 1;
+        if (centers[middle] < x) low = middle + 1;
+        else high = middle;
+      }
+      if (low === centers.length) low -= 1;
+      if (low > 0 && x - centers[low - 1] <= centers[low] - x) low -= 1;
+      this.picked = centers.length ? low : null;
     },
 
     formatTick(value) {
@@ -285,24 +434,42 @@ export default {
     },
   },
 };
+
+function movedFar(touch, e) {
+  return Math.abs(e.clientX - touch.startX) > SLOP || Math.abs(e.clientY - touch.startY) > SLOP;
+}
 </script>
 
 <style lang='stylus'>
 @import '../../styles/variables.styl';
 
 .number-chart {
+  position: relative;
+  .nc-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
   svg {
     display: block;
-    overflow: visible;
-    cursor: crosshair;
-    touch-action: pan-y;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
   }
-  svg:focus-visible {
+  .nc-plot {
+    cursor: crosshair;
+    touch-action: manipulation;
+  }
+  .nc-plot:focus-visible {
     outline: 2px solid #0072B2;
-    outline-offset: 2px;
+    outline-offset: -2px;
+  }
+  .nc-axis {
+    position: absolute;
+    top: 0;
+    right: 0;
   }
   .nc-grid line {
     stroke: rgb(234, 236, 239);
